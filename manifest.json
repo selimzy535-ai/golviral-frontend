@@ -1,0 +1,28 @@
+
+{
+  "short_name": "GolViral",
+  "name": "GolViral Social Platform",
+  "description": "Watch reels, read stories, and share media securely with absolute edge acceleration and zero metadata bandwidth loss.",
+  "icons": [
+    {
+      "src": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/index.html",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "display": "standalone",
+  "orientation": "portrait",
+  "categories": ["social", "entertainment"]
+}
+
+
