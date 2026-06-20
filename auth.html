@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GolViral - Authentication</title>
+    <meta name="theme-color" content="#0A0A0A">
+    
+    <!-- Tailwind CSS Engine -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#0A0A0A',
+                        accent: '#E50914',
+                        surface: '#121212',
+                        card: '#1E1E1E'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Cloudflare Turnstile Secure Script Embed -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+    <style>
+        body {
+            background-color: #0A0A0A;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .auth-container {
+            max-width: 420px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen px-4 py-8">
+
+    <div class="auth-container w-full bg-surface border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-6">
+        
+        <!-- Platform Branding Title -->
+        <div class="text-center">
+            <h1 class="text-2xl font-black tracking-wider text-white">GOL<span class="text-accent">VIRAL</span></h1>
+            <p class="text-[11px] text-zinc-500 mt-1 uppercase tracking-widest font-semibold">v4.4 Secure Gateway</p>
+        </div>
+
+        <!-- System Response Alert Box -->
+        <div id="authAlert" class="hidden text-xs p-3 rounded-lg border text-center font-medium"></div>
+
+        <!-- Segmented Tab Navigation Controls -->
+        <div class="flex border-b border-zinc-800 text-xs font-bold">
+            <button id="tabLogin" onclick="switchTab('login')" class="flex-1 pb-3 text-white border-b-2 border-accent transition-all">Login</button>
+            <button id="tabSignup" onclick="switchTab('signup')" class="flex-1 pb-3 text-zinc-500 border-b-2 border-transparent transition-all">Signup</button>
+            <button id="tabForgot" onclick="switchTab('forgot')" class="flex-1 pb-3 text-zinc-500 border-b-2 border-transparent transition-all">Forgot</button>
+        </div>
+
+        <!-- FORM 1: LOGIN STRATEGY -->
+        <form id="loginForm" class="space-y-4" onsubmit="handleAuthSubmit(event, 'login')">
+            <div class="space-y-1.5">
+                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Email Address</label>
+                <input type="email" id="loginEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="name@domain.com">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Password</label>
+                <input type="password" id="loginPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="••••••••">
+            </div>
+            
+            <!-- Turnstile Placeholder for Login -->
+            <div class="flex justify-center pt-1">
+                <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-theme="dark" id="loginTurnstile"></div>
+            </div>
+
+            <button type="submit" class="w-full bg-white text-brand text-xs font-bold py-2.5 rounded-lg hover:bg-zinc-200 transition-colors mt-2">
+                Access System Feed
+            </button>
+        </form>
+
+        <!-- FORM 2: SIGNUP STRATEGY (INCLUDES BREVO OTP VERIFY VECTOR) -->
+        <form id="signupForm" class="hidden space-y-4" onsubmit="handleAuthSubmit(event, 'signup')">
+            <!-- Phase 1: User Identity Info -->
+            <div id="signupPhaseIdentity" class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Username</label>
+                    <input type="text" id="signupUsername" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="viralcreator">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Email Address</label>
+                    <input type="email" id="signupEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="creator@domain.com">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Password</label>
+                    <input type="password" id="signupPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="Minimum 6 characters">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Referral Username (Optional)</label>
+                    <input type="text" id="signupReferral" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="referrer_username">
+                </div>
+                
+                <div class="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-center">
+                    <p class="text-[10px] text-zinc-400 font-medium">New accounts instantly receive <span class="text-emerald-400 font-bold">1,500 Free Credits</span> upon completion.</p>
+                </div>
+
+                <!-- Turnstile Placeholder for Signup -->
+                <div class="flex justify-center pt-1">
+                    <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-theme="dark" id="signupTurnstile"></div>
+                </div>
+
+                <button type="button" onclick="requestSignupOTP()" class="w-full bg-accent text-white text-xs font-bold py-2.5 rounded-lg hover:bg-red-700 transition-colors mt-2">
+                    Request Verification OTP
+                </button>
+            </div>
+
+            <!-- Phase 2: Brevo Email Token Verification Screen -->
+            <div id="signupPhaseOTP" class="hidden space-y-4">
+                <div class="p-3 bg-zinc-900/80 border border-zinc-800 rounded-lg text-center space-y-1">
+                    <p class="text-xs font-bold text-white">Security Checkpoint Triggered</p>
+                    <p class="text-[11px] text-zinc-400">An authorization code was dispatched via Brevo to your email. Enter it below to register.</p>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">One-Time Password (OTP)</label>
+                    <input type="text" id="signupOTP" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white text-center tracking-widest font-mono text-base focus:outline-none focus:border-zinc-700 transition-colors" placeholder="000000">
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="resetSignupPhase()" class="w-1/3 bg-zinc-800 text-zinc-400 text-xs font-bold py-2.5 rounded-lg hover:text-white transition-colors">
+                        Back
+                    </button>
+                    <button type="submit" class="w-2/3 bg-white text-brand text-xs font-bold py-2.5 rounded-lg hover:bg-zinc-200 transition-colors">
+                        Confirm Registration
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- FORM 3: FORGOT PASSWORD INTERFACE -->
+        <form id="forgotForm" class="hidden space-y-4" onsubmit="handleAuthSubmit(event, 'forgot')">
+            <div class="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-center">
+                <p class="text-[11px] text-zinc-400 leading-relaxed">Enter your registered email address below. If an account matches, an access token recovery link will be sent to your inbox.</p>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Account Email</label>
+                <input type="email" id="forgotEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="recovery@domain.com">
+            </div>
+
+            <button type="submit" class="w-full bg-zinc-800 text-white text-xs font-bold py-2.5 rounded-lg hover:bg-zinc-700 border border-zinc-700 transition-colors mt-2">
+                Dispatch Reset Vector
+            </button>
+        </form>
+
+    </div>
+
+    <script>
+        const API_BASE = 'https://api.golviral.com';
+
+        // Direct users to feed if a session is already active
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('token')) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Tab Selector Logic
+        function switchTab(target) {
+            showAlert('', 'clear');
+            
+            // Elements
+            const forms = {
+                login: document.getElementById('loginForm'),
+                signup: document.getElementById('signupForm'),
+                forgot: document.getElementById('forgotForm')
+            };
+            const tabs = {
+                login: document.getElementById('tabLogin'),
+                signup: document.getElementById('tabSignup'),
+                forgot: document.getElementById('tabForgot')
+            };
+
+            // Loop and hide/deactivate everything
+            Object.keys(forms).forEach(key => {
+                if(key === target) {
+                    forms[key].classList.remove('hidden');
+                    tabs[key].classList.remove('text-zinc-500', 'border-transparent');
+                    tabs[key].classList.add('text-white', 'border-accent');
+                } else {
+                    forms[key].classList.add('hidden');
+                    tabs[key].classList.remove('text-white', 'border-accent');
+                    tabs[key].classList.add('text-zinc-500', 'border-transparent');
+                }
+            });
+
+            if (target === 'signup') resetSignupPhase();
+        }
+
+        // Request Brevo OTP Verification
+        async function requestSignupOTP() {
+            showAlert('', 'clear');
+            const username = document.getElementById('signupUsername').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            
+            // Pull Turnstile Token from the signup container zone inside document
+            const turnstileToken = turnstile.getResponse('#signupTurnstile');
+
+            if (!username || !email || !password) {
+                showAlert('Please fill in all core user fields before ordering OTP verification.', 'error');
+                return;
+            }
+            if (!turnstileToken) {
+                showAlert('Security Checkpoint Failed: Complete Cloudflare Turnstile verification challenge.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/signup-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password, turnstileToken })
+                });
+
+                if (response.ok) {
+                    showAlert('OTP dispatched to inbox successfully! Complete the security verification code check.', 'success');
+                    document.getElementById('signupPhaseIdentity').classList.add('hidden');
+                    document.getElementById('signupPhaseOTP').classList.remove('hidden');
+                } else {
+                    const data = await response.json();
+                    showAlert(data.message || 'OTP request denied by identity provider.', 'error');
+                    turnstile.reset('#signupTurnstile');
+                }
+            } catch (err) {
+                showAlert('Network execution framework error during OTP dispatch request.', 'error');
+            }
+        }
+
+        function resetSignupPhase() {
+            document.getElementById('signupPhaseIdentity').classList.remove('hidden');
+            document.getElementById('signupPhaseOTP').classList.add('hidden');
+        }
+
+        // Unified Auth Forms Handler Routing Module
+        async function handleAuthSubmit(event, action) {
+            event.preventDefault();
+            showAlert('', 'clear');
+
+            let payload = {};
+            let endpoint = '';
+
+            if (action === 'login') {
+                const email = document.getElementById('loginEmail').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                const turnstileToken = turnstile.getResponse('#loginTurnstile');
+
+                if (!turnstileToken) {
+                    showAlert('Please solve the Turnstile validation widget before login pipeline access.', 'error');
+                    return;
+                }
+
+                endpoint = '/api/auth/login';
+                payload = { email, password, turnstileToken };
+
+            } else if (action === 'signup') {
+                const username = document.getElementById('signupUsername').value.trim();
+                const email = document.getElementById('signupEmail').value.trim();
+                const password = document.getElementById('signupPassword').value;
+                const referral = document.getElementById('signupReferral').value.trim();
+                const otp = document.getElementById('signupOTP').value.trim();
+                const turnstileToken = turnstile.getResponse('#signupTurnstile');
+
+                endpoint = '/api/auth/register';
+                payload = { username, email, password, referral, otp, turnstileToken };
+
+            } else if (action === 'forgot') {
+                const email = document.getElementById('forgotEmail').value.trim();
+                endpoint = '/api/auth/forgot-password';
+                payload = { email };
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (action === 'forgot') {
+                        showAlert('Recovery authorization vector dispatched to inbox successfully.', 'success');
+                        document.getElementById('forgotForm').reset();
+                    } else {
+                        // Registration or Login Execution success pathway handling
+                        localStorage.setItem('token', data.token);
+                        showAlert('Identity access token authenticated. Routing back to main stream...', 'success');
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1200);
+                    }
+                } else {
+                    showAlert(data.message || 'Identity assertion failed. Check inputs.', 'error');
+                    // Reset security components immediately on failure loops
+                    if(action === 'login') turnstile.reset('#loginTurnstile');
+                    if(action === 'signup') turnstile.reset('#signupTurnstile');
+                }
+            } catch (err) {
+                showAlert('Platform API gateway connection dropped or offline.', 'error');
+            }
+        }
+
+        // Notification Interface Mutation Utility
+        function showAlert(msg, status) {
+            const el = document.getElementById('authAlert');
+            if (status === 'clear') {
+                el.className = 'hidden';
+                el.innerText = '';
+                return;
+            }
+            el.innerText = msg;
+            el.classList.remove('hidden');
+
+            if (status === 'success') {
+                el.className = 'text-xs p-3 rounded-lg text-center font-medium bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
+            } else if (status === 'error') {
+                el.className = 'text-xs p-3 rounded-lg text-center font-medium bg-accent/10 border-accent/20 text-accent';
+            }
+        }
+    </script>
+</body>
+</html>
