@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GolViral - Settings & Payout</title>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0A0A0A;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 80px;
+        }
+        header {
+            position: sticky;
+            top: 0;
+            background-color: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #1F1F1F;
+            z-index: 100;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: #FFFFFF;
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+        .page-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        /* Tab Architecture Switches */
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid #1F1F1F;
+            background-color: #0A0A0A;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px 0;
+            color: #888888;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            color: #FFFFFF;
+            border-bottom-color: #FFFFFF;
+        }
+        /* Configuration Input Framework */
+        .container {
+            padding: 20px 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .pane {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .pane.active {
+            display: flex;
+        }
+        .form-segment {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .input-group label {
+            font-size: 11px;
+            color: #888888;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .text-input, .select-input {
+            width: 100%;
+            background-color: #1A1A1A;
+            border: 1px solid #2A2A2A;
+            border-radius: 6px;
+            color: #FFFFFF;
+            padding: 12px;
+            font-size: 15px;
+            outline: none;
+        }
+        .text-input:focus, .select-input:focus {
+            border-color: #4A4A4A;
+        }
+        /* Verification Actions */
+        .otp-row {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-secondary {
+            background-color: #1A1A1A;
+            color: #FFFFFF;
+            border: 1px solid #2A2A2A;
+            border-radius: 6px;
+            padding: 0 15px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .submit-btn {
+            background-color: #FFFFFF;
+            color: #0A0A0A;
+            border: none;
+            border-radius: 6px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .turnstile-wrapper {
+            margin: 5px 0;
+            display: flex;
+            justify-content: center;
+        }
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 60px;
+            background: #0A0A0A;
+            border-top: 1px solid #1F1F1F;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+        .nav-item {
+            color: #888;
+            text-decoration: none;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="back-btn" onclick="history.back()">⬅</button>
+        <h1 class="page-title" id="settingsTitle">Account Settings</h1>
+    </header>
+
+    <nav class="tab-bar">
+        <div class="tab active" id="tab-general" onclick="switchTab('general')">General</div>
+        <div class="tab" id="tab-payout" onclick="switchTab('payout')">Withdrawal Ledger</div>
+    </nav>
+
+    <main class="container">
+        <div id="pane-general" class="pane active">
+            <form class="form-segment" onsubmit="handleSaveProfile(event)">
+                <div class="input-group">
+                    <label>Update Display Username</label>
+                    <input type="text" id="settingsUsername" class="text-input" placeholder="@username" required>
+                </div>
+                <button type="submit" class="submit-btn">Commit Profile Update</button>
+            </form>
+        </div>
+
+        <div id="pane-payout" class="pane">
+            <form class="form-segment" id="withdrawalForm" onsubmit="handleWithdrawalExecution(event)">
+                <div class="input-group">
+                    <label>Settlement Destination Channel</label>
+                    <select id="payoutChannel" class="select-input" onchange="togglePayoutFields()">
+                        <option value="bank">Generic Fiat Currency Account</option>
+                        <option value="usdt">USDT Crypto Wallet Address (TRC-20)</option>
+                    </select>
+                </div>
+
+                <div id="bankFields" class="form-segment">
+                    <div class="input-group">
+                        <label>Account Cleardown Routing Number</label>
+                        <input type="text" id="bankAccountNumber" class="text-input" placeholder="0000000000">
+                    </div>
+                    <div class="input-group">
+                        <label>Routing Interbank Sort Code</label>
+                        <input type="text" id="bankSortCode" class="text-input" placeholder="e.g., 044xxx">
+                    </div>
+                </div>
+
+                <div id="cryptoFields" class="form-segment" style="display:none;">
+                    <div class="input-group">
+                        <label>TRC-20 Destination Network Address</label>
+                        <input type="text" id="cryptoAddress" class="text-input" placeholder="T...">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Liquidation Points Amount</label>
+                    <input type="number" id="withdrawPoints" class="text-input" placeholder="Min 50,000 pts" min="50000" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Security Access Validation Code</label>
+                    <div class="otp-row">
+                        <input type="text" id="otpCode" class="text-input" placeholder="Enter 6-digit OTP" maxlength="6" required>
+                        <button type="button" class="btn-secondary" onclick="requestSecurityOTP()">Send Token</button>
+                    </div>
+                </div>
+
+                <div class="turnstile-wrapper">
+                    <div class="cf-turnstile" data-sitekey="YOUR_CLOUDFLARE_TURNSTILE_SITE_KEY" id="turnstileWidget"></div>
+                </div>
+
+                <button type="submit" class="submit-btn" style="background-color:#00C853; color:#000000;">Execute Withdrawal Request</button>
+            </form>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><span>🏠</span><span>Feed</span></a>
+        <a href="explore.html" class="nav-item"><span>🔍</span><span>Explore</span></a>
+        <a href="post.html" class="nav-item"><span>➕</span><span>Post</span></a>
+        <a href="reels.html" class="nav-item"><span>🎬</span><span>Reels</span></a>
+        <a href="profile.html" class="nav-item"><span>👤</span><span>Profile</span></a>
+    </nav>
+
+    <script>
+        const API_BASE = "https://api.golviral.com";
+        const token = localStorage.getItem("token") || "";
+
+        function switchTab(target) {
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".pane").forEach(p => p.classList.remove("active"));
+
+            document.getElementById(`tab-${target}`).classList.add("active");
+            document.getElementById(`pane-${target}`).classList.add("active");
+        }
+
+        function togglePayoutFields() {
+            const channel = document.getElementById("payoutChannel").value;
+            if (channel === "bank") {
+                document.getElementById("bankFields").style.display = "flex";
+                document.getElementById("cryptoFields").style.display = "none";
+            } else {
+                document.getElementById("bankFields").style.display = "none";
+                document.getElementById("cryptoFields").style.display = "flex";
+            }
+        }
+
+        async function requestSecurityOTP() {
+            try {
+                const res = await fetch(`${API_BASE}/auth/otp/send`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (res.ok) alert("Validation security code issued to email destination node.");
+                else alert("Failed issuing transaction authorization token.");
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function handleWithdrawalExecution(event) {
+            event.preventDefault();
+            
+            // Extract the generated validation token string directly out of turnstile frame
+            const turnstileToken = turnstile.getResponse();
+            if (!turnstileToken) {
+                alert("Please satisfy programmatic client security checks first.");
+                return;
+            }
+
+            const points = document.getElementById("withdrawPoints").value;
+            const channel = document.getElementById("payoutChannel").value;
+            const otp = document.getElementById("otpCode").value;
+
+            const payload = {
+                points: parseInt(points),
+                channel,
+                otp,
+                turnstileToken,
+                details: channel === "bank" ? {
+                    account: document.getElementById("bankAccountNumber").value,
+                    sortCode: document.getElementById("bankSortCode").value
+                } : {
+                    address: document.getElementById("cryptoAddress").value
+                }
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/wallet/withdraw`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || "Settlement mapping conflict verification node.");
+
+                alert("Withdrawal tracking pending approval logs. Execution queue initialized!");
+                window.location.href = "wallet.html";
+
+            } catch (err) {
+                alert(err.message);
+                turnstile.reset(); // Clear expired token challenges
+            }
+        }
+
+        async function handleSaveProfile(event) {
+            event.preventDefault();
+            const username = document.getElementById("settingsUsername").value;
+            try {
+                const res = await fetch(`${API_BASE}/profile/update`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ username })
+                });
+                if (res.ok) alert("Profile context synchronization successfully applied.");
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Deep-linking routing context checks for programmatic wallet redirect overrides
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("action") === "withdraw") {
+            switchTab("payout");
+        }
+    </script>
+</body>
+</html>
