@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GolViral - Explore</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0A0A0A;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 70px;
+        }
+        /* Header & Search Bar */
+        .explore-header {
+            position: sticky;
+            top: 0;
+            background-color: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            z-index: 100;
+            border-bottom: 1px solid #1F1F1F;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #1A1A1A;
+            border: 1px solid #2A2A2A;
+            border-radius: 8px;
+            color: #FFFFFF;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-box:focus {
+            border-color: #4A4A4A;
+        }
+        /* Discover Grid Layout */
+        .explore-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            padding: 2px;
+        }
+        .grid-item {
+            position: relative;
+            width: 100%;
+            padding-top: 133%; /* 3:4 Aspect Ratio for previews */
+            background-color: #111;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .grid-item img, .grid-item video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        /* Cache Indicator Badge */
+        .cache-badge {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: rgba(0, 200, 83, 0.9);
+            color: #FFFFFF;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            z-index: 2;
+            display: none;
+        }
+        /* Type Indicator Icon (Reel, Novel, Story) */
+        .type-icon {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #FFFFFF;
+            font-size: 12px;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 60px;
+            background: #0A0A0A;
+            border-top: 1px solid #1F1F1F;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+        .nav-item {
+            color: #888;
+            text-decoration: none;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-item.active {
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Sticky Search Header -->
+    <header class="explore-header">
+        <input type="text" id="searchBar" class="search-box" placeholder="Search creators, stories, or viral hashtags..." autocomplete="off">
+    </header>
+
+    <!-- Content Discover Grid -->
+    <main class="explore-grid" id="exploreGrid">
+        <!-- Grid items injected dynamically -->
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><span>🏠</span><span>Feed</span></a>
+        <a href="explore.html" class="nav-item active"><span>🔍</span><span>Explore</span></a>
+        <a href="post.html" class="nav-item"><span>➕</span><span>Post</span></a>
+        <a href="reels.html" class="nav-item"><span>🎬</span><span>Reels</span></a>
+        <a href="profile.html" class="nav-item"><span>👤</span><span>Profile</span></a>
+    </nav>
+
+    <script>
+        const API_BASE = "https://api.golviral.com";
+        const token = localStorage.getItem("token") || "";
+        const exploreGrid = document.getElementById("exploreGrid");
+        const searchBar = document.getElementById("searchBar");
+        
+        let allItems = [];
+
+        // Fetch Grid Items from API
+        async function loadExploreContent() {
+            try {
+                const response = await fetch(`${API_BASE}/posts`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error("Network response was not ok");
+                allItems = await response.json();
+                renderGrid(allItems);
+            } catch (error) {
+                console.error("Failed to load explore grid:", error);
+            }
+        }
+
+        // Render Grid with item parameters and icons
+        function renderGrid(items) {
+            exploreGrid.innerHTML = "";
+            items.forEach(item => {
+                const gridItem = document.createElement("div");
+                gridItem.className = "grid-item";
+                
+                // Determine item specific routing redirection and preview resource
+                let targetPage = "index.html";
+                let icon = "📝";
+                let previewElement = `<img src="${item.thumbnailUrl || 'https://via.placeholder.com/150x200?text=GolViral'}" alt="Preview" loading="lazy">`;
+
+                if (item.type === "reel") {
+                    targetPage = `reels.html?id=${item.id}`;
+                    icon = "🎬";
+                    previewElement = `<video src="${item.mediaUrl}" muted playsinline loop preload="metadata"></video>`;
+                } else if (item.type === "novel") {
+                    targetPage = `novel.html?id=${item.id}`;
+                    icon = "📖";
+                } else if (item.type === "story") {
+                    targetPage = `story.html?id=${item.id}`;
+                    icon = "📚";
+                }
+
+                gridItem.onclick = () => { window.location.href = targetPage; };
+
+                gridItem.innerHTML = `
+                    <div class="cache-badge" id="explore-badge-${item.id}">Cached</div>
+                    <div class="type-icon">${icon}</div>
+                    ${previewElement}
+                `;
+
+                exploreGrid.appendChild(gridItem);
+
+                // Run Cache-First Check against PWA Media Cache ruleset 
+                if (item.mediaUrl) {
+                    checkItemCache(item.mediaUrl, item.id);
+                }
+            });
+        }
+
+        // Intercept local Service Worker Cache match to trigger optimized UI badge
+        async function checkItemCache(url, id) {
+            if ('caches' in window) {
+                const mediaCache = await caches.open('v4.4-media-cache');
+                const match = await mediaCache.match(url);
+                if (match) {
+                    const badge = document.getElementById(`explore-badge-${id}`);
+                    if (badge) badge.style.display = 'block';
+                }
+            }
+        }
+
+        // Client-side instant filter search processing
+        searchBar.addEventListener("input", (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            if (!query) {
+                renderGrid(allItems);
+                return;
+            }
+            const filtered = allItems.filter(item => 
+                (item.caption && item.caption.toLowerCase().includes(query)) ||
+                (item.username && item.username.toLowerCase().includes(query)) ||
+                (item.title && item.title.toLowerCase().includes(query))
+            );
+            renderGrid(filtered);
+        });
+
+        // Initialize Loading
+        loadExploreContent();
+    </script>
+</body>
+</html>
