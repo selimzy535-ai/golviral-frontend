@@ -1,0 +1,255 @@
+### `golviral-frontend/novel.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GolViral - Read Novel</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0A0A0A;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 80px;
+        }
+        /* Top Navigation Header */
+        .novel-header {
+            position: sticky;
+            top: 0;
+            background-color: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #1F1F1F;
+            z-index: 100;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: #FFFFFF;
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+        .novel-title {
+            font-size: 18px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+        /* Sticky Progress Banner */
+        .timer-banner {
+            background-color: #1A1A1A;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #AAAAAA;
+            border-bottom: 1px solid #222;
+        }
+        .progress-container {
+            flex-grow: 1;
+            height: 4px;
+            background-color: #2A2A2A;
+            margin: 0 15px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #00C853;
+            transition: width 1s linear;
+        }
+        .status-badge {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+        .status-badge.pending { color: #FFD600; }
+        .status-badge.completed { color: #00C853; }
+
+        /* Reader Content Layout */
+        .novel-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 15px;
+        }
+        .novel-meta {
+            margin-bottom: 25px;
+            color: #888888;
+            font-size: 14px;
+        }
+        .novel-author {
+            color: #00C853;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .novel-body {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #E0E0E0;
+            letter-spacing: 0.5px;
+            white-space: pre-wrap;
+        }
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 60px;
+            background: #0A0A0A;
+            border-top: 1px solid #1F1F1F;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+        .nav-item {
+            color: #888;
+            text-decoration: none;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="novel-header">
+        <button class="back-btn" onclick="history.back()">⬅</button>
+        <h1 class="novel-title" id="novelTitle">Loading Novel...</h1>
+    </header>
+
+    <div class="timer-banner">
+        <span>Engagement Timer</span>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <span class="status-badge pending" id="timerStatus">2:00</span>
+    </div>
+
+    <main class="novel-container">
+        <div class="novel-meta">
+            <span>Published by: </span>
+            <a href="#" class="novel-author" id="novelAuthor">...</a>
+        </div>
+        <article class="novel-body" id="novelBody">
+            </article>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><span>🏠</span><span>Feed</span></a>
+        <a href="explore.html" class="nav-item"><span>🔍</span><span>Explore</span></a>
+        <a href="post.html" class="nav-item"><span>➕</span><span>Post</span></a>
+        <a href="reels.html" class="nav-item"><span>🎬</span><span>Reels</span></a>
+        <a href="profile.html" class="nav-item"><span>👤</span><span>Profile</span></a>
+    </nav>
+
+    <script>
+        const API_BASE = "https://api.golviral.com";
+        const token = localStorage.getItem("token") || "";
+        
+        // Extract Novel ID from URL Parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const novelId = urlParams.get('id');
+
+        let targetSeconds = 120; // 2-minute conversion target rule for Novels
+        let secondsElapsed = 0;
+        let timerInterval = null;
+        let engagementSubmitted = false;
+
+        async function fetchNovelData() {
+            if (!novelId) {
+                document.getElementById("novelTitle").innerText = "Error: Content Not Found";
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/posts/${novelId}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error("Could not populate novel document");
+                const data = await res.json();
+                
+                document.getElementById("novelTitle").innerText = data.title || "Untitled Novel";
+                document.getElementById("novelAuthor").innerText = `@${data.username || "creator"}`;
+                document.getElementById("novelAuthor").href = `user.html?id=${data.userId}`;
+                document.getElementById("novelBody").innerText = data.content || "No body content provided.";
+                
+                startEngagementTimer();
+            } catch (err) {
+                console.error(err);
+                document.getElementById("novelBody").innerText = "Error retrieving document from storage shards.";
+            }
+        }
+
+        function startEngagementTimer() {
+            const progressBar = document.getElementById("progressBar");
+            const timerStatus = document.getElementById("timerStatus");
+
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                
+                // Calculate and UI render timer constraints
+                let percentage = (secondsElapsed / targetSeconds) * 100;
+                progressBar.style.width = `${Math.min(percentage, 100)}%`;
+
+                let remainingSeconds = targetSeconds - secondsElapsed;
+                let mins = Math.floor(remainingSeconds / 60);
+                let secs = remainingSeconds % 60;
+                timerStatus.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+                if (secondsElapsed >= targetSeconds) {
+                    clearInterval(timerInterval);
+                    triggerEngagementAPI();
+                }
+            }, 1000);
+        }
+
+        // Post validated engagement payload to memory buffer routing backend
+        async function triggerEngagementAPI() {
+            if (engagementSubmitted) return;
+            engagementSubmitted = true;
+
+            const timerStatus = document.getElementById("timerStatus");
+            timerStatus.innerText = "Verified";
+            timerStatus.className = "status-badge completed";
+
+            try {
+                await fetch(`${API_BASE}/engagement/novel`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ postId: novelId })
+                });
+            } catch (err) {
+                console.error("Failed to commit tracking node:", err);
+            }
+        }
+
+        // Clean up thread state on tab navigate structural hooks
+        window.addEventListener("beforeunload", () => {
+            if (timerInterval) clearInterval(timerInterval);
+        });
+
+        // Initialize execution on runtime validation
+        fetchNovelData();
+    </script>
+</body>
+</html>
