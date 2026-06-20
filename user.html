@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GolViral - View Profile</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0A0A0A;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 80px;
+        }
+        /* Top Navigation Header */
+        .header-nav {
+            position: sticky;
+            top: 0;
+            background-color: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #1F1F1F;
+            z-index: 100;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: #FFFFFF;
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            flex-grow: 1;
+        }
+        /* Profile Header Card */
+        .profile-card {
+            padding: 25px 15px;
+            background: linear-gradient(to bottom, #111111, #0A0A0A);
+            border-bottom: 1px solid #1F1F1F;
+            text-align: center;
+        }
+        .avatar {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            background-color: #222222;
+            margin: 0 auto 12px auto;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        .username {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        /* Stats Dashboard Counters */
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px 0;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-val {
+            font-size: 18px;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+        .stat-lbl {
+            font-size: 12px;
+            color: #888888;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+        /* Profile Action Button */
+        .action-row {
+            display: flex;
+            justify-content: center;
+            padding: 0 20px;
+        }
+        .follow-btn {
+            background-color: #FFFFFF;
+            color: #0A0A0A;
+            border: none;
+            padding: 10px 32px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+            max-width: 240px;
+        }
+        .follow-btn.following {
+            background-color: #1A1A1A;
+            color: #FFFFFF;
+            border: 1px solid #2A2A2A;
+        }
+        /* Grid Display Pane for Posts */
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3px;
+            padding: 15px;
+        }
+        .grid-thumb {
+            position: relative;
+            width: 100%;
+            padding-top: 100%;
+            background-color: #161616;
+            cursor: pointer;
+        }
+        .grid-thumb img, .grid-thumb video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .grid-type-badge {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.7);
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 60px;
+            background: #0A0A0A;
+            border-top: 1px solid #1F1F1F;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+        .nav-item {
+            color: #888;
+            text-decoration: none;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-nav">
+        <button class="back-btn" onclick="history.back()">⬅</button>
+        <h1 class="header-title" id="headerTitle">Profile</h1>
+    </header>
+
+    <section class="profile-card">
+        <div class="avatar">👤</div>
+        <h2 class="username" id="userProfileName">@loading</h2>
+        
+        <div class="stats-row">
+            <div class="stat-item">
+                <span class="stat-val" id="countPosts">0</span>
+                <span class="stat-lbl">Posts</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-val" id="countFollowers">0</span>
+                <span class="stat-lbl">Followers</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-val" id="countFollowing">0</span>
+                <span class="stat-lbl">Following</span>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <button class="follow-btn" id="followBtn" onclick="toggleFollow()">Follow</button>
+        </div>
+    </section>
+
+    <main>
+        <div class="posts-grid" id="userGrid"></div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><span>🏠</span><span>Feed</span></a>
+        <a href="explore.html" class="nav-item"><span>🔍</span><span>Explore</span></a>
+        <a href="post.html" class="nav-item"><span>➕</span><span>Post</span></a>
+        <a href="reels.html" class="nav-item"><span>🎬</span><span>Reels</span></a>
+        <a href="profile.html" class="nav-item"><span>👤</span><span>Profile</span></a>
+    </nav>
+
+    <script>
+        const API_BASE = "https://api.golviral.com";
+        const token = localStorage.getItem("token") || "";
+
+        // Extract Targeted User ID from URL Parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUserId = urlParams.get('id');
+
+        let isFollowing = false;
+
+        async function fetchTargetUserData() {
+            if (!targetUserId) {
+                document.getElementById("userProfileName").innerText = "User not found";
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/users/${targetUserId}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error("Could not load external account metrics.");
+                const data = await res.json();
+
+                // Self-profile redirection check node
+                if (data.isSelf) {
+                    window.location.replace("profile.html");
+                    return;
+                }
+
+                // Hydrate details elements
+                document.getElementById("headerTitle").innerText = data.username || "Profile";
+                document.getElementById("userProfileName").innerText = `@${data.username || 'user'}`;
+                document.getElementById("countPosts").innerText = data.postsCount || 0;
+                document.getElementById("countFollowers").innerText = data.followersCount || 0;
+                document.getElementById("countFollowing").innerText = data.followingCount || 0;
+
+                // Sync follow status tracking configuration
+                isFollowing = data.isFollowing || false;
+                updateFollowButtonUI();
+
+                renderUserMediaGrid(data.posts || []);
+
+            } catch (err) {
+                console.error(err);
+                alert("Error populating profile data dashboard context.");
+            }
+        }
+
+        function updateFollowButtonUI() {
+            const btn = document.getElementById("followBtn");
+            if (isFollowing) {
+                btn.innerText = "Following";
+                btn.classList.add("following");
+            } else {
+                btn.innerText = "Follow";
+                btn.classList.remove("following");
+            }
+        }
+
+        // Toggles follow/unfollow relationship via API
+        async function toggleFollow() {
+            const btn = document.getElementById("followBtn");
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/users/${targetUserId}/follow`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                if (!res.ok) throw new Error("Could not update relation state graph.");
+                const data = await res.json();
+                
+                isFollowing = data.isFollowing;
+                document.getElementById("countFollowers").innerText = data.followersCount;
+                updateFollowButtonUI();
+            } catch (err) {
+                console.error(err);
+                alert("Failed to complete action.");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function renderUserMediaGrid(posts) {
+            const grid = document.getElementById("userGrid");
+            grid.innerHTML = "";
+
+            if (posts.length === 0) {
+                grid.style.display = "block";
+                grid.innerHTML = `<p style="color:#666; text-align:center; padding:40px 0; font-size:14px;">No public content available.</p>`;
+                return;
+            }
+
+            posts.forEach(post => {
+                const item = document.createElement("div");
+                item.className = "grid-thumb";
+                
+                let preview = `<img src="${post.thumbnailUrl || 'https://via.placeholder.com/150?text=GolViral'}" alt="Thumb" loading="lazy">`;
+                let badgeText = post.type.toUpperCase();
+
+                item.innerHTML = `
+                    ${preview}
+                    <div class="grid-type-badge">${badgeText}</div>
+                `;
+
+                // Item routing routing logic map
+                item.onclick = () => {
+                    if (post.type === 'reel') window.location.href = `reels.html?id=${post.id}`;
+                    else if (post.type === 'novel') window.location.href = `novel.html?id=${post.id}`;
+                    else if (post.type === 'story') window.location.href = `story.html?id=${post.id}`;
+                };
+
+                grid.appendChild(item);
+            });
+        }
+
+        // Initialize engine loading sequence
+        fetchTargetUserData();
+    </script>
+</body>
+</html>
