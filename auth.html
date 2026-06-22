@@ -75,59 +75,38 @@
         </form>
 
         <form id="signupForm" class="hidden space-y-4" onsubmit="handleAuthSubmit(event, 'signup')">
-            <div id="signupPhaseIdentity" class="space-y-4">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Username</label>
-                    <input type="text" id="signupUsername" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="viralcreator">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Email Address</label>
-                    <input type="email" id="signupEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="creator@domain.com">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Password</label>
-                    <input type="password" id="signupPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="Minimum 6 characters">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Referral User ID (Optional)</label>
-                    <input type="text" id="signupReferral" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="referrer_id_hex">
-                </div>
-                
-                <div class="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-center">
-                    <p class="text-[10px] text-zinc-400 font-medium">New accounts instantly receive <span class="text-emerald-400 font-bold">1,500 Free Credits</span> upon completion.</p>
-                </div>
-
-                <div class="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between">
-                    <label class="flex items-center space-x-2.5 cursor-pointer select-none">
-                        <input type="checkbox" id="signupBotCheck" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-accent focus:ring-0 focus:ring-offset-0 accent-accent">
-                        <span class="text-[11px] text-zinc-400 font-medium">I am a human creator</span>
-                    </label>
-                    <span class="text-[9px] text-zinc-600 uppercase tracking-widest font-bold">Gate-2</span>
-                </div>
-
-                <button type="button" onclick="requestSignupOTP()" class="w-full bg-accent text-white text-xs font-bold py-2.5 rounded-lg hover:bg-red-700 transition-colors mt-2">
-                    Request Verification OTP
-                </button>
+            <div class="space-y-1.5">
+                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Username</label>
+                <input type="text" id="signupUsername" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="viralcreator">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Email Address</label>
+                <input type="email" id="signupEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="creator@domain.com">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Password</label>
+                <input type="password" id="signupPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="Minimum 6 characters">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Referral User ID (Optional)</label>
+                <input type="text" id="signupReferral" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="referrer_id_hex">
+            </div>
+            
+            <div class="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-center">
+                <p class="text-[10px] text-zinc-400 font-medium">New accounts instantly receive <span class="text-emerald-400 font-bold">1,500 Free Credits</span> upon completion.</p>
             </div>
 
-            <div id="signupPhaseOTP" class="hidden space-y-4">
-                <div class="p-3 bg-zinc-900/80 border border-zinc-800 rounded-lg text-center space-y-1">
-                    <p class="text-xs font-bold text-white">Security Checkpoint Triggered</p>
-                    <p class="text-[11px] text-zinc-400">An authorization code was dispatched via Brevo to your email. Enter it below to register.</p>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">One-Time Password (OTP)</label>
-                    <input type="text" id="signupOTP" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white text-center tracking-widest font-mono text-base focus:outline-none focus:border-zinc-700 transition-colors" placeholder="000000">
-                </div>
-                <div class="flex gap-2">
-                    <button type="button" onclick="resetSignupPhase()" class="w-1/3 bg-zinc-800 text-zinc-400 text-xs font-bold py-2.5 rounded-lg hover:text-white transition-colors">
-                        Back
-                    </button>
-                    <button type="submit" class="w-2/3 bg-white text-brand text-xs font-bold py-2.5 rounded-lg hover:bg-zinc-200 transition-colors">
-                        Confirm Registration
-                    </button>
-                </div>
+            <div class="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between">
+                <label class="flex items-center space-x-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="signupBotCheck" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-accent focus:ring-0 focus:ring-offset-0 accent-accent">
+                    <span class="text-[11px] text-zinc-400 font-medium">I am a human creator</span>
+                </label>
+                <span class="text-[9px] text-zinc-600 uppercase tracking-widest font-bold">Gate-2</span>
             </div>
+
+            <button type="submit" class="w-full bg-accent text-white text-xs font-bold py-2.5 rounded-lg hover:bg-red-700 transition-colors mt-2">
+                Confirm Registration
+            </button>
         </form>
 
         <form id="forgotForm" class="hidden space-y-4" onsubmit="handleAuthSubmit(event, 'forgot')">
@@ -148,17 +127,14 @@
 
     <script>
         const API_BASE = 'https://golviral-api.onrender.com';
-        // Static string bypass mimicking a verified security token to pass backend checking logic seamlessly
         const STATIC_BYPASS_TOKEN = "0x4AAAAAADoM4bcvs5X6aaIH_NATIVE_PASSTHROUGH";
 
-        // Direct users to feed if a session is already active
         document.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem('token')) {
                 window.location.href = 'index.html';
             }
         });
 
-        // Tab Selector Logic
         function switchTab(target) {
             showAlert('', 'clear');
             
@@ -184,58 +160,11 @@
                     tabs[key].classList.add('text-zinc-500', 'border-transparent');
                 }
             });
-
-            if (target === 'signup') resetSignupPhase();
         }
 
-        // Request Brevo OTP Verification
-        async function requestSignupOTP() {
-            showAlert('', 'clear');
-            const email = document.getElementById('signupEmail').value.trim();
-            const isHuman = document.getElementById('signupBotCheck').checked;
-
-            if (!document.getElementById('signupUsername').value.trim() || !email || !document.getElementById('signupPassword').value) {
-                showAlert('Please fill in all core user fields before ordering OTP verification.', 'error');
-                return;
-            }
-            if (!isHuman) {
-                showAlert('Security Checkpoint Failed: Please confirm you are a human creator.', 'error');
-                return;
-            }
-
-            try {
-                // Pass the custom string token via turnstileToken field to trick the backend logic cleanly
-                const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, turnstileToken: STATIC_BYPASS_TOKEN })
-                });
-
-                if (response.ok) {
-                    showAlert('OTP dispatched to inbox successfully! Complete the security verification code check.', 'success');
-                    document.getElementById('signupPhaseIdentity').classList.add('hidden');
-                    document.getElementById('signupPhaseOTP').classList.remove('hidden');
-                } else {
-                    const data = await response.json();
-                    showAlert(data.error || 'OTP request denied by identity provider.', 'error');
-                }
-            } catch (err) {
-                showAlert('Network execution framework error during OTP dispatch request.', 'error');
-            }
-        }
-
-        function resetSignupPhase() {
-            document.getElementById('signupPhaseIdentity').classList.remove('hidden');
-            document.getElementById('signupPhaseOTP').classList.add('hidden');
-        }
-
-        // Unified Auth Forms Handler Routing Module
         async function handleAuthSubmit(event, action) {
             event.preventDefault();
             showAlert('', 'clear');
-
-            let payload = {};
-            let endpoint = '';
 
             if (action === 'login') {
                 const email = document.getElementById('loginEmail').value.trim();
@@ -247,60 +176,87 @@
                     return;
                 }
 
-                endpoint = '/api/auth/login';
-                payload = { email, password, turnstileToken: STATIC_BYPASS_TOKEN };
+                try {
+                    const response = await fetch(`${API_BASE}/api/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password, turnstileToken: STATIC_BYPASS_TOKEN })
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        localStorage.setItem('token', data.token);
+                        showAlert('Identity access token authenticated. Routing back to main stream...', 'success');
+                        setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+                    } else {
+                        showAlert(data.error || 'Invalid credentials verified by server.', 'error');
+                    }
+                } catch (err) {
+                    showAlert('Platform API gateway connection dropped or offline.', 'error');
+                }
 
             } else if (action === 'signup') {
                 const username = document.getElementById('signupUsername').value.trim();
                 const email = document.getElementById('signupEmail').value.trim();
                 const password = document.getElementById('signupPassword').value;
                 const referralCode = document.getElementById('signupReferral').value.trim();
-                const otp = document.getElementById('signupOTP').value.trim();
                 const isHuman = document.getElementById('signupBotCheck').checked;
 
                 if (!isHuman) {
                     showAlert('Please check the verification box to grant account authorization access.', 'error');
                     return;
                 }
+                if (password.length < 6) {
+                    showAlert('Password must contain at least 6 characters.', 'error');
+                    return;
+                }
 
-                endpoint = '/api/auth/signup';
-                payload = { username, email, password, referralCode, otp, turnstileToken: STATIC_BYPASS_TOKEN };
+                try {
+                    const response = await fetch(`${API_BASE}/api/auth/signup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username,
+                            email,
+                            password,
+                            referralCode: referralCode || undefined,
+                            turnstileToken: STATIC_BYPASS_TOKEN
+                        })
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        localStorage.setItem('token', data.token);
+                        showAlert('Account generated successfully! Routing to system core...', 'success');
+                        setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+                    } else {
+                        showAlert(data.error || 'Account creation rejected during sharding write process.', 'error');
+                    }
+                } catch (err) {
+                    showAlert('Verification framework error during profile execution pipeline.', 'error');
+                }
 
             } else if (action === 'forgot') {
                 const email = document.getElementById('forgotEmail').value.trim();
-                endpoint = '/api/auth/forgot-password';
-                payload = { email };
-            }
+                try {
+                    const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, turnstileToken: STATIC_BYPASS_TOKEN })
+                    });
 
-            try {
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    if (action === 'forgot') {
+                    if (response.ok) {
                         showAlert('Recovery authorization vector dispatched to inbox successfully.', 'success');
                         document.getElementById('forgotForm').reset();
                     } else {
-                        localStorage.setItem('token', data.token);
-                        showAlert('Identity access token authenticated. Routing back to main stream...', 'success');
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 1200);
+                        showAlert('Failed running recovery execution mapping.', 'error');
                     }
-                } else {
-                    showAlert(data.error || 'Identity assertion failed. Check inputs.', 'error');
+                } catch (err) {
+                    showAlert('Platform API gateway connection dropped or offline.', 'error');
                 }
-            } catch (err) {
-                showAlert('Platform API gateway connection dropped or offline.', 'error');
             }
         }
 
-        // Notification Interface Mutation Utility
         function showAlert(msg, status) {
             const el = document.getElementById('authAlert');
             if (status === 'clear') {
