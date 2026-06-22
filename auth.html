@@ -6,7 +6,6 @@
     <title>GolViral - Authentication</title>
     <meta name="theme-color" content="#0A0A0A">
     
-    <!-- Tailwind CSS Engine -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -23,7 +22,6 @@
         }
     </script>
 
-    <!-- Cloudflare Turnstile Secure Script Embed -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
     <style>
@@ -42,23 +40,19 @@
 
     <div class="auth-container w-full bg-surface border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-6">
         
-        <!-- Platform Branding Title -->
         <div class="text-center">
             <h1 class="text-2xl font-black tracking-wider text-white">GOL<span class="text-accent">VIRAL</span></h1>
-            <p class="text-[11px] text-zinc-500 mt-1 uppercase tracking-widest font-semibold">v4.4 Secure Gateway</p>
+            <p class="text-[11px] text-zinc-500 mt-1 uppercase tracking-widest font-semibold">v4.5 Secure Gateway</p>
         </div>
 
-        <!-- System Response Alert Box -->
         <div id="authAlert" class="hidden text-xs p-3 rounded-lg border text-center font-medium"></div>
 
-        <!-- Segmented Tab Navigation Controls -->
         <div class="flex border-b border-zinc-800 text-xs font-bold">
             <button id="tabLogin" onclick="switchTab('login')" class="flex-1 pb-3 text-white border-b-2 border-accent transition-all">Login</button>
             <button id="tabSignup" onclick="switchTab('signup')" class="flex-1 pb-3 text-zinc-500 border-b-2 border-transparent transition-all">Signup</button>
             <button id="tabForgot" onclick="switchTab('forgot')" class="flex-1 pb-3 text-zinc-500 border-b-2 border-transparent transition-all">Forgot</button>
         </div>
 
-        <!-- FORM 1: LOGIN STRATEGY -->
         <form id="loginForm" class="space-y-4" onsubmit="handleAuthSubmit(event, 'login')">
             <div class="space-y-1.5">
                 <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Email Address</label>
@@ -69,9 +63,8 @@
                 <input type="password" id="loginPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="••••••••">
             </div>
             
-            <!-- Turnstile Placeholder for Login -->
             <div class="flex justify-center pt-1">
-                <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-theme="dark" id="loginTurnstile"></div>
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAADoM4bcvs5X6aaIH" data-theme="dark" id="loginTurnstile"></div>
             </div>
 
             <button type="submit" class="w-full bg-white text-brand text-xs font-bold py-2.5 rounded-lg hover:bg-zinc-200 transition-colors mt-2">
@@ -79,9 +72,7 @@
             </button>
         </form>
 
-        <!-- FORM 2: SIGNUP STRATEGY (INCLUDES BREVO OTP VERIFY VECTOR) -->
         <form id="signupForm" class="hidden space-y-4" onsubmit="handleAuthSubmit(event, 'signup')">
-            <!-- Phase 1: User Identity Info -->
             <div id="signupPhaseIdentity" class="space-y-4">
                 <div class="space-y-1.5">
                     <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Username</label>
@@ -96,17 +87,16 @@
                     <input type="password" id="signupPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="Minimum 6 characters">
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Referral Username (Optional)</label>
-                    <input type="text" id="signupReferral" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="referrer_username">
+                    <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Referral User ID (Optional)</label>
+                    <input type="text" id="signupReferral" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="referrer_id_hex">
                 </div>
                 
                 <div class="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-center">
                     <p class="text-[10px] text-zinc-400 font-medium">New accounts instantly receive <span class="text-emerald-400 font-bold">1,500 Free Credits</span> upon completion.</p>
                 </div>
 
-                <!-- Turnstile Placeholder for Signup -->
                 <div class="flex justify-center pt-1">
-                    <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-theme="dark" id="signupTurnstile"></div>
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAADoM4bcvs5X6aaIH" data-theme="dark" id="signupTurnstile"></div>
                 </div>
 
                 <button type="button" onclick="requestSignupOTP()" class="w-full bg-accent text-white text-xs font-bold py-2.5 rounded-lg hover:bg-red-700 transition-colors mt-2">
@@ -114,7 +104,6 @@
                 </button>
             </div>
 
-            <!-- Phase 2: Brevo Email Token Verification Screen -->
             <div id="signupPhaseOTP" class="hidden space-y-4">
                 <div class="p-3 bg-zinc-900/80 border border-zinc-800 rounded-lg text-center space-y-1">
                     <p class="text-xs font-bold text-white">Security Checkpoint Triggered</p>
@@ -135,7 +124,6 @@
             </div>
         </form>
 
-        <!-- FORM 3: FORGOT PASSWORD INTERFACE -->
         <form id="forgotForm" class="hidden space-y-4" onsubmit="handleAuthSubmit(event, 'forgot')">
             <div class="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-center">
                 <p class="text-[11px] text-zinc-400 leading-relaxed">Enter your registered email address below. If an account matches, an access token recovery link will be sent to your inbox.</p>
@@ -153,7 +141,7 @@
     </div>
 
     <script>
-        const API_BASE = 'https://api.golviral.com';
+        const API_BASE = 'https://v45-reels-app.onrender.com'; // Point to Render API backend deployment URL
 
         // Direct users to feed if a session is already active
         document.addEventListener('DOMContentLoaded', () => {
@@ -166,7 +154,6 @@
         function switchTab(target) {
             showAlert('', 'clear');
             
-            // Elements
             const forms = {
                 login: document.getElementById('loginForm'),
                 signup: document.getElementById('signupForm'),
@@ -178,7 +165,6 @@
                 forgot: document.getElementById('tabForgot')
             };
 
-            // Loop and hide/deactivate everything
             Object.keys(forms).forEach(key => {
                 if(key === target) {
                     forms[key].classList.remove('hidden');
@@ -201,8 +187,8 @@
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
             
-            // Pull Turnstile Token from the signup container zone inside document
-            const turnstileToken = turnstile.getResponse('#signupTurnstile');
+            // Pull Turnstile Token from the signup container zone
+            const turnstileToken = turnstile.getResponse(document.getElementById('signupTurnstile'));
 
             if (!username || !email || !password) {
                 showAlert('Please fill in all core user fields before ordering OTP verification.', 'error');
@@ -214,10 +200,10 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/api/auth/signup-otp`, {
+                const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password, turnstileToken })
+                    body: JSON.stringify({ email, turnstileToken })
                 });
 
                 if (response.ok) {
@@ -226,8 +212,8 @@
                     document.getElementById('signupPhaseOTP').classList.remove('hidden');
                 } else {
                     const data = await response.json();
-                    showAlert(data.message || 'OTP request denied by identity provider.', 'error');
-                    turnstile.reset('#signupTurnstile');
+                    showAlert(data.error || 'OTP request denied by identity provider.', 'error');
+                    turnstile.reset(document.getElementById('signupTurnstile'));
                 }
             } catch (err) {
                 showAlert('Network execution framework error during OTP dispatch request.', 'error');
@@ -250,7 +236,7 @@
             if (action === 'login') {
                 const email = document.getElementById('loginEmail').value.trim();
                 const password = document.getElementById('loginPassword').value;
-                const turnstileToken = turnstile.getResponse('#loginTurnstile');
+                const turnstileToken = turnstile.getResponse(document.getElementById('loginTurnstile'));
 
                 if (!turnstileToken) {
                     showAlert('Please solve the Turnstile validation widget before login pipeline access.', 'error');
@@ -264,12 +250,12 @@
                 const username = document.getElementById('signupUsername').value.trim();
                 const email = document.getElementById('signupEmail').value.trim();
                 const password = document.getElementById('signupPassword').value;
-                const referral = document.getElementById('signupReferral').value.trim();
+                const referralCode = document.getElementById('signupReferral').value.trim();
                 const otp = document.getElementById('signupOTP').value.trim();
-                const turnstileToken = turnstile.getResponse('#signupTurnstile');
+                const turnstileToken = turnstile.getResponse(document.getElementById('signupTurnstile'));
 
-                endpoint = '/api/auth/register';
-                payload = { username, email, password, referral, otp, turnstileToken };
+                endpoint = '/api/auth/signup';
+                payload = { username, email, password, referralCode, otp, turnstileToken };
 
             } else if (action === 'forgot') {
                 const email = document.getElementById('forgotEmail').value.trim();
@@ -291,7 +277,6 @@
                         showAlert('Recovery authorization vector dispatched to inbox successfully.', 'success');
                         document.getElementById('forgotForm').reset();
                     } else {
-                        // Registration or Login Execution success pathway handling
                         localStorage.setItem('token', data.token);
                         showAlert('Identity access token authenticated. Routing back to main stream...', 'success');
                         setTimeout(() => {
@@ -299,10 +284,9 @@
                         }, 1200);
                     }
                 } else {
-                    showAlert(data.message || 'Identity assertion failed. Check inputs.', 'error');
-                    // Reset security components immediately on failure loops
-                    if(action === 'login') turnstile.reset('#loginTurnstile');
-                    if(action === 'signup') turnstile.reset('#signupTurnstile');
+                    showAlert(data.error || 'Identity assertion failed. Check inputs.', 'error');
+                    if(action === 'login') turnstile.reset(document.getElementById('loginTurnstile'));
+                    if(action === 'signup') turnstile.reset(document.getElementById('signupTurnstile'));
                 }
             } catch (err) {
                 showAlert('Platform API gateway connection dropped or offline.', 'error');
