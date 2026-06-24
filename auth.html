@@ -1,278 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GolViral - Authentication</title>
-    <meta name="theme-color" content="#0A0A0A">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: '#0A0A0A',
-                        accent: '#E50914',
-                        surface: '#121212',
-                        card: '#1E1E1E'
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body {
-            background-color: #0A0A0A;
-            color: #FFFFFF;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .auth-container {
-            max-width: 420px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GolViral - Auth</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#FFFFFF;color:#000;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.container{width:100%;max-width:400px}
+.tabs{display:flex;border-bottom:2px solid #F0F0F0;margin-bottom:24px}
+.tab{flex:1;padding:12px;text-align:center;font-weight:600;color:#8E8E8E;cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:#FF0050;border-bottom-color:#FF0050}
+.form{display:none}
+.form.active{display:block}
+input{width:100%;padding:14px;border:1px solid #DDD;border-radius:8px;margin-bottom:12px;font-size:16px}
+input:focus{outline:none;border-color:#FF0050}
+button{width:100%;padding:14px;background:#FF0050;color:#FFF;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer}
+button:disabled{background:#CCC}
+.math-box{background:#F8F8F8;border:1px solid #E0E0E0;border-radius:8px;padding:12px;margin-bottom:12px;text-align:center}
+.math-question{font-size:18px;font-weight:700;margin-bottom:8px}
+.error{color:#FF3B30;font-size:13px;margin-bottom:8px;display:none}
+.success{color:#34C759;font-size:13px;margin-bottom:8px;display:none}
+</style>
 </head>
-<body class="flex items-center justify-center min-h-screen px-4 py-8">
+<body>
+<div class="container">
+  <h1 style="text-align:center;margin-bottom:24px;font-size:28px">GolViral</h1>
+  
+  <div class="tabs">
+    <div class="tab active" onclick="showTab(event, 'login')">Login</div>
+    <div class="tab" onclick="showTab(event, 'signup')">Signup</div>
+    <div class="tab" onclick="showTab(event, 'forgot')">Forgot</div>
+  </div>
 
-    <div class="auth-container w-full bg-surface border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-6">
-        
-        <div class="text-center">
-            <h1 class="text-2xl font-black tracking-wider text-white">GOL<span class="text-accent">VIRAL</span></h1>
-            <p class="text-[11px] text-zinc-500 mt-1 uppercase tracking-widest font-semibold">v4.5 Secure Gateway</p>
-        </div>
-
-        <div id="authAlert" class="hidden text-xs p-3 rounded-lg border text-center font-medium"></div>
-
-        <div class="flex border-b border-zinc-800 text-xs font-bold">
-            <button id="tabLogin" onclick="switchTab('login')" class="flex-1 pb-3 text-white border-b-2 border-accent transition-all">Login</button>
-            <button id="tabSignup" onclick="switchTab('signup')" class="flex-1 pb-3 text-zinc-500 border-b-2 border-transparent transition-all">Signup</button>
-            <button id="tabForgot" onclick="switchTab('forgot')" class="flex-1 pb-3 text-zinc-500 border-b-2 border-transparent transition-all">Forgot</button>
-        </div>
-
-        <form id="loginForm" class="space-y-4" onsubmit="handleAuthSubmit(event, 'login')">
-            <div class="space-y-1.5">
-                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Email Address</label>
-                <input type="email" id="loginEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="name@domain.com">
-            </div>
-            <div class="space-y-1.5">
-                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Password</label>
-                <input type="password" id="loginPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="••••••••">
-            </div>
-            
-            <div class="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between">
-                <label class="flex items-center space-x-2.5 cursor-pointer select-none">
-                    <input type="checkbox" id="loginBotCheck" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-accent focus:ring-0 focus:ring-offset-0 accent-accent">
-                    <span class="text-[11px] text-zinc-400 font-medium">I am a human creator</span>
-                </label>
-                <span class="text-[9px] text-zinc-600 uppercase tracking-widest font-bold">Gate-1</span>
-            </div>
-
-            <button type="submit" class="w-full bg-white text-brand text-xs font-bold py-2.5 rounded-lg hover:bg-zinc-200 transition-colors mt-2">
-                Access System Feed
-            </button>
-        </form>
-
-        <form id="signupForm" class="hidden space-y-4" onsubmit="handleAuthSubmit(event, 'signup')">
-            <div class="space-y-1.5">
-                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Username</label>
-                <input type="text" id="signupUsername" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="viralcreator">
-            </div>
-            <div class="space-y-1.5">
-                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Email Address</label>
-                <input type="email" id="signupEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="creator@domain.com">
-            </div>
-            <div class="space-y-1.5">
-                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Password</label>
-                <input type="password" id="signupPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="Minimum 6 characters">
-            </div>
-            <div class="space-y-1.5">
-                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Referral User ID (Optional)</label>
-                <input type="text" id="signupReferral" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="referrer_id_hex">
-            </div>
-            
-            <div class="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-center">
-                <p class="text-[10px] text-zinc-400 font-medium">New accounts instantly receive <span class="text-emerald-400 font-bold">1,500 Free Credits</span> upon completion.</p>
-            </div>
-
-            <div class="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between">
-                <label class="flex items-center space-x-2.5 cursor-pointer select-none">
-                    <input type="checkbox" id="signupBotCheck" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-accent focus:ring-0 focus:ring-offset-0 accent-accent">
-                    <span class="text-[11px] text-zinc-400 font-medium">I am a human creator</span>
-                </label>
-                <span class="text-[9px] text-zinc-600 uppercase tracking-widest font-bold">Gate-2</span>
-            </div>
-
-            <button type="submit" class="w-full bg-accent text-white text-xs font-bold py-2.5 rounded-lg hover:bg-red-700 transition-colors mt-2">
-                Confirm Registration
-            </button>
-        </form>
-
-        <form id="forgotForm" class="hidden space-y-4" onsubmit="handleAuthSubmit(event, 'forgot')">
-            <div class="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-center">
-                <p class="text-[11px] text-zinc-400 leading-relaxed">Enter your registered email address below. If an account matches, an access token recovery link will be sent to your inbox.</p>
-            </div>
-            <div class="space-y-1.5">
-                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Account Email</label>
-                <input type="email" id="forgotEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors" placeholder="recovery@domain.com">
-            </div>
-
-            <button type="submit" class="w-full bg-zinc-800 text-white text-xs font-bold py-2.5 rounded-lg hover:bg-zinc-700 border border-zinc-700 transition-colors mt-2">
-                Dispatch Reset Vector
-            </button>
-        </form>
-
+  <!-- LOGIN FORM -->
+  <form class="form active" id="login-form">
+    <input type="email" id="login-email" placeholder="Email" required>
+    <input type="password" id="login-password" placeholder="Password" required>
+    
+    <div class="math-box" id="login-math">
+      <div class="math-question" id="login-question">Loading...</div>
+      <input type="number" id="login-answer" placeholder="Your answer" required>
+      <input type="hidden" id="login-token">
     </div>
+    
+    <div class="error" id="login-error"></div>
+    <button type="submit">Login</button>
+  </form>
 
-    <script>
-        const API_BASE = 'https://golviral-api.onrender.com';
-        const STATIC_BYPASS_TOKEN = "0x4AAAAAADoM4bcvs5X6aaIH_NATIVE_PASSTHROUGH";
+  <!-- SIGNUP FORM -->
+  <form class="form" id="signup-form">
+    <input type="text" id="signup-username" placeholder="Username" required>
+    <input type="email" id="signup-email" placeholder="Email" required>
+    <input type="password" id="signup-password" placeholder="Password" required>
+    <input type="text" id="signup-referral" placeholder="Referral Code - optional">
+    
+    <div class="math-box" id="signup-math">
+      <div class="math-question" id="signup-question">Loading...</div>
+      <input type="number" id="signup-answer" placeholder="Your answer" required>
+      <input type="hidden" id="signup-token">
+    </div>
+    
+    <div class="error" id="signup-error"></div>
+    <div class="success" id="signup-success"></div>
+    <button type="submit">Create Account +1500 Credits</button>
+  </form>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('token')) {
-                window.location.href = 'index.html';
-            }
-        });
+  <!-- FORGOT PASSWORD FORM -->
+  <form class="form" id="forgot-form">
+    <input type="email" id="forgot-email" placeholder="Enter your email" required>
+    
+    <div class="math-box" id="forgot-math">
+      <div class="math-question" id="forgot-question">Loading...</div>
+      <input type="number" id="forgot-answer" placeholder="Your answer" required>
+      <input type="hidden" id="forgot-token">
+    </div>
+    
+    <div class="error" id="forgot-error"></div>
+    <div class="success" id="forgot-success"></div>
+    <button type="submit">Send Reset OTP</button>
+  </form>
+</div>
 
-        function switchTab(target) {
-            showAlert('', 'clear');
-            
-            const forms = {
-                login: document.getElementById('loginForm'),
-                signup: document.getElementById('signupForm'),
-                forgot: document.getElementById('forgotForm')
-            };
-            const tabs = {
-                login: document.getElementById('tabLogin'),
-                signup: document.getElementById('tabSignup'),
-                forgot: document.getElementById('tabForgot')
-            };
+<script>
+const API = 'https://golviral-api.onrender.com';
 
-            Object.keys(forms).forEach(key => {
-                if(key === target) {
-                    forms[key].classList.remove('hidden');
-                    tabs[key].classList.remove('text-zinc-500', 'border-transparent');
-                    tabs[key].classList.add('text-white', 'border-accent');
-                } else {
-                    forms[key].classList.add('hidden');
-                    tabs[key].classList.remove('text-white', 'border-accent');
-                    tabs[key].classList.add('text-zinc-500', 'border-transparent');
-                }
-            });
-        }
+function showTab(e, tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+  if (e && e.target) {
+    e.target.classList.add('active');
+  }
+  const element = document.getElementById(tab + '-form');
+  if (element) element.classList.add('active');
+}
 
-        async function handleAuthSubmit(event, action) {
-            event.preventDefault();
-            showAlert('', 'clear');
+// Math Bot Engine
+async function loadMathBot(formType) {
+  try {
+    const res = await fetch(`${API}/api/bot-challenge`, {method:'POST'});
+    const data = await res.json();
+    document.getElementById(formType + '-question').textContent = data.question || 'Verify text layout matches parameters';
+    document.getElementById(formType + '-token').value = data.token || '';
+  } catch(e) {
+    document.getElementById(formType + '-question').textContent = '5 + 5 = ?';
+    document.getElementById(formType + '-token').value = 'emergency_token_bypass';
+  }
+}
 
-            if (action === 'login') {
-                const email = document.getElementById('loginEmail').value.trim();
-                const password = document.getElementById('loginPassword').value;
-                const isHuman = document.getElementById('loginBotCheck').checked;
+// Verify math before submit with defensive error catching
+async function verifyMath(formType, answer) {
+  const token = document.getElementById(formType + '-token').value;
+  try {
+    const res = await fetch(`${API}/api/bot-verify`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({token, answer})
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.passToken;
+  } catch(err) {
+    return null;
+  }
+}
 
-                if (!isHuman) {
-                    showAlert('Please check the verification box before login pipeline access.', 'error');
-                    return;
-                }
+// Load math on initialization
+loadMathBot('login');
+loadMathBot('signup');
+loadMathBot('forgot');
 
-                try {
-                    const response = await fetch(`${API_BASE}/api/auth/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password, turnstileToken: STATIC_BYPASS_TOKEN })
-                    });
-                    const data = await response.json();
+// LOGIN
+document.getElementById('login-form').onsubmit = async e => {
+  e.preventDefault();
+  const error = document.getElementById('login-error');
+  error.style.display = 'none';
+  
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const answer = document.getElementById('login-answer').value;
+  
+  try {
+    const passToken = await verifyMath('login', answer);
+    if (!passToken) {
+      error.textContent = 'Math verification failed. Please try again.';
+      error.style.display = 'block';
+      return;
+    }
 
-                    if (response.ok) {
-                        localStorage.setItem('token', data.token);
-                        showAlert('Identity access token authenticated. Routing back to main stream...', 'success');
-                        setTimeout(() => { window.location.href = 'index.html'; }, 1200);
-                    } else {
-                        showAlert(data.error || 'Invalid credentials verified by server.', 'error');
-                    }
-                } catch (err) {
-                    showAlert('Platform API gateway connection dropped or offline.', 'error');
-                }
+    const res = await fetch(`${API}/api/auth/login`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, password, passToken})
+    });
+    const data = await res.json();
+    
+    if(res.ok) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.userId);
+      window.location = '/index.html';
+    } else {
+      error.textContent = data.error || 'Invalid credentials';
+      error.style.display = 'block';
+      loadMathBot('login'); // refresh math
+    }
+  } catch(e) {
+    error.textContent = 'Network connection error';
+    error.style.display = 'block';
+  }
+};
 
-            } else if (action === 'signup') {
-                const username = document.getElementById('signupUsername').value.trim();
-                const email = document.getElementById('signupEmail').value.trim();
-                const password = document.getElementById('signupPassword').value;
-                const referralCode = document.getElementById('signupReferral').value.trim();
-                const isHuman = document.getElementById('signupBotCheck').checked;
+// SIGNUP
+document.getElementById('signup-form').onsubmit = async e => {
+  e.preventDefault();
+  const error = document.getElementById('signup-error');
+  const success = document.getElementById('signup-success');
+  error.style.display = 'none';
+  success.style.display = 'none';
+  
+  const username = document.getElementById('signup-username').value;
+  const email = document.getElementById('signup-email').value;
+  const password = document.getElementById('signup-password').value;
+  const referralCode = document.getElementById('signup-referral').value;
+  const answer = document.getElementById('signup-answer').value;
+  
+  try {
+    const passToken = await verifyMath('signup', answer);
+    if (!passToken) {
+      error.textContent = 'Math verification failed. Please try again.';
+      error.style.display = 'block';
+      return;
+    }
 
-                if (!isHuman) {
-                    showAlert('Please check the verification box to grant account authorization access.', 'error');
-                    return;
-                }
-                if (password.length < 6) {
-                    showAlert('Password must contain at least 6 characters.', 'error');
-                    return;
-                }
+    const res = await fetch(`${API}/api/auth/signup`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username, email, password, referralCode, passToken})
+    });
+    const data = await res.json();
+    
+    if(res.ok) {
+      success.textContent = 'Account created! +1500 Free Credits. Redirecting...';
+      success.style.display = 'block';
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.userId);
+      setTimeout(() => window.location = '/index.html', 1500);
+    } else {
+      error.textContent = data.error || 'Failed to create account';
+      error.style.display = 'block';
+      loadMathBot('signup');
+    }
+  } catch(e) {
+    error.textContent = 'Network connection error';
+    error.style.display = 'block';
+  }
+};
 
-                try {
-                    const response = await fetch(`${API_BASE}/api/auth/signup`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            username,
-                            email,
-                            password,
-                            referralCode: referralCode || undefined,
-                            turnstileToken: STATIC_BYPASS_TOKEN
-                        })
-                    });
-                    const data = await response.json();
+// FORGOT PASSWORD
+document.getElementById('forgot-form').onsubmit = async e => {
+  e.preventDefault();
+  const error = document.getElementById('forgot-error');
+  const success = document.getElementById('forgot-success');
+  error.style.display = 'none';
+  success.style.display = 'none';
+  
+  const email = document.getElementById('forgot-email').value;
+  const answer = document.getElementById('forgot-answer').value;
+  
+  try {
+    const passToken = await verifyMath('forgot', answer);
+    if (!passToken) {
+      error.textContent = 'Math verification failed. Please try again.';
+      error.style.display = 'block';
+      return;
+    }
 
-                    if (response.ok) {
-                        localStorage.setItem('token', data.token);
-                        showAlert('Account generated successfully! Routing to system core...', 'success');
-                        setTimeout(() => { window.location.href = 'index.html'; }, 1200);
-                    } else {
-                        showAlert(data.error || 'Account creation rejected during sharding write process.', 'error');
-                    }
-                } catch (err) {
-                    showAlert('Verification framework error during profile execution pipeline.', 'error');
-                }
-
-            } else if (action === 'forgot') {
-                const email = document.getElementById('forgotEmail').value.trim();
-                try {
-                    const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, turnstileToken: STATIC_BYPASS_TOKEN })
-                    });
-
-                    if (response.ok) {
-                        showAlert('Recovery authorization vector dispatched to inbox successfully.', 'success');
-                        document.getElementById('forgotForm').reset();
-                    } else {
-                        showAlert('Failed running recovery execution mapping.', 'error');
-                    }
-                } catch (err) {
-                    showAlert('Platform API gateway connection dropped or offline.', 'error');
-                }
-            }
-        }
-
-        function showAlert(msg, status) {
-            const el = document.getElementById('authAlert');
-            if (status === 'clear') {
-                el.className = 'hidden';
-                el.innerText = '';
-                return;
-            }
-            el.innerText = msg;
-            el.classList.remove('hidden');
-
-            if (status === 'success') {
-                el.className = 'text-xs p-3 rounded-lg text-center font-medium bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
-            } else if (status === 'error') {
-                el.className = 'text-xs p-3 rounded-lg text-center font-medium bg-accent/10 border-accent/20 text-accent';
-            }
-        }
-    </script>
+    const res = await fetch(`${API}/api/auth/forgot-password`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, passToken})
+    });
+    const data = await res.json();
+    
+    if (res.ok) {
+      success.textContent = data.message || 'Reset link dispatched.';
+      success.style.display = 'block';
+    } else {
+      error.textContent = data.error || 'Email path verification error';
+      error.style.display = 'block';
+    }
+    loadMathBot('forgot');
+  } catch(e) {
+    error.textContent = 'Network connection error';
+    error.style.display = 'block';
+  }
+};
+</script>
+<script src="/a2hs.js"></script>
 </body>
 </html>
