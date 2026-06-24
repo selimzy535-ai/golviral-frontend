@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GolViral - Viral Feed</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#FFFFFF">
@@ -43,7 +44,7 @@ nav a.active{color:#FF0050}
 </nav>
 
 <script>
-const API = 'https://golviral-api.onrender.com'; // change to your Render URL
+const API = 'https://golviral-api.onrender.com'; 
 const token = localStorage.getItem('token');
 
 async function loadFeed() {
@@ -52,72 +53,97 @@ async function loadFeed() {
     const posts = await res.json();
     const feedDiv = document.getElementById('feed');
     
-    if(posts.length === 0) {
+    if(!posts || posts.length === 0) {
       feedDiv.innerHTML = '<div style="text-align:center;padding:40px">No posts yet. Be the first to post!</div>';
       return;
     }
     
-    feedDiv.innerHTML = posts.map(p => `
-      <div class="post" data-id="${p.id}">
-        <div class="post-header">
-          <div class="post-avatar"></div>
-          <div class="post-user">@${p.userId.slice(0,8)}</div>
+    feedDiv.innerHTML = posts.map(p => {
+      // Defensive fallback check to avoid crashing on undefined strings
+      const displayId = p.userId ? String(p.userId).slice(0, 8) : 'anonymous';
+      
+      return `
+        <div class="post" data-id="${p.id}">
+          <div class="post-header">
+            <div class="post-avatar"></div>
+            <div class="post-user">@${displayId}</div>
+          </div>
+          <div class="post-media">
+            <video src="${p.mediaUrl}" controls playsinline preload="metadata" poster="${p.thumbnailUrl || ''}"></video>
+            <div class="cached-badge" id="cached-${p.id}">Cached</div>
+          </div>
+          <div class="post-actions">
+            <button class="action-btn" onclick="likePost('${p.id}','${p.userId}')">❤️</button>
+            <span class="action-count" id="likes-${p.id}">${p.likes || 0}</span>
+            
+            <button class="action-btn" onclick="commentPost('${p.id}','${p.userId}')">💬</button>
+            <span class="action-count" id="comments-${p.id}">${p.comments || 0}</span>
+          </div>
         </div>
-        <div class="post-media">
-          <video src="${p.mediaUrl}" controls playsinline preload="metadata" poster="${p.thumbnailUrl}"></video>
-          <div class="cached-badge" id="cached-${p.id}">Cached</div>
-        </div>
-        <div class="post-actions">
-          <button class="action-btn" onclick="likePost('${p.id}','${p.userId}')">❤️</button>
-          <span class="action-count" id="likes-${p.id}">${p.likes}</span>
-          
-          <button class="action-btn" onclick="commentPost('${p.id}','${p.userId}')">💬</button>
-          <span class="action-count" id="comments-${p.id}">${p.comments}</span>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
     
     // Check cache status
     if('caches' in window) {
       posts.forEach(p => {
-        caches.match(p.mediaUrl).then(cached => {
-          if(cached) document.getElementById(`cached-${p.id}`).style.display = 'block';
-        });
+        if(p.mediaUrl) {
+          caches.match(p.mediaUrl).then(cached => {
+            if(cached) {
+              const badge = document.getElementById(`cached-${p.id}`);
+              if(badge) badge.style.display = 'block';
+            }
+          });
+        }
       });
     }
   } catch(e) {
+    console.error(e);
     document.getElementById('feed').innerHTML = '<div style="text-align:center;padding:40px;color:red">Failed to load feed</div>';
   }
 }
 
 async function likePost(postId, creatorId) {
   if(!token) return alert('Login required');
-  await fetch(`${API}/api/like`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-    body:JSON.stringify({postId, creatorId})
-  });
-  const el = document.getElementById(`likes-${postId}`);
-  el.textContent = parseInt(el.textContent) + 1;
+  try {
+    const response = await fetch(`${API}/api/like`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({postId, creatorId})
+    });
+    
+    if(!response.ok) throw new Error('Server error handling like');
+    
+    const el = document.getElementById(`likes-${postId}`);
+    if(el) el.textContent = parseInt(el.textContent || 0) + 1;
+  } catch(err) {
+    alert('Failed to register like. Try again.');
+  }
 }
 
 async function commentPost(postId, creatorId) {
   if(!token) return alert('Login required');
   const text = prompt('Comment:');
-  if(text) {
-    await fetch(`${API}/api/comment`, {
+  if(!text) return;
+  
+  try {
+    const response = await fetch(`${API}/api/comment`, {
       method:'POST', 
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({postId, creatorId, text})
     });
+    
+    if(!response.ok) throw new Error('Server error saving comment');
+    
     const el = document.getElementById(`comments-${postId}`);
-    el.textContent = parseInt(el.textContent) + 1;
+    if(el) el.textContent = parseInt(el.textContent || 0) + 1;
+  } catch(err) {
+    alert('Failed to post comment. Try again.');
   }
 }
 
 // Register SW
 if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
+  navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW register failed:', err));
 }
 
 loadFeed();
