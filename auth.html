@@ -158,7 +158,7 @@ document.getElementById('login-form').onsubmit = async e => {
     if(res.ok) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('userId', data.userId);
-      window.location = '/index.html';
+      window.location = 'index.html';
     } else {
       error.textContent = data.error || 'Invalid credentials';
       error.style.display = 'block';
@@ -204,7 +204,7 @@ document.getElementById('signup-form').onsubmit = async e => {
       success.style.display = 'block';
       localStorage.setItem('token', data.token);
       localStorage.setItem('userId', data.userId);
-      setTimeout(() => window.location = '/index.html', 1500);
+      setTimeout(() => window.location = 'index.html', 1500);
     } else {
       error.textContent = data.error || 'Failed to create account';
       error.style.display = 'block';
