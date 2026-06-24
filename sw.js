@@ -22,7 +22,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k!== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -32,11 +32,11 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // 1. Static files + API = Network first
-  if(url.origin.includes('golviral-api.onrender.com') || STATIC_CACHE.includes(url.pathname)) {
+  // 1. Static files + GET API endpoints = Network first
+  if ((url.origin.includes('golviral-api.onrender.com') || STATIC_CACHE.includes(url.pathname)) && e.request.method === 'GET') {
     e.respondWith(
       fetch(e.request).then(res => {
-        if(res.status === 200) {
+        if (res.status === 200) {
           const resClone = res.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
         }
@@ -46,12 +46,12 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // 2. B2 video/images = Size check + Cache
-  if(url.hostname.includes('backblazeb2.com') || url.hostname.includes('b2.com')) {
+  // 2. B2 video/images = Size check + Cache (Only for GET requests)
+  if ((url.hostname.includes('backblazeb2.com') || url.hostname.includes('b2.com')) && e.request.method === 'GET') {
     e.respondWith(
       caches.match(e.request).then(cached => {
-        if(cached) {
-          // Send message to show "Cached" badge
+        if (cached) {
+          // Send message to page to show "Cached" badge
           self.clients.matchAll().then(clients => {
             clients.forEach(c => c.postMessage({type: 'CACHED', url: e.request.url}));
           });
@@ -59,44 +59,49 @@ self.addEventListener('fetch', e => {
         }
 
         return fetch(e.request).then(async res => {
-          if(!res.ok) return res;
+          if (!res.ok) return res;
 
-          const contentLength = res.headers.get('Content-Length');
-          const size = contentLength? parseInt(contentLength) : 0;
+          // HTTP/2 and HTTP/3 standards require lowercase header selection
+          const contentLength = res.headers.get('content-length');
+          const size = contentLength ? parseInt(contentLength, 10) : 0;
 
-          // Abort if >1.5MB to save user data
-          if(size > MAX_VIDEO_SIZE) {
-            return new Response('Video too large for cache', {status: 403});
+          // Skip caching if file is > 1.5MB, but STILL return the network response so it plays!
+          if (size > MAX_VIDEO_SIZE) {
+            return res; 
           }
 
-          // Clone and cache if <1.5MB
+          // Clone and cache if size matches budget constraints
           const resClone = res.clone();
           const cache = await caches.open(CACHE_NAME);
 
-          // Keep only last 3 videos in cache
+          // Keep only last 3 videos in cache to respect storage constraints
           const keys = await cache.keys();
           const videoKeys = keys.filter(k => k.url.includes('backblazeb2.com') || k.url.includes('b2.com'));
-          if(videoKeys.length >= 3) {
-            await cache.delete(videoKeys[0]); // FIFO
+          if (videoKeys.length >= 3) {
+            await cache.delete(videoKeys[0]); // FIFO eviction strategy
           }
 
           cache.put(e.request, resClone);
           return res;
-        }).catch(() => new Response('Offline', {status: 503}));
+        }).catch(() => new Response('Offline', {status: 503, headers: {'Content-Type': 'text/plain'}}));
       })
     );
     return;
   }
 
-  // 3. Default = cache first
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+  // 3. Default fallback = cache first
+  if (e.request.method === 'GET') {
+    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+  }
 });
 
-// Handle messages from page for "Cached" badge
+// Handle incoming messages from frontend client contexts
 self.addEventListener('message', e => {
-  if(e.data.type === 'CHECK_CACHE') {
+  if (e.data && e.data.type === 'CHECK_CACHE') {
     caches.match(e.data.url).then(cached => {
-      e.ports[0].postMessage({cached:!!cached});
+      if (e.ports && e.ports[0]) {
+        e.ports[0].postMessage({cached: !!cached});
+      }
     });
   }
 });
