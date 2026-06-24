@@ -1,91 +1,90 @@
+let deferredPrompt;
+let visitCount = parseInt(localStorage.getItem('gv_visits') || '0', 10);
 
-// Add To Home Screen (A2HS) PWA Installation Controller
-(function() {
-    let deferredPrompt = null;
-    const VISIT_KEY = 'golviral_visit_count';
+// Count visits safely
+visitCount++;
+localStorage.setItem('gv_visits', visitCount);
 
-    // 1. Increment and verify the local persistent visit metrics
-    function trackUserVisits() {
-        try {
-            let visits = parseInt(localStorage.getItem(VISIT_KEY) || '0', 10);
-            visits += 1;
-            localStorage.setItem(VISIT_KEY, visits.toString());
-            return visits;
-        } catch (e) {
-            console.error("Storage boundaries locked down. Defaulting metrics.");
-            return 1;
-        }
+// Listen for install prompt
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // Only show after 3 visits
+  if (visitCount >= 3) {
+    showA2HSButton();
+  }
+});
+
+function showA2HSButton() {
+  // Prevent adding duplicate banners if one is already on screen
+  if (document.getElementById('a2hs-banner')) return;
+  
+  // Don't show if already installed or dismissed
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
+  if (localStorage.getItem('gv_a2hs_dismissed') === 'true') return;
+
+  // Create banner
+  const banner = document.createElement('div');
+  banner.id = 'a2hs-banner';
+  banner.style.cssText = `
+    position: fixed;
+    bottom: 80px;
+    left: 12px;
+    right: 12px;
+    background: #FFFFFF;
+    border: 2px solid #FF0050;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: #000000;
+  `;
+  
+  banner.innerHTML = `
+    <div style="flex:1">
+      <div style="font-weight:700;margin-bottom:2px">Install GolViral</div>
+      <div style="font-size:12px;color:#666">Add to Home Screen for faster access + offline mode</div>
+    </div>
+    <button id="a2hs-install" style="background:#FF0050;color:#FFF;border:none;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer">Install</button>
+    <button id="a2hs-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999">×</button>
+  `;
+  
+  document.body.appendChild(banner);
+
+  // Install click handler
+  document.getElementById('a2hs-install').onclick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    
+    try {
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('[PWA] User accepted A2HS');
+      }
+    } catch (err) {
+      console.error('[PWA] Installation prompt error:', err);
     }
+    
+    deferredPrompt = null;
+    banner.remove();
+  };
 
-    const currentVisitCount = trackUserVisits();
+  // Close click handler
+  document.getElementById('a2hs-close').onclick = () => {
+    localStorage.setItem('gv_a2hs_dismissed', 'true');
+    banner.remove();
+  };
+}
 
-    // 2. Capture and intercept native browser installation vectors
-    window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent default mobile banner triggers instantly
-        e.preventDefault();
-        deferredPrompt = e;
-
-        // Condition Check: Trigger UI prompts only on or after the 3rd deliberate application visit
-        if (currentVisitCount >= 3) {
-            renderInstallBanner();
-        }
-    });
-
-    // 3. Render contextual UI banner into DOM tree safely
-    function renderInstallBanner() {
-        // Prevent duplicate banners if one is already rendered
-        if (document.getElementById('pwaInstallBanner')) return;
-
-        const banner = document.createElement('div');
-        banner.id = 'pwaInstallBanner';
-        banner.className = 'fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-2xl z-[100] transition-all transform translate-y-0 flex flex-col gap-3 max-w-[500px] mx-auto';
-
-        banner.innerHTML = `
-            <div class="flex items-start gap-3">
-                <div class="w-10 h-10 bg-accent/20 text-accent rounded-lg flex items-center justify-center font-black flex-shrink-0">
-                    GV
-                </div>
-                <div class="flex-1">
-                    <h4 class="text-xs font-bold text-white">Install GolViral App</h4>
-                    <p class="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">Save mobile data and get lightning-fast access to ad networks and local offline video playback streams instantly.</p>
-                </div>
-            </div>
-            <div class="flex items-center justify-end gap-2 text-xs font-bold pt-1">
-                <button id="pwaCloseBtn" class="px-3 py-1.5 text-zinc-400 hover:text-white transition-colors">Later</button>
-                <button id="pwaInstallBtn" class="px-4 py-1.5 bg-white text-brand rounded hover:bg-zinc-200 transition-colors">Install App</button>
-            </div>
-        `;
-
-        document.body.appendChild(banner);
-
-        // Bind Action Handlers
-        document.getElementById('pwaCloseBtn').addEventListener('click', () => {
-            dismissBanner();
-        });
-
-        document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            
-            dismissBanner();
-            deferredPrompt.prompt();
-
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`PWA deployment installation selection choice: ${outcome}`);
-            deferredPrompt = null;
-        });
-    }
-
-    function dismissBanner() {
-        const banner = document.getElementById('pwaInstallBanner');
-        if (banner) {
-            banner.remove();
-        }
-    }
-
-    // 4. Reset display states gracefully if platform installation succeeds directly
-    window.addEventListener('appinstalled', (evt) => {
-        console.log('GolViral production platform installed to standalone device array context successfully.');
-        dismissBanner();
-        deferredPrompt = null;
-    });
-})();
+// Hide banner immediately if user successfully installs app via browser natively
+window.addEventListener('appinstalled', () => {
+  console.log('[PWA] App installed');
+  localStorage.setItem('gv_a2hs_dismissed', 'true');
+  const banner = document.getElementById('a2hs-banner');
+  if (banner) banner.remove();
+});
