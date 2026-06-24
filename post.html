@@ -1,363 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GolViral - Create Post</title>
-    <meta name="theme-color" content="#0A0A0A">
-    
-    <!-- Tailwind CSS Engine -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: '#0A0A0A',
-                        accent: '#E50914',
-                        surface: '#121212',
-                        card: '#1E1E1E'
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body {
-            background-color: #0A0A0A;
-            color: #FFFFFF;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .main-container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding-bottom: 80px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GolViral - Post</title>
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.0/dist/ffmpeg.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#FFFFFF;color:#000;min-height:100vh;padding-bottom:70px}
+header{position:sticky;top:0;background:#FFFFFF;border-bottom:1px solid #E0E0E0;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.tabs{display:flex;border-bottom:2px solid #F0F0F0}
+.tab{flex:1;padding:14px;text-align:center;font-weight:600;color:#8E8E8E;cursor:pointer}
+.tab.active{color:#FF0050;border-bottom:2px solid #FF0050}
+.content{padding:20px;max-width:600px;margin:0 auto}
+.warning{background:#FFF3CD;border:1px solid #FFE69C;color:#856404;padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px}
+input,textarea,select{width:100%;padding:14px;border:1px solid #DDD;border-radius:8px;margin-bottom:12px;font-size:16px}
+textarea{resize:none;height:80px}
+button{width:100%;padding:14px;background:#FF0050;color:#FFF;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer}
+button:disabled{background:#CCC}
+.preview{width:100%;aspect-ratio:9/16;background:#000;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;color:#666;overflow:hidden}
+progress{width:100%;height:6px;margin-bottom:12px}
+.error{color:#FF3B30;font-size:13px;margin-bottom:8px;display:none}
+nav{position:fixed;bottom:0;left:0;right:0;background:#FFFFFF;border-top:1px solid #E0E0E0;display:flex;justify-content:space-around;padding:8px 0}
+nav a{text-decoration:none;color:#8E8E8E;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav a.active{color:#FF0050}
+</style>
 </head>
 <body>
+<header>
+  <h2>Create Post</h2>
+  <div style="font-size:13px;color:#666">Fee: 25 Credits</div>
+</header>
 
-    <!-- Sticky Header Navigation -->
-    <header class="sticky top-0 z-50 bg-brand border-b border-zinc-800 px-4 py-3 flex justify-between items-center max-w-[500px] mx-auto">
-        <div class="flex items-center gap-2">
-            <button onclick="window.location.href='index.html'" class="text-zinc-400 hover:text-white">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-            </button>
-            <h1 class="text-base font-bold text-white">Create Video Post</h1>
-        </div>
-        <div id="walletBadge" class="text-xs font-bold bg-zinc-800 px-2 py-1 rounded border border-zinc-700 text-zinc-300">
-            0 pts
-        </div>
-    </header>
+<div class="tabs">
+  <div class="tab active" onclick="showTab(event, 'upload')">Upload</div>
+  <div class="tab" onclick="showTab(event, 'camera')">Camera</div>
+</div>
 
-    <main class="main-container px-4 pt-4">
-        <!-- CRITICAL ALERTS & GUARD RAILS -->
-        <div class="bg-accent/10 border border-accent/20 rounded-xl p-4 mb-4 space-y-2">
-            <div class="flex items-center gap-2 text-accent text-xs font-bold uppercase tracking-wider">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                System Publishing Constraints Locked
-            </div>
-            <p class="text-xs text-zinc-400 leading-relaxed">
-                Publishing any video deducts <span class="text-white font-bold">25 Free Credits</span> instantly prior to network routing. Media is locked to a strict <span class="text-white font-semibold">3 posts/day limit</span> counter.
-            </p>
-        </div>
+<div class="content">
+  <div class="warning">
+    ⚠️ 25 Free Credits will be deducted. Max 30s, 480p, 1.5MB. 3 posts/day limit.
+    Refunded instantly if video fails API check.
+  </div>
 
-        <!-- System Notification Banner -->
-        <div id="postNotification" class="hidden mb-4 bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs p-3 rounded-lg text-center font-medium animate-pulse"></div>
+  <div id="upload-tab">
+    <input type="file" id="file-input" accept="video/*,image/*" onchange="handleFile(this.files[0])">
+    <div class="preview" id="preview">Select video or image</div>
+    <textarea id="caption" placeholder="Write a caption..."></textarea>
+    <select id="type">
+      <option value="REEL">Reel Video</option>
+      <option value="IMAGE">Image</option>
+      <option value="STORY">Short Story</option>
+      <option value="NOVEL">Novel Chapter</option>
+    </select>
+    <progress id="progress" value="0" max="100" style="display:none"></progress>
+    <div class="error" id="error"></div>
+    <button id="post-btn" onclick="createPost()" disabled>Post - Deduct 25 Credits</button>
+  </div>
 
-        <!-- Segmented Mode Tabs -->
-        <div class="flex border-b border-zinc-800 text-xs font-bold mb-5">
-            <button id="tabUpload" onclick="switchMode('upload')" class="flex-1 pb-3 text-white border-b-2 border-accent transition-all">Upload File</button>
-            <button id="tabCamera" onclick="switchMode('camera')" class="flex-1 pb-3 text-zinc-500 border-b-2 border-transparent transition-all">Capture Camera</button>
-        </div>
+  <div id="camera-tab" style="display:none">
+    <video id="camera" autoplay playsinline style="width:100%;aspect-ratio:9/16;background:#000;border-radius:12px"></video>
+    <button id="record-btn" onclick="toggleRecord()">Start Recording</button>
+  </div>
+</div>
 
-        <!-- VIEW 1: DISK FILE UPLOAD CHANNEL -->
-        <div id="uploadView" class="space-y-4">
-            <div id="dropZone" class="border-2 border-dashed border-zinc-800 rounded-2xl p-8 text-center bg-surface hover:border-zinc-700 transition-colors cursor-pointer relative group">
-                <input type="file" id="videoFileInput" accept="video/mp4,video/x-m4v" class="absolute inset-0 opacity-0 cursor-pointer">
-                <div class="space-y-2 pointer-events-none">
-                    <svg class="w-8 h-8 text-zinc-500 group-hover:text-zinc-400 mx-auto transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
-                    <p class="text-xs font-bold text-zinc-300">Select MP4 Video Payload</p>
-                    <p class="text-[10px] text-zinc-500">Max size: 1.5MB (480p, 30s hard cap optimized)</p>
-                </div>
-            </div>
-            <div id="fileSelectedBadge" class="hidden text-xs bg-zinc-900 border border-zinc-800 p-2.5 rounded-lg flex justify-between items-center font-mono">
-                <span id="fileNameText" class="text-zinc-400 truncate max-w-[70%]">video.mp4</span>
-                <span id="fileSizeText" class="text-accent font-bold">0.0MB</span>
-            </div>
-        </div>
+<nav>
+  <a href="/index.html">🏠<span>Feed</span></a>
+  <a href="/explore.html">🔍<span>Explore</span></a>
+  <a href="/post.html" class="active">➕<span>Post</span></a>
+  <a href="/wallet.html">💰<span>Wallet</span></a>
+  <a href="/profile.html">👤<span>Profile</span></a>
+</nav>
 
-        <!-- VIEW 2: HARDWARE CAMERA STREAMING VECTOR -->
-        <div id="cameraView" class="hidden space-y-4">
-            <div class="bg-surface border border-zinc-800 rounded-2xl overflow-hidden aspect-video relative bg-black flex items-center justify-center">
-                <video id="previewElement" autoplay playsinline class="w-full h-full object-cover hidden"></video>
-                <div id="cameraPlaceholder" class="text-center p-4 space-y-3">
-                    <p class="text-xs text-zinc-500">Hardware capture device stream disconnected.</p>
-                    <button type="button" onclick="initializeCamera()" class="bg-zinc-800 text-zinc-300 text-[11px] font-bold px-3 py-1.5 rounded border border-zinc-700 hover:text-white transition-all">
-                        Initialize Device Capture
-                    </button>
-                </div>
-                <div id="recordingIndicator" class="absolute top-3 left-3 flex items-center gap-1.5 bg-brand/80 px-2 py-0.5 rounded border border-zinc-700 text-[9px] font-bold uppercase tracking-widest text-accent hidden">
-                    <span class="w-1.5 h-1.5 bg-accent rounded-full animate-ping"></span>
-                    REC <span id="recordTimer">00:00</span>
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <button id="startRecordBtn" disabled onclick="startRecording()" class="flex-1 bg-zinc-800 text-zinc-500 text-xs font-bold py-2.5 rounded-lg transition-colors border border-zinc-700">
-                    Capture Sequence
-                </button>
-                <button id="stopRecordBtn" disabled onclick="stopRecording()" class="w-1/4 bg-accent text-white text-xs font-bold py-2.5 rounded-lg transition-colors hidden">
-                    Stop
-                </button>
-            </div>
-        </div>
+<script>
+const API = 'https://golviral-api.onrender.com';
+const token = localStorage.getItem('token');
+let selectedFile = null;
+let compressedBlob = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let activeCameraStream = null;
 
-        <!-- METADATA FORM INTERFACE -->
-        <div class="mt-5 space-y-4">
-            <div class="space-y-1.5">
-                <label class="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Post Caption</label>
-                <textarea id="postCaption" rows="3" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors resize-none" placeholder="What makes this content go viral? Add tags..."></textarea>
-            </div>
+function showTab(e, tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (e && e.target) e.target.classList.add('active');
+  
+  document.getElementById('upload-tab').style.display = tab === 'upload' ? 'block' : 'none';
+  document.getElementById('camera-tab').style.display = tab === 'camera' ? 'block' : 'none';
+  
+  if (tab === 'camera') {
+    startCamera();
+  } else {
+    stopCamera();
+  }
+}
 
-            <!-- Execution Submit Trigger -->
-            <button id="submitPostBtn" onclick="processPostDeployment()" class="w-full bg-white text-brand text-xs font-bold py-3 rounded-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 shadow-xl">
-                Authorize Post (Deduct 25pts)
-            </button>
-        </div>
-    </main>
+async function handleFile(file) {
+  if (!file) return;
+  const error = document.getElementById('error');
+  error.style.display = 'none';
 
-    <!-- App Persistent Bottom Navbar -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-brand/95 backdrop-blur-md border-t border-zinc-800 z-50 max-w-[500px] mx-auto">
-        <div class="flex justify-around items-center h-16 text-zinc-400">
-            <a href="index.html" class="flex flex-col items-center justify-center w-full h-full hover:text-white transition-colors">
-                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                <span class="text-[10px] font-medium tracking-wide">Home</span>
-            </a>
-            <a href="explore.html" class="flex flex-col items-center justify-center w-full h-full hover:text-white transition-colors">
-                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <span class="text-[10px] font-medium tracking-wide">Explore</span>
-            </a>
-            <a href="reels.html" class="flex flex-col items-center justify-center w-full h-full hover:text-white transition-colors">
-                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                <span class="text-[10px] font-medium tracking-wide">Reels</span>
-            </a>
-            <a href="post.html" class="flex flex-col items-center justify-center w-full h-full text-white">
-                <svg class="w-5 h-5 mb-0.5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-                <span class="text-[10px] font-medium tracking-wide">Post</span>
-            </a>
-            <a href="wallet.html" class="flex flex-col items-center justify-center w-full h-full hover:text-white transition-colors">
-                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                <span class="text-[10px] font-medium tracking-wide">Wallet</span>
-            </a>
-            <a href="profile.html" class="flex flex-col items-center justify-center w-full h-full hover:text-white transition-colors">
-                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                <span class="text-[10px] font-medium tracking-wide">Profile</span>
-            </a>
-        </div>
-    </nav>
+  if (file.type.startsWith('image/')) {
+    selectedFile = file;
+    compressedBlob = null; // reset video track pointer
+    document.getElementById('preview').innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`;
+    document.getElementById('post-btn').disabled = false;
+    return;
+  }
 
-    <script>
-        const API_BASE = 'https://api.golviral.com';
-        let selectedVideoBlob = null;
-        let mediaRecorder = null;
-        let recordedChunks = [];
-        let recordInterval = null;
-        let streamRef = null;
+  // Video Process Logic
+  document.getElementById('preview').textContent = 'Compressing to 480p 30s...';
+  document.getElementById('progress').style.display = 'block';
+  document.getElementById('post-btn').disabled = true;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('token');
-            if (!token) { window.location.href = 'auth.html'; return; }
-            
-            fetchWalletBalance();
+  try {
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    const ffmpeg = createFFmpeg({ log: true });
+    
+    await ffmpeg.load();
+    ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(file));
 
-            // Bind native change events to file input channel
-            document.getElementById('videoFileInput').addEventListener('change', handleFileSelection);
-        });
+    await ffmpeg.run(
+      '-i', 'input.mp4',
+      '-t', '30',
+      '-vf', 'scale=480:-2',
+      '-b:v', '0.8M',
+      '-b:a', '64k',
+      '-fs', '1.5M',
+      '-preset', 'ultrafast',
+      'output.mp4'
+    );
 
-        function switchMode(target) {
-            const tabs = { upload: document.getElementById('tabUpload'), camera: document.getElementById('tabCamera') };
-            const views = { upload: document.getElementById('uploadView'), camera: document.getElementById('cameraView') };
+    const data = ffmpeg.FS('readFile', 'output.mp4');
+    compressedBlob = new Blob([data.buffer], {type:'video/mp4'});
 
-            Object.keys(tabs).forEach(key => {
-                if(key === target) {
-                    tabs[key].className = "flex-1 pb-3 text-white border-b-2 border-accent transition-all";
-                    views[key].classList.remove('hidden');
-                } else {
-                    tabs[key].className = "flex-1 pb-3 text-zinc-500 border-b-2 border-transparent transition-all";
-                    views[key].classList.add('hidden');
-                }
-            });
+    if (compressedBlob.size > 1.5 * 1024 * 1024) {
+      throw new Error('Video still >1.5MB after compression bounds check');
+    }
 
-            // Shutdown hardware capture streams if exiting camera tab interface
-            if (target !== 'camera' && streamRef) {
-                streamRef.getTracks().forEach(track => track.stop());
-                document.getElementById('previewElement').classList.add('hidden');
-                document.getElementById('cameraPlaceholder').classList.remove('hidden');
-                streamRef = null;
-            }
-        }
+    document.getElementById('preview').innerHTML =
+      `<video src="${URL.createObjectURL(compressedBlob)}" controls style="width:100%;height:100%;border-radius:12px"></video>`;
+    document.getElementById('post-btn').disabled = false;
 
-        async function fetchWalletBalance() {
-            const token = localStorage.getItem('token');
-            try {
-                const res = await fetch(`${API_BASE}/api/wallet`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (res.ok) {
-                    const data = await res.json();
-                    const total = (data.freeCredits || 0) + (data.monetizedPoints || 0);
-                    document.getElementById('walletBadge').innerText = `${total.toLocaleString()} pts`;
-                }
-            } catch(e) {}
-        }
+  } catch(e) {
+    error.textContent = 'Compression failed: ' + e.message;
+    error.style.display = 'block';
+  } finally {
+    document.getElementById('progress').style.display = 'none';
+  }
+}
 
-        function handleFileSelection(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+async function startCamera() {
+  try {
+    activeCameraStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+    document.getElementById('camera').srcObject = activeCameraStream;
+  } catch(err) {
+    alert('Could not access camera or microphone devices.');
+  }
+}
 
-            const sizeInMB = file.size / (1024 * 1024);
-            document.getElementById('fileNameText').innerText = file.name;
-            document.getElementById('fileSizeText').innerText = `${sizeInMB.toFixed(2)}MB`;
-            document.getElementById('fileSelectedBadge').classList.remove('hidden');
+function stopCamera() {
+  if (activeCameraStream) {
+    activeCameraStream.getTracks().forEach(track => track.stop());
+    activeCameraStream = null;
+  }
+}
 
-            if (sizeInMB > 1.5) {
-                showNotify("File selection exceeds the 1.5MB hard-gated ceiling network limit.");
-                selectedVideoBlob = null;
-                return;
-            }
+function toggleRecord() {
+  const btn = document.getElementById('record-btn');
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+    recordedChunks = [];
+    const stream = document.getElementById('camera').srcObject;
+    if (!stream) return alert('No camera preview available');
+    
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => {
+      if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+    };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, {type:'video/mp4'});
+      handleFile(new File([blob], 'recording.mp4', {type: 'video/mp4'}));
+    };
+    mediaRecorder.start();
+    btn.textContent = 'Stop Recording';
+    setTimeout(() => { if(mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 30000);
+  } else {
+    mediaRecorder.stop();
+    btn.textContent = 'Start Recording';
+  }
+}
 
-            selectedVideoBlob = file;
-        }
+async function createPost() {
+  const btn = document.getElementById('post-btn');
+  const error = document.getElementById('error');
+  btn.disabled = true;
+  error.style.display = 'none';
 
-        // Hardware Camera Initialization Vector
-        async function initializeCamera() {
-            showNotify("Requesting native hardware peripherals authorization layer...");
-            try {
-                streamRef = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, frameRate: 30 }, audio: true });
-                const preview = document.getElementById('previewElement');
-                preview.srcObject = streamRef;
-                preview.classList.remove('hidden');
-                document.getElementById('cameraPlaceholder').classList.add('hidden');
-                
-                document.getElementById('startRecordBtn').disabled = false;
-                document.getElementById('startRecordBtn').classList.replace('bg-zinc-800', 'bg-white');
-                document.getElementById('startRecordBtn').classList.replace('text-zinc-500', 'text-brand');
-            } catch (err) {
-                showNotify("Hardware access denied or camera configuration mismatch.");
-            }
-        }
+  const file = compressedBlob || selectedFile;
+  const caption = document.getElementById('caption').value;
+  const type = document.getElementById('type').value;
 
-        function startRecording() {
-            if (!streamRef) return;
-            recordedChunks = [];
-            mediaRecorder = new MediaRecorder(streamRef, { mimeType: 'video/webm;codecs=vp8,opus' });
+  if (!file) {
+    btn.disabled = false;
+    return;
+  }
 
-            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-            
-            mediaRecorder.onstop = () => {
-                selectedVideoBlob = new Blob(recordedChunks, { type: 'video/mp4' });
-                const sizeInMB = selectedVideoBlob.size / (1024 * 1024);
-                showNotify(`Capture final payload signature built: ${sizeInMB.toFixed(2)}MB`, false);
-            };
+  try {
+    const res = await fetch(`${API}/api/post/create-intent`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({type, caption, fileSize:file.size, duration:30})
+    });
 
-            mediaRecorder.start();
-            document.getElementById('recordingIndicator').classList.remove('hidden');
-            document.getElementById('startRecordBtn').classList.add('hidden');
-            document.getElementById('stopRecordBtn').classList.remove('hidden');
-            document.getElementById('stopRecordBtn').disabled = false;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to initialize creation pipeline');
 
-            let elapsedSeconds = 0;
-            recordInterval = setInterval(() => {
-                elapsedSeconds++;
-                let mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
-                let secs = String(elapsedSeconds % 60).padStart(2, '0');
-                document.getElementById('recordTimer').innerText = `${mins}:${secs}`;
+    // Safe, raw cross-origin binary stream upload directly to Backblaze B2
+    const b2Upload = await fetch(data.uploadUrl, {
+      method:'PUT',
+      body:file
+    });
 
-                // Hard enforcement safeguard loop: Auto-terminate recording pipeline at 30 seconds
-                if (elapsedSeconds >= 30) { stopRecording(); }
-            }, 1000);
-        }
+    if (!b2Upload.ok) throw new Error('Failed to push media stream storage blocks to B2 destination');
 
-        function stopRecording() {
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
-            clearInterval(recordInterval);
-            mediaRecorder.stop();
-            document.getElementById('recordingIndicator').classList.add('hidden');
-            document.getElementById('stopRecordBtn').classList.add('hidden');
-            document.getElementById('startRecordBtn').classList.remove('hidden');
-        }
+    alert('Post uploaded successfully!');
+    window.location = '/index.html';
 
-        // Direct Client-To-B2 Presigned Upload Sequence Architecture
-        async function processPostDeployment() {
-            const token = localStorage.getItem('token');
-            const caption = document.getElementById('postCaption').value.trim();
-            const actionBtn = document.getElementById('submitPostBtn');
+  } catch(e) {
+    error.textContent = e.message;
+    error.style.display = 'block';
+    btn.disabled = false;
+  }
+}
 
-            if (!selectedVideoBlob) { showNotify("Select or capture a video payload sequence first."); return; }
-            if (!caption) { showNotify("Caption parameter fields are required."); return; }
-
-            actionBtn.disabled = true;
-            actionBtn.innerText = "Authorizing point allocation balances...";
-
-            try {
-                // Step 1: Query API for B2 bucket sharded presigned URL allocation bounds
-                const presignRes = await fetch(`${API_BASE}/api/posts/presign`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ caption, filename: `upload-${Date.now()}.mp4` })
-                });
-
-                if (!presignRes.ok) {
-                    const errData = await presignRes.json();
-                    throw new Error(errData.message || "Daily publication limit exceeded or insufficient balance.");
-                }
-
-                const { uploadUrl, postId } = await presignRes.json();
-                actionBtn.innerText = "Streaming payload direct to Backblaze B2 edge...";
-
-                // Step 2: Upload direct to B2 storage cluster completely bypassing backend compute pipes
-                const storageUploadRes = await fetch(uploadUrl, {
-                    method: 'PUT',
-                    body: selectedVideoBlob,
-                    headers: { 'Content-Type': 'video/mp4' }
-                });
-
-                if (!storageUploadRes.ok) throw new Error("B2 upload pipeline handshake rejection.");
-
-                actionBtn.innerText = "Finalizing transaction hooks...";
-
-                // Step 3: Trigger confirmation to enqueue into processing engines
-                const confirmRes = await fetch(`${API_BASE}/api/posts/confirm`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ postId })
-                });
-
-                if (confirmRes.ok) {
-                    showNotify("Content authorized into background verification worker queue!", false);
-                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
-                } else {
-                    throw new Error("System synchronization handshake dropped.");
-                }
-
-            } catch (err) {
-                showNotify(err.message || "Pipeline processing network error.");
-                actionBtn.disabled = false;
-                actionBtn.innerText = "Authorize Post (Deduct 25pts)";
-            }
-        }
-
-        function showNotify(msg, isError = true) {
-            const banner = document.getElementById('postNotification');
-            banner.innerText = msg;
-            banner.classList.remove('hidden');
-            if (!isError) {
-                banner.className = "mb-4 bg-zinc-800 border border-emerald-500/30 text-emerald-400 text-xs p-3 rounded-lg text-center font-medium animate-pulse";
-            } else {
-                banner.className = "mb-4 bg-accent/10 border border-accent/20 text-accent text-xs p-3 rounded-lg text-center font-medium animate-pulse";
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    </script>
+if (!token) window.location = '/auth.html';
+</script>
+<script src="/a2hs.js"></script>
 </body>
 </html>
