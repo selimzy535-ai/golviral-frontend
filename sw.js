@@ -1,121 +1,102 @@
-const CACHE_NAME = 'golviral-video-cache-v4.4';
-const RUNTIME_CACHE = 'golviral-runtime-cache-v4.4';
+const CACHE_NAME = 'golviral-v4.5';
+const MAX_VIDEO_SIZE = 1.5 * 1024 * 1024; // 1.5MB
 
-// Assets to cache immediately on installation
-const PRECACHE_ASSETS = [
-    '/index.html',
-    '/explore.html',
-    '/reels.html',
-    '/post.html',
-    '/wallet.html',
-    '/profile.html',
-    '/auth.html',
-    '/manifest.json',
-    '/a2hs.js'
+const STATIC_CACHE = [
+  '/index.html',
+  '/manifest.json',
+  '/auth.html',
+  '/post.html',
+  '/wallet.html',
+  '/profile.html'
 ];
 
-// Install Event - Pre-cache Shell Assets
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(RUNTIME_CACHE)
-            .then(cache => cache.addAll(PRECACHE_ASSETS))
-            .then(() => self.skipWaiting())
-    );
+// Install - cache static files
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_CACHE))
+  );
+  self.skipWaiting();
 });
 
-// Activate Event - Clean old caches
-self.addEventListener('activate', event => {
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cache => {
-                    if (cache !== CACHE_NAME && cache !== RUNTIME_CACHE) {
-                        return caches.delete(cache);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim())
-    );
+// Activate - clean old caches
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k!== CACHE_NAME).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
 });
 
-// Intercept Network Fetches - Core PWA Cache & Size Gate Logic
-self.addEventListener('fetch', event => {
-    const url = new URL(event.request.url);
+// Fetch interceptor
+self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
 
-    // Filter rules: Handle streaming assets / video streams or large structural data files
-    if (url.pathname.endsWith('.mp4') || url.pathname.endsWith('.m4v') || url.href.includes('backblazeb2.com') || url.href.includes('.b2')) {
-        event.respondWith(handleVideoCachingAndGating(event.request));
-        return;
-    }
-
-    // Default Runtime Network-First Strategy for Standard UI/API Requests
-    event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
-            if (cachedResponse) return cachedResponse;
-
-            return fetch(event.request).then(networkResponse => {
-                // Cache a copy of structural web pages dynamically
-                if (networkResponse.status === 200 && url.origin === self.location.origin) {
-                    const responseClone = networkResponse.clone();
-                    caches.open(RUNTIME_CACHE).then(cache => cache.put(event.request, responseClone));
-                }
-                return networkResponse;
-            }).catch(() => {
-                // Offline fallback if network fails
-                return caches.match('/index.html');
-            });
-        })
+  // 1. Static files + API = Network first
+  if(url.origin.includes('golviral-api.onrender.com') || STATIC_CACHE.includes(url.pathname)) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if(res.status === 200) {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
+        }
+        return res;
+      }).catch(() => caches.match(e.request))
     );
-});
+    return;
+  }
 
-// Gated Interception Engine: Enforces Cache-First and 1.5MB hard cap limit to block large downloads
-async function handleVideoCachingAndGating(request) {
-    const videoCache = await caches.open(CACHE_NAME);
-    const cachedResponse = await videoCache.match(request);
-
-    // Rule 1: If cached natively, serve with zero bandwidth consumption cost
-    if (cachedResponse) {
-        return cachedResponse;
-    }
-
-    // Rule 2: If not cached, inspect headers before reading body content payload bytes
-    try {
-        const controller = new AbortController();
-        const signal = controller.signal;
-
-        const networkResponse = await fetch(request, { signal });
-
-        // Extract the absolute byte dimension size of content
-        const contentLength = networkResponse.headers.get('content-length');
-
-        if (contentLength) {
-            const sizeInBytes = parseInt(contentLength, 10);
-            const maxAllowedBytes = 1.5 * 1024 * 1024; // 1.5MB limit rule
-
-            if (sizeInBytes > maxAllowedBytes) {
-                controller.abort(); // Immediately drop down the active transmission line socket pipeline connection
-                return new Response(
-                    JSON.stringify({ error: "File exceeded 1.5MB security ceiling limit. Action blocked." }),
-                    { status: 403, headers: { 'Content-Type': 'application/json' } }
-                );
-            }
+  // 2. B2 video/images = Size check + Cache
+  if(url.hostname.includes('backblazeb2.com') || url.hostname.includes('b2.com')) {
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        if(cached) {
+          // Send message to show "Cached" badge
+          self.clients.matchAll().then(clients => {
+            clients.forEach(c => c.postMessage({type: 'CACHED', url: e.request.url}));
+          });
+          return cached;
         }
 
-        // Clone response stream data chunk buffer copy before consumption pipeline drains it
-        const responseClone = networkResponse.clone();
+        return fetch(e.request).then(async res => {
+          if(!res.ok) return res;
 
-        // Write directly asynchronously to local storage pool space persistently for future direct playback loops
-        if (networkResponse.status === 200 || networkResponse.status === 206) {
-            await videoCache.put(request, responseClone);
-        }
+          const contentLength = res.headers.get('Content-Length');
+          const size = contentLength? parseInt(contentLength) : 0;
 
-        return networkResponse;
+          // Abort if >1.5MB to save user data
+          if(size > MAX_VIDEO_SIZE) {
+            return new Response('Video too large for cache', {status: 403});
+          }
 
-    } catch (err) {
-        // Return a customized network fallback error status object signature structure layout template
-        return new Response(
-            JSON.stringify({ error: "Video distribution pipe network error or aborted transfer payload profile." }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } }
-        );
-    }
-}
+          // Clone and cache if <1.5MB
+          const resClone = res.clone();
+          const cache = await caches.open(CACHE_NAME);
+
+          // Keep only last 3 videos in cache
+          const keys = await cache.keys();
+          const videoKeys = keys.filter(k => k.url.includes('backblazeb2.com') || k.url.includes('b2.com'));
+          if(videoKeys.length >= 3) {
+            await cache.delete(videoKeys[0]); // FIFO
+          }
+
+          cache.put(e.request, resClone);
+          return res;
+        }).catch(() => new Response('Offline', {status: 503}));
+      })
+    );
+    return;
+  }
+
+  // 3. Default = cache first
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+});
+
+// Handle messages from page for "Cached" badge
+self.addEventListener('message', e => {
+  if(e.data.type === 'CHECK_CACHE') {
+    caches.match(e.data.url).then(cached => {
+      e.ports[0].postMessage({cached:!!cached});
+    });
+  }
+});
