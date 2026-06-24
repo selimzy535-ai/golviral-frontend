@@ -1,28 +1,25 @@
-
 {
+  "name": "GolViral - Viral Reels & Stories",
   "short_name": "GolViral",
-  "name": "GolViral Social Platform",
-  "description": "Watch reels, read stories, and share media securely with absolute edge acceleration and zero metadata bandwidth loss.",
+  "description": "Mobile-first PWA for viral reels, novels, stories. Earn Free Credits + Cash.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
-      "type": "image/svg+xml",
-      "sizes": "512x512",
+      "src": "https://via.placeholder.com/192/FFFFFF/FF0050?text=GV",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg",
-      "type": "image/svg+xml",
+      "src": "https://via.placeholder.com/512/FFFFFF/FF0050?text=GV",
       "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "start_url": "/index.html",
-  "background_color": "#0A0A0A",
-  "theme_color": "#0A0A0A",
-  "display": "standalone",
-  "orientation": "portrait",
-  "categories": ["social", "entertainment"]
+  "categories": ["social", "entertainment", "video"]
 }
-
-
