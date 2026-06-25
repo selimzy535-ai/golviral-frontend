@@ -352,7 +352,7 @@
   </div>
 
   <script>
-    const API_BASE = "https://golviral.com/api";
+    const API = "https://golviral-api.onrender.com";
     let activeMode = 'login';
     let challengeTimeout = null;
 
@@ -399,7 +399,7 @@
 
       // Trigger structural payload fetch from Render service instances
       try {
-        const response = await fetch(`${API_BASE}/bot-challenge`, { method: 'POST' });
+        const response = await fetch(`${API}/bot-challenge`, { method: 'POST' });
         const data = await response.json();
         
         blueprint.querySelector('#challenge-text').innerText = data.question;
@@ -424,7 +424,7 @@
 
       challengeTimeout = setTimeout(async () => {
         try {
-          const res = await fetch(`${API_BASE}/bot-verify`, {
+          const res = await fetch(`${API}/bot-verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ answer, token: challengeToken })
@@ -454,19 +454,19 @@
       }
 
       let payload = { passToken };
-      let endpoint = `${API_BASE}/auth/login`;
+      let endpoint = `${API}/auth/login`;
 
       if (mode === 'login') {
         payload.identity = document.getElementById('login-id').value;
         payload.password = document.getElementById('login-pass').value;
       } else if (mode === 'signup') {
-        endpoint = `${API_BASE}/auth/signup`;
+        endpoint = `${API}/auth/signup`;
         payload.username = document.getElementById('reg-username').value;
         payload.email = document.getElementById('reg-email').value;
         payload.password = document.getElementById('reg-pass').value;
         payload.referrer = document.getElementById('reg-ref').value;
       } else if (mode === 'forgot') {
-        endpoint = `${API_BASE}/auth/forgot-password`;
+        endpoint = `${API}/auth/forgot-password`;
         payload.email = document.getElementById('forgot-email').value;
       }
 
