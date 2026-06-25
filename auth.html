@@ -1,16 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Access - Golviral</title>
+  <title>Access Hub - Golviral</title>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
   <style>
     :root {
       --bg: #FFFFFF;
-      --text: #000000;
-      --text-muted: #666666;
+      --text: #000;
+      --text-muted: #666;
       --accent: #FF0050;
       --accent-glow: rgba(255, 0, 80, 0.2);
       --border: #EAEAEA;
@@ -66,7 +65,6 @@
       margin-top: 4px;
     }
 
-    /* Tab Controls */
     .auth-tabs {
       display: flex;
       border-bottom: 1px solid var(--border);
@@ -89,7 +87,6 @@
       border-bottom: 2px solid var(--text);
     }
 
-    /* Form Styles */
     .form-group {
       margin-bottom: 18px;
       position: relative;
@@ -134,13 +131,12 @@
       border-color: var(--text);
     }
 
-    /* Math Bot Widget Container */
     .bot-widget {
       border: 1px dashed var(--border);
       border-radius: 14px;
       padding: 16px;
       margin-bottom: 20px;
-      background: #FAFAFA;
+      background: #FA;
       transition: border-color 0.3s;
     }
 
@@ -189,7 +185,6 @@
       outline: none;
     }
 
-    /* Action Buttons */
     .submit-btn {
       width: 100%;
       padding: 14px;
@@ -236,6 +231,13 @@
     .hidden {
       display: none !important;
     }
+
+    .error-msg {
+      color: #FF3B30;
+      font-size: 12px;
+      margin-top: 6px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -254,24 +256,24 @@
     <!-- 1. LOGIN INTERFACE -->
     <form id="form-login" onsubmit="handleAuthSubmit(event, 'login')">
       <div class="form-group">
-        <label>Account Reference / Email</label>
+        <label>Email Address</label>
         <div class="input-wrapper">
           <i data-lucide="mail"></i>
-          <input type="text" class="auth-input" id="login-id" required placeholder="name@domain.com">
+          <input type="email" class="auth-input" id="login-email" required placeholder="name@domain.com">
         </div>
+        <div class="error-msg" id="login-error"></div>
       </div>
       <div class="form-group">
-        <label>Secret Phrase</label>
+        <label>Password</label>
         <div class="input-wrapper">
           <i data-lucide="lock"></i>
-          <input type="password" class="auth-input" id="login-pass" required placeholder="••••••••">
+          <input type="password" class="auth-input" id="login-pass" required placeholder="••••">
         </div>
       </div>
       
-      <!-- Shared Dynamic Anti-Bot Matrix Placement -->
       <div class="bot-container-anchor"></div>
 
-      <button type="submit" class="submit-btn accent-glow">Authenticate Access</button>
+      <button type="submit" class="submit-btn accent-glow" id="login-btn">Authenticate Access</button>
       <div class="toggle-footer">
         Forgot credentials? <span class="toggle-link" onclick="switchForm('forgot')">Recover Account</span>
       </div>
@@ -280,37 +282,38 @@
     <!-- 2. REGISTRATION INTERFACE -->
     <form id="form-signup" class="hidden" onsubmit="handleAuthSubmit(event, 'signup')">
       <div class="form-group">
-        <label>Preferred Handle</label>
+        <label>Username</label>
         <div class="input-wrapper">
           <i data-lucide="at-sign"></i>
-          <input type="text" class="auth-input" id="reg-username" required placeholder="username">
+          <input type="text" class="auth-input" id="reg-username" required placeholder="username" minlength="3">
         </div>
       </div>
       <div class="form-group">
-        <label>Email Endpoint Address</label>
+        <label>Email Address</label>
         <div class="input-wrapper">
           <i data-lucide="mail"></i>
           <input type="email" class="auth-input" id="reg-email" required placeholder="name@domain.com">
         </div>
+        <div class="error-msg" id="signup-error"></div>
       </div>
       <div class="form-group">
-        <label>Referral Validation String</label>
+        <label>Referral Code - Optional</label>
         <div class="input-wrapper">
           <i data-lucide="users"></i>
-          <input type="text" class="auth-input" id="reg-ref" placeholder="Optional code">
+          <input type="text" class="auth-input" id="reg-ref" placeholder="Referrer userId">
         </div>
       </div>
       <div class="form-group">
-        <label>Account Password</label>
+        <label>Password</label>
         <div class="input-wrapper">
           <i data-lucide="lock"></i>
-          <input type="password" class="auth-input" id="reg-pass" required placeholder="••••••••">
+          <input type="password" class="auth-input" id="reg-pass" required placeholder="Min 6 characters" minlength="6">
         </div>
       </div>
 
       <div class="bot-container-anchor"></div>
 
-      <button type="submit" class="submit-btn accent-glow">Initialize Account (+₦150)</button>
+      <button type="submit" class="submit-btn accent-glow" id="signup-btn">Initialize Account +₦150</button>
       <div class="toggle-footer">
         Existing user? <span class="toggle-link" onclick="switchForm('login')">Sign In Instead</span>
       </div>
@@ -324,18 +327,19 @@
           <i data-lucide="mail"></i>
           <input type="email" class="auth-input" id="forgot-email" required placeholder="name@domain.com">
         </div>
+        <div class="error-msg" id="forgot-error"></div>
       </div>
 
       <div class="bot-container-anchor"></div>
 
-      <button type="submit" class="submit-btn accent-glow">Dispatch Reset Token</button>
+      <button type="submit" class="submit-btn accent-glow" id="forgot-btn">Dispatch Reset Token</button>
       <div class="toggle-footer">
-        Remember parameters? <span class="toggle-link" onclick="switchForm('login')">Return to Login</span>
+        Remember password? <span class="toggle-link" onclick="switchForm('login')">Return to Login</span>
       </div>
     </form>
   </div>
 
-  <!-- Shared Re-usable Math Bot Markup Template Blueprint -->
+  <!-- Shared Math Bot Template -->
   <div id="math-bot-template" class="hidden">
     <div class="bot-widget">
       <div class="bot-header">
@@ -343,7 +347,7 @@
         <span>Security Verification Bot Check</span>
       </div>
       <div class="bot-equation-row">
-        <div class="bot-display" id="challenge-text">? + ? =</div>
+        <div class="bot-display" id="challenge-text">Loading...</div>
         <input type="number" class="bot-input" id="challenge-answer" required placeholder="Solve" oninput="monitorChallengeTyping(this)">
       </div>
       <input type="hidden" id="challenge-token-vault">
@@ -352,26 +356,29 @@
   </div>
 
   <script>
-    const API = "https://golviral-api.onrender.com";
+    // Use Render URL for testing, switch to golviral.com when domain live
+    const API_BASE = "https://golviral-api.onrender.com/api";
     let activeMode = 'login';
     let challengeTimeout = null;
 
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       mountMathBotWidget();
+      
+      // Auto-redirect if already logged in
+      if(localStorage.getItem('token')) {
+        window.location.href = 'index.html';
+      }
     });
 
-    // SPA View Switcher Matrix
     function switchForm(targetMode) {
       activeMode = targetMode;
       
-      // Toggle Form Elements Visibilities
       document.getElementById('form-login').classList.add('hidden');
       document.getElementById('form-signup').classList.add('hidden');
       document.getElementById('form-forgot').classList.add('hidden');
       document.getElementById(`form-${targetMode}`).classList.remove('hidden');
 
-      // Adjust structural navigation sub-tabs
       const tabsNav = document.getElementById('tabs-navigation');
       if (targetMode === 'forgot') {
         tabsNav.classList.add('hidden');
@@ -385,9 +392,7 @@
       mountMathBotWidget();
     }
 
-    // Math Bot Mounting Machine
     async function mountMathBotWidget() {
-      // Clean old nodes out from other anchors
       document.querySelectorAll('.bot-container-anchor').forEach(anchor => anchor.innerHTML = '');
       
       const activeFormAnchor = document.querySelector(`#form-${activeMode} .bot-container-anchor`);
@@ -397,9 +402,8 @@
       activeFormAnchor.appendChild(blueprint);
       lucide.createIcons();
 
-      // Trigger structural payload fetch from Render service instances
       try {
-        const response = await fetch(`${API}/bot-challenge`, { method: 'POST' });
+        const response = await fetch(`${API_BASE}/bot-challenge`, { method: 'POST' });
         const data = await response.json();
         
         blueprint.querySelector('#challenge-text').innerText = data.question;
@@ -413,7 +417,6 @@
       }
     }
 
-    // Interactive Inline Solution Auto-Checker
     function monitorChallengeTyping(inputElement) {
       clearTimeout(challengeTimeout);
       const widget = inputElement.closest('.bot-widget');
@@ -424,7 +427,7 @@
 
       challengeTimeout = setTimeout(async () => {
         try {
-          const res = await fetch(`${API}/bot-verify`, {
+          const res = await fetch(`${API_BASE}/bot-verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ answer, token: challengeToken })
@@ -437,37 +440,45 @@
           } else {
             widget.classList.remove('verified');
             widget.querySelector('#challenge-pass-token').value = '';
+            mountMathBotWidget(); // Refresh on fail
           }
-        } catch (e) {}
-      }, 400);
+        } catch (e) {
+          mountMathBotWidget();
+        }
+      }, 500);
     }
 
-    // Structural Access Dispatcher
     async function handleAuthSubmit(event, mode) {
       event.preventDefault();
       const currentForm = document.getElementById(`form-${mode}`);
       const passToken = currentForm.querySelector('#challenge-pass-token').value;
+      const btn = currentForm.querySelector('button[type="submit"]');
+      const errorEl = document.getElementById(`${mode}-error`);
 
       if (!passToken) {
-        alert("Security challenge must be completely resolved before system onboarding processing.");
+        alert("Complete security verification first");
         return;
       }
 
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+      if(errorEl) errorEl.style.display = 'none';
+
       let payload = { passToken };
-      let endpoint = `${API}/auth/login`;
+      let endpoint = `${API_BASE}/auth/login`;
 
       if (mode === 'login') {
-        payload.identity = document.getElementById('login-id').value;
+        payload.email = document.getElementById('login-email').value.trim();
         payload.password = document.getElementById('login-pass').value;
       } else if (mode === 'signup') {
-        endpoint = `${API}/auth/signup`;
-        payload.username = document.getElementById('reg-username').value;
-        payload.email = document.getElementById('reg-email').value;
+        endpoint = `${API_BASE}/auth/signup`;
+        payload.username = document.getElementById('reg-username').value.trim();
+        payload.email = document.getElementById('reg-email').value.trim();
         payload.password = document.getElementById('reg-pass').value;
-        payload.referrer = document.getElementById('reg-ref').value;
+        payload.referralCode = document.getElementById('reg-ref').value.trim() || null;
       } else if (mode === 'forgot') {
-        endpoint = `${API}/auth/forgot-password`;
-        payload.email = document.getElementById('forgot-email').value;
+        endpoint = `${API_BASE}/auth/forgot-password`;
+        payload.email = document.getElementById('forgot-email').value.trim();
       }
 
       try {
@@ -478,23 +489,36 @@
         });
 
         const result = await response.json();
+        
         if (response.ok) {
           if (mode === 'forgot') {
-            alert("Recovery tracking string dispatched. Validate your mailbox nodes.");
+            alert("Reset code sent to email. Valid 15 minutes.");
             switchForm('login');
           } else {
             localStorage.setItem('token', result.token);
+            localStorage.setItem('userId', result.userId);
             window.location.href = 'index.html';
           }
         } else {
-          alert(result.error || "Authentication structural validation fault encountered.");
-          mountMathBotWidget(); // Cycle structural challenge instance on drop
+          if(errorEl) {
+            errorEl.textContent = result.error || "Request failed";
+            errorEl.style.display = 'block';
+          } else {
+            alert(result.error || "Authentication failed");
+          }
+          mountMathBotWidget();
         }
       } catch (err) {
-        alert("Render infrastructure communication boundary dropped.");
+        alert("Server connection failed. Try again.");
+        mountMathBotWidget();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = mode === 'login' ? 'Authenticate Access' : 
+                          mode === 'signup' ? 'Initialize Account +₦150' : 
+                          'Dispatch Reset Token';
       }
     }
   </script>
+  <script src="/a2hs.js"></script>
 </body>
 </html>
-
