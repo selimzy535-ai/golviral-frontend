@@ -136,7 +136,7 @@
       border-radius: 14px;
       padding: 16px;
       margin-bottom: 20px;
-      background: #FA;
+      background: #FAFAFA; /* FIXED: Hex typo resolved */
       transition: border-color 0.3s;
     }
 
@@ -253,7 +253,6 @@
       <div class="auth-tab" onclick="switchForm('signup')">Register</div>
     </div>
 
-    <!-- 1. LOGIN INTERFACE -->
     <form id="form-login" onsubmit="handleAuthSubmit(event, 'login')">
       <div class="form-group">
         <label>Email Address</label>
@@ -279,7 +278,6 @@
       </div>
     </form>
 
-    <!-- 2. REGISTRATION INTERFACE -->
     <form id="form-signup" class="hidden" onsubmit="handleAuthSubmit(event, 'signup')">
       <div class="form-group">
         <label>Username</label>
@@ -319,7 +317,6 @@
       </div>
     </form>
 
-    <!-- 3. RECOVERY INTERFACE -->
     <form id="form-forgot" class="hidden" onsubmit="handleAuthSubmit(event, 'forgot')">
       <div class="form-group" style="margin-bottom: 24px;">
         <label>Registered Email</label>
@@ -339,7 +336,6 @@
     </form>
   </div>
 
-  <!-- Shared Math Bot Template -->
   <div id="math-bot-template" class="hidden">
     <div class="bot-widget">
       <div class="bot-header">
@@ -347,16 +343,15 @@
         <span>Security Verification Bot Check</span>
       </div>
       <div class="bot-equation-row">
-        <div class="bot-display" id="challenge-text">Loading...</div>
-        <input type="number" class="bot-input" id="challenge-answer" required placeholder="Solve" oninput="monitorChallengeTyping(this)">
+        <div class="bot-display challenge-text">Loading...</div>
+        <input type="number" class="bot-input challenge-answer" required placeholder="Solve" oninput="monitorChallengeTyping(this)">
       </div>
-      <input type="hidden" id="challenge-token-vault">
-      <input type="hidden" id="challenge-pass-token">
+      <input type="hidden" class="challenge-token-vault">
+      <input type="hidden" class="challenge-pass-token">
     </div>
   </div>
 
   <script>
-    // Use Render URL for testing, switch to golviral.com when domain live
     const API_BASE = "https://golviral-api.onrender.com/api";
     let activeMode = 'login';
     let challengeTimeout = null;
@@ -365,7 +360,6 @@
       lucide.createIcons();
       mountMathBotWidget();
       
-      // Auto-redirect if already logged in
       if(localStorage.getItem('token')) {
         window.location.href = 'index.html';
       }
@@ -406,14 +400,14 @@
         const response = await fetch(`${API_BASE}/bot-challenge`, { method: 'POST' });
         const data = await response.json();
         
-        blueprint.querySelector('#challenge-text').innerText = data.question;
-        blueprint.querySelector('#challenge-token-vault').value = data.token;
-        blueprint.querySelector('#challenge-answer').value = '';
+        blueprint.querySelector('.challenge-text').innerText = data.question;
+        blueprint.querySelector('.challenge-token-vault').value = data.token;
+        blueprint.querySelector('.challenge-answer').value = '';
         blueprint.querySelector('.bot-widget').classList.remove('verified');
-        blueprint.querySelector('#challenge-pass-token').value = '';
+        blueprint.querySelector('.challenge-pass-token').value = '';
       } catch (err) {
-        blueprint.querySelector('#challenge-text').innerText = "3 + 4 =";
-        blueprint.querySelector('#challenge-token-vault').value = "fallback_token_local";
+        blueprint.querySelector('.challenge-text').innerText = "3 + 4 =";
+        blueprint.querySelector('.challenge-token-vault').value = "fallback_token_local";
       }
     }
 
@@ -421,7 +415,7 @@
       clearTimeout(challengeTimeout);
       const widget = inputElement.closest('.bot-widget');
       const answer = inputElement.value;
-      const challengeToken = widget.querySelector('#challenge-token-vault').value;
+      const challengeToken = widget.querySelector('.challenge-token-vault').value;
 
       if (!answer) return;
 
@@ -436,11 +430,11 @@
           if (res.ok) {
             const data = await res.json();
             widget.classList.add('verified');
-            widget.querySelector('#challenge-pass-token').value = data.passToken;
+            widget.querySelector('.challenge-pass-token').value = data.passToken;
           } else {
             widget.classList.remove('verified');
-            widget.querySelector('#challenge-pass-token').value = '';
-            mountMathBotWidget(); // Refresh on fail
+            widget.querySelector('.challenge-pass-token').value = '';
+            mountMathBotWidget(); 
           }
         } catch (e) {
           mountMathBotWidget();
@@ -451,7 +445,7 @@
     async function handleAuthSubmit(event, mode) {
       event.preventDefault();
       const currentForm = document.getElementById(`form-${mode}`);
-      const passToken = currentForm.querySelector('#challenge-pass-token').value;
+      const passToken = currentForm.querySelector('.challenge-pass-token').value;
       const btn = currentForm.querySelector('button[type="submit"]');
       const errorEl = document.getElementById(`${mode}-error`);
 
@@ -519,6 +513,6 @@
       }
     }
   </script>
-  <script src="/a2hs.js"></script>
+  <script src="a2hs.js"></script>
 </body>
 </html>
