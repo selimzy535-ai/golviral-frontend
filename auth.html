@@ -1,261 +1,500 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GolViral - Auth</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-body{background:#FFFFFF;color:#000;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.container{width:100%;max-width:400px}
-.tabs{display:flex;border-bottom:2px solid #F0F0F0;margin-bottom:24px}
-.tab{flex:1;padding:12px;text-align:center;font-weight:600;color:#8E8E8E;cursor:pointer;border-bottom:2px solid transparent}
-.tab.active{color:#FF0050;border-bottom-color:#FF0050}
-.form{display:none}
-.form.active{display:block}
-input{width:100%;padding:14px;border:1px solid #DDD;border-radius:8px;margin-bottom:12px;font-size:16px}
-input:focus{outline:none;border-color:#FF0050}
-button{width:100%;padding:14px;background:#FF0050;color:#FFF;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer}
-button:disabled{background:#CCC}
-.math-box{background:#F8F8F8;border:1px solid #E0E0E0;border-radius:8px;padding:12px;margin-bottom:12px;text-align:center}
-.math-question{font-size:18px;font-weight:700;margin-bottom:8px}
-.error{color:#FF3B30;font-size:13px;margin-bottom:8px;display:none}
-.success{color:#34C759;font-size:13px;margin-bottom:8px;display:none}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Access Hub - Golviral</title>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --bg: #FFFFFF;
+      --text: #000000;
+      --text-muted: #666666;
+      --accent: #FF0050;
+      --accent-glow: rgba(255, 0, 80, 0.2);
+      --border: #EAEAEA;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 400px;
+      padding: 32px 24px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--bg);
+      position: relative;
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .brand-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Tab Controls */
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .auth-tab.active {
+      color: var(--text);
+      border-bottom: 2px solid var(--text);
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      width: 18px;
+      height: 18px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .auth-input:focus {
+      border-color: var(--text);
+    }
+
+    /* Math Bot Widget Container */
+    .bot-widget {
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
+      background: #FAFAFA;
+      transition: border-color 0.3s;
+    }
+
+    .bot-widget.verified {
+      border-color: #00E676;
+      background: rgba(0, 230, 118, 0.02);
+    }
+
+    .bot-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .bot-equation-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bot-display {
+      font-family: monospace;
+      font-size: 20px;
+      font-weight: 700;
+      background: #FFFFFF;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      letter-spacing: 1px;
+    }
+
+    .bot-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+    }
+
+    /* Action Buttons */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .submit-btn:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .submit-btn.accent-glow {
+      background: var(--accent);
+      color: #FFFFFF;
+      animation: formPulseGlow 2.5s infinite ease-in-out;
+    }
+
+    @keyframes formPulseGlow {
+      0% { box-shadow: 0 0 8px var(--accent-glow); }
+      50% { box-shadow: 0 0 18px rgba(255, 0, 80, 0.45); }
+      100% { box-shadow: 0 0 8px var(--accent-glow); }
+    }
+
+    .toggle-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .toggle-link {
+      color: var(--text);
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-  <h1 style="text-align:center;margin-bottom:24px;font-size:28px">GolViral</h1>
-  
-  <div class="tabs">
-    <div class="tab active" onclick="showTab(event, 'login')">Login</div>
-    <div class="tab" onclick="showTab(event, 'signup')">Signup</div>
-    <div class="tab" onclick="showTab(event, 'forgot')">Forgot</div>
+
+  <div class="auth-card">
+    <div class="brand-header">
+      <h1 class="brand-title">Gol<span>viral</span></h1>
+      <div class="brand-subtitle">v4.5 Native Media Ecosystem</div>
+    </div>
+
+    <div class="auth-tabs" id="tabs-navigation">
+      <div class="auth-tab active" onclick="switchForm('login')">Sign In</div>
+      <div class="auth-tab" onclick="switchForm('signup')">Register</div>
+    </div>
+
+    <!-- 1. LOGIN INTERFACE -->
+    <form id="form-login" onsubmit="handleAuthSubmit(event, 'login')">
+      <div class="form-group">
+        <label>Account Reference / Email</label>
+        <div class="input-wrapper">
+          <i data-lucide="mail"></i>
+          <input type="text" class="auth-input" id="login-id" required placeholder="name@domain.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Secret Phrase</label>
+        <div class="input-wrapper">
+          <i data-lucide="lock"></i>
+          <input type="password" class="auth-input" id="login-pass" required placeholder="••••••••">
+        </div>
+      </div>
+      
+      <!-- Shared Dynamic Anti-Bot Matrix Placement -->
+      <div class="bot-container-anchor"></div>
+
+      <button type="submit" class="submit-btn accent-glow">Authenticate Access</button>
+      <div class="toggle-footer">
+        Forgot credentials? <span class="toggle-link" onclick="switchForm('forgot')">Recover Account</span>
+      </div>
+    </form>
+
+    <!-- 2. REGISTRATION INTERFACE -->
+    <form id="form-signup" class="hidden" onsubmit="handleAuthSubmit(event, 'signup')">
+      <div class="form-group">
+        <label>Preferred Handle</label>
+        <div class="input-wrapper">
+          <i data-lucide="at-sign"></i>
+          <input type="text" class="auth-input" id="reg-username" required placeholder="username">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email Endpoint Address</label>
+        <div class="input-wrapper">
+          <i data-lucide="mail"></i>
+          <input type="email" class="auth-input" id="reg-email" required placeholder="name@domain.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Referral Validation String</label>
+        <div class="input-wrapper">
+          <i data-lucide="users"></i>
+          <input type="text" class="auth-input" id="reg-ref" placeholder="Optional code">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Account Password</label>
+        <div class="input-wrapper">
+          <i data-lucide="lock"></i>
+          <input type="password" class="auth-input" id="reg-pass" required placeholder="••••••••">
+        </div>
+      </div>
+
+      <div class="bot-container-anchor"></div>
+
+      <button type="submit" class="submit-btn accent-glow">Initialize Account (+₦150)</button>
+      <div class="toggle-footer">
+        Existing user? <span class="toggle-link" onclick="switchForm('login')">Sign In Instead</span>
+      </div>
+    </form>
+
+    <!-- 3. RECOVERY INTERFACE -->
+    <form id="form-forgot" class="hidden" onsubmit="handleAuthSubmit(event, 'forgot')">
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label>Registered Email</label>
+        <div class="input-wrapper">
+          <i data-lucide="mail"></i>
+          <input type="email" class="auth-input" id="forgot-email" required placeholder="name@domain.com">
+        </div>
+      </div>
+
+      <div class="bot-container-anchor"></div>
+
+      <button type="submit" class="submit-btn accent-glow">Dispatch Reset Token</button>
+      <div class="toggle-footer">
+        Remember parameters? <span class="toggle-link" onclick="switchForm('login')">Return to Login</span>
+      </div>
+    </form>
   </div>
 
-  <!-- LOGIN FORM -->
-  <form class="form active" id="login-form">
-    <input type="email" id="login-email" placeholder="Email" required>
-    <input type="password" id="login-password" placeholder="Password" required>
-    
-    <div class="math-box" id="login-math">
-      <div class="math-question" id="login-question">Loading...</div>
-      <input type="number" id="login-answer" placeholder="Your answer" required>
-      <input type="hidden" id="login-token">
+  <!-- Shared Re-usable Math Bot Markup Template Blueprint -->
+  <div id="math-bot-template" class="hidden">
+    <div class="bot-widget">
+      <div class="bot-header">
+        <i data-lucide="shield-alert" style="width:13px;height:13px;color:var(--accent)"></i>
+        <span>Security Verification Bot Check</span>
+      </div>
+      <div class="bot-equation-row">
+        <div class="bot-display" id="challenge-text">? + ? =</div>
+        <input type="number" class="bot-input" id="challenge-answer" required placeholder="Solve" oninput="monitorChallengeTyping(this)">
+      </div>
+      <input type="hidden" id="challenge-token-vault">
+      <input type="hidden" id="challenge-pass-token">
     </div>
-    
-    <div class="error" id="login-error"></div>
-    <button type="submit">Login</button>
-  </form>
+  </div>
 
-  <!-- SIGNUP FORM -->
-  <form class="form" id="signup-form">
-    <input type="text" id="signup-username" placeholder="Username" required>
-    <input type="email" id="signup-email" placeholder="Email" required>
-    <input type="password" id="signup-password" placeholder="Password" required>
-    <input type="text" id="signup-referral" placeholder="Referral Code - optional">
-    
-    <div class="math-box" id="signup-math">
-      <div class="math-question" id="signup-question">Loading...</div>
-      <input type="number" id="signup-answer" placeholder="Your answer" required>
-      <input type="hidden" id="signup-token">
-    </div>
-    
-    <div class="error" id="signup-error"></div>
-    <div class="success" id="signup-success"></div>
-    <button type="submit">Create Account +1500 Credits</button>
-  </form>
+  <script>
+    const API_BASE = "https://golviral-api.onrender.com";
+    let activeMode = 'login';
+    let challengeTimeout = null;
 
-  <!-- FORGOT PASSWORD FORM -->
-  <form class="form" id="forgot-form">
-    <input type="email" id="forgot-email" placeholder="Enter your email" required>
-    
-    <div class="math-box" id="forgot-math">
-      <div class="math-question" id="forgot-question">Loading...</div>
-      <input type="number" id="forgot-answer" placeholder="Your answer" required>
-      <input type="hidden" id="forgot-token">
-    </div>
-    
-    <div class="error" id="forgot-error"></div>
-    <div class="success" id="forgot-success"></div>
-    <button type="submit">Send Reset OTP</button>
-  </form>
-</div>
-
-<script>
-const API = 'https://golviral-api.onrender.com';
-
-function showTab(e, tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
-  if (e && e.target) {
-    e.target.classList.add('active');
-  }
-  const element = document.getElementById(tab + '-form');
-  if (element) element.classList.add('active');
-}
-
-// Math Bot Engine
-async function loadMathBot(formType) {
-  try {
-    const res = await fetch(`${API}/api/bot-challenge`, {method:'POST'});
-    const data = await res.json();
-    document.getElementById(formType + '-question').textContent = data.question || 'Verify text layout matches parameters';
-    document.getElementById(formType + '-token').value = data.token || '';
-  } catch(e) {
-    document.getElementById(formType + '-question').textContent = '5 + 5 = ?';
-    document.getElementById(formType + '-token').value = 'emergency_token_bypass';
-  }
-}
-
-// Verify math before submit with defensive error catching
-async function verifyMath(formType, answer) {
-  const token = document.getElementById(formType + '-token').value;
-  try {
-    const res = await fetch(`${API}/api/bot-verify`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({token, answer})
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      mountMathBotWidget();
     });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.passToken;
-  } catch(err) {
-    return null;
-  }
-}
 
-// Load math on initialization
-loadMathBot('login');
-loadMathBot('signup');
-loadMathBot('forgot');
+    // SPA View Switcher Matrix
+    function switchForm(targetMode) {
+      activeMode = targetMode;
+      
+      // Toggle Form Elements Visibilities
+      document.getElementById('form-login').classList.add('hidden');
+      document.getElementById('form-signup').classList.add('hidden');
+      document.getElementById('form-forgot').classList.add('hidden');
+      document.getElementById(`form-${targetMode}`).classList.remove('hidden');
 
-// LOGIN
-document.getElementById('login-form').onsubmit = async e => {
-  e.preventDefault();
-  const error = document.getElementById('login-error');
-  error.style.display = 'none';
-  
-  const email = document.getElementById('login-email').value;
-  const password = document.getElementById('login-password').value;
-  const answer = document.getElementById('login-answer').value;
-  
-  try {
-    const passToken = await verifyMath('login', answer);
-    if (!passToken) {
-      error.textContent = 'Math verification failed. Please try again.';
-      error.style.display = 'block';
-      return;
+      // Adjust structural navigation sub-tabs
+      const tabsNav = document.getElementById('tabs-navigation');
+      if (targetMode === 'forgot') {
+        tabsNav.classList.add('hidden');
+      } else {
+        tabsNav.classList.remove('hidden');
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        const dynamicIndex = targetMode === 'login' ? 1 : 2;
+        document.querySelector(`.auth-tab:nth-child(${dynamicIndex})`).classList.add('active');
+      }
+
+      mountMathBotWidget();
     }
 
-    const res = await fetch(`${API}/api/auth/login`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email, password, passToken})
-    });
-    const data = await res.json();
-    
-    if(res.ok) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.userId);
-      window.location = 'index.html';
-    } else {
-      error.textContent = data.error || 'Invalid credentials';
-      error.style.display = 'block';
-      loadMathBot('login'); // refresh math
-    }
-  } catch(e) {
-    error.textContent = 'Network connection error';
-    error.style.display = 'block';
-  }
-};
+    // Math Bot Mounting Machine
+    async function mountMathBotWidget() {
+      // Clean old nodes out from other anchors
+      document.querySelectorAll('.bot-container-anchor').forEach(anchor => anchor.innerHTML = '');
+      
+      const activeFormAnchor = document.querySelector(`#form-${activeMode} .bot-container-anchor`);
+      if (!activeFormAnchor) return;
 
-// SIGNUP
-document.getElementById('signup-form').onsubmit = async e => {
-  e.preventDefault();
-  const error = document.getElementById('signup-error');
-  const success = document.getElementById('signup-success');
-  error.style.display = 'none';
-  success.style.display = 'none';
-  
-  const username = document.getElementById('signup-username').value;
-  const email = document.getElementById('signup-email').value;
-  const password = document.getElementById('signup-password').value;
-  const referralCode = document.getElementById('signup-referral').value;
-  const answer = document.getElementById('signup-answer').value;
-  
-  try {
-    const passToken = await verifyMath('signup', answer);
-    if (!passToken) {
-      error.textContent = 'Math verification failed. Please try again.';
-      error.style.display = 'block';
-      return;
+      const blueprint = document.getElementById('math-bot-template').firstElementChild.cloneNode(true);
+      activeFormAnchor.appendChild(blueprint);
+      lucide.createIcons();
+
+      // Trigger structural payload fetch from Render service instances
+      try {
+        const response = await fetch(`${API_BASE}/bot-challenge`, { method: 'POST' });
+        const data = await response.json();
+        
+        blueprint.querySelector('#challenge-text').innerText = data.question;
+        blueprint.querySelector('#challenge-token-vault').value = data.token;
+        blueprint.querySelector('#challenge-answer').value = '';
+        blueprint.querySelector('.bot-widget').classList.remove('verified');
+        blueprint.querySelector('#challenge-pass-token').value = '';
+      } catch (err) {
+        blueprint.querySelector('#challenge-text').innerText = "3 + 4 =";
+        blueprint.querySelector('#challenge-token-vault').value = "fallback_token_local";
+      }
     }
 
-    const res = await fetch(`${API}/api/auth/signup`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username, email, password, referralCode, passToken})
-    });
-    const data = await res.json();
-    
-    if(res.ok) {
-      success.textContent = 'Account created! +1500 Free Credits. Redirecting...';
-      success.style.display = 'block';
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.userId);
-      setTimeout(() => window.location = 'index.html', 1500);
-    } else {
-      error.textContent = data.error || 'Failed to create account';
-      error.style.display = 'block';
-      loadMathBot('signup');
-    }
-  } catch(e) {
-    error.textContent = 'Network connection error';
-    error.style.display = 'block';
-  }
-};
+    // Interactive Inline Solution Auto-Checker
+    function monitorChallengeTyping(inputElement) {
+      clearTimeout(challengeTimeout);
+      const widget = inputElement.closest('.bot-widget');
+      const answer = inputElement.value;
+      const challengeToken = widget.querySelector('#challenge-token-vault').value;
 
-// FORGOT PASSWORD
-document.getElementById('forgot-form').onsubmit = async e => {
-  e.preventDefault();
-  const error = document.getElementById('forgot-error');
-  const success = document.getElementById('forgot-success');
-  error.style.display = 'none';
-  success.style.display = 'none';
-  
-  const email = document.getElementById('forgot-email').value;
-  const answer = document.getElementById('forgot-answer').value;
-  
-  try {
-    const passToken = await verifyMath('forgot', answer);
-    if (!passToken) {
-      error.textContent = 'Math verification failed. Please try again.';
-      error.style.display = 'block';
-      return;
+      if (!answer) return;
+
+      challengeTimeout = setTimeout(async () => {
+        try {
+          const res = await fetch(`${API_BASE}/bot-verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answer, token: challengeToken })
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            widget.classList.add('verified');
+            widget.querySelector('#challenge-pass-token').value = data.passToken;
+          } else {
+            widget.classList.remove('verified');
+            widget.querySelector('#challenge-pass-token').value = '';
+          }
+        } catch (e) {}
+      }, 400);
     }
 
-    const res = await fetch(`${API}/api/auth/forgot-password`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email, passToken})
-    });
-    const data = await res.json();
-    
-    if (res.ok) {
-      success.textContent = data.message || 'Reset link dispatched.';
-      success.style.display = 'block';
-    } else {
-      error.textContent = data.error || 'Email path verification error';
-      error.style.display = 'block';
+    // Structural Access Dispatcher
+    async function handleAuthSubmit(event, mode) {
+      event.preventDefault();
+      const currentForm = document.getElementById(`form-${mode}`);
+      const passToken = currentForm.querySelector('#challenge-pass-token').value;
+
+      if (!passToken) {
+        alert("Security challenge must be completely resolved before system onboarding processing.");
+        return;
+      }
+
+      let payload = { passToken };
+      let endpoint = `${API_BASE}/auth/login`;
+
+      if (mode === 'login') {
+        payload.identity = document.getElementById('login-id').value;
+        payload.password = document.getElementById('login-pass').value;
+      } else if (mode === 'signup') {
+        endpoint = `${API_BASE}/auth/signup`;
+        payload.username = document.getElementById('reg-username').value;
+        payload.email = document.getElementById('reg-email').value;
+        payload.password = document.getElementById('reg-pass').value;
+        payload.referrer = document.getElementById('reg-ref').value;
+      } else if (mode === 'forgot') {
+        endpoint = `${API_BASE}/auth/forgot-password`;
+        payload.email = document.getElementById('forgot-email').value;
+      }
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          if (mode === 'forgot') {
+            alert("Recovery tracking string dispatched. Validate your mailbox nodes.");
+            switchForm('login');
+          } else {
+            localStorage.setItem('token', result.token);
+            window.location.href = 'index.html';
+          }
+        } else {
+          alert(result.error || "Authentication structural validation fault encountered.");
+          mountMathBotWidget(); // Cycle structural challenge instance on drop
+        }
+      } catch (err) {
+        alert("Render infrastructure communication boundary dropped.");
+      }
     }
-    loadMathBot('forgot');
-  } catch(e) {
-    error.textContent = 'Network connection error';
-    error.style.display = 'block';
-  }
-};
-</script>
-<script src="/a2hs.js"></script>
+  </script>
 </body>
 </html>
+
