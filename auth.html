@@ -2,234 +2,500 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GolViral - Auth</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Auth - Golviral</title>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-body{background:#FFFFFF;color:#000;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.container{width:100%;max-width:400px}
-.tabs{display:flex;border-bottom:2px solid #F0F0F0;margin-bottom:24px}
-.tab{flex:1;padding:12px;text-align:center;font-weight:600;color:#8E8E8E;cursor:pointer;border-bottom:2px solid transparent}
-.tab.active{color:#FF0050;border-bottom-color:#FF0050}
-.form{display:none}
-.form.active{display:block}
-input{width:100%;padding:14px;border:1px solid #DDD;border-radius:8px;margin-bottom:12px;font-size:16px}
-input:focus{outline:none;border-color:#FF0050}
-button{width:100%;padding:14px;background:#FF0050;color:#FFF;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer}
-button:disabled{background:#CCC}
-.math-box{background:#F8F8F8;border:1px solid #E0E0E0;border-radius:8px;padding:12px;margin-bottom:12px;text-align:center}
-.math-question{font-size:18px;font-weight:700;margin-bottom:8px}
-.error{color:#FF3B30;font-size:13px;margin-bottom:8px;display:none}
-.success{color:#34C759;font-size:13px;margin-bottom:8px;display:none}
+:root {
+  --bg: #FFFFFF;
+  --text: #000;
+  --accent: #FF0050;
+  --border: #EAEAEA;
+  --success: #00C851;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.logo {
+  font-size: 32px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+.logo span { color: var(--accent); }
+.subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 32px;
+}
+
+.tabs {
+  display: flex;
+  width: 100%;
+  max-width: 400px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 400px;
+  display: none;
+}
+.auth-box.active { display: block; }
+
+.input-group {
+  margin-bottom: 16px;
+}
+.input-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.input-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+}
+.input-group input:focus {
+  outline: none;
+  border-color: var(--text);
+}
+
+.math-box {
+  background: #F5F5F5;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.math-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.math-question {
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 12px;
+  font-family: monospace;
+}
+.math-box input {
+  width: 120px;
+  padding: 10px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-family: monospace;
+}
+.refresh-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.submit-btn.processing {
+  background: var(--accent);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+ 0%, 100% { opacity: 1; }
+ 50% { opacity: 0.7; }
+}
+
+.forgot-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 13px;
+}
+.forgot-link a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.error-msg {
+  background: #FFF0F0;
+  border: 1px solid #FFD0D0;
+  color: #FF3B30;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+.success-msg {
+  background: #F0FFF4;
+  border: 1px solid #C6F6D5;
+  color: var(--success);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.info-text {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  margin-top: 16px;
+}
 </style>
 </head>
 <body>
-<div class="container">
-  <h1 style="text-align:center;margin-bottom:24px;font-size:28px">GolViral</h1>
-  
-  <div class="tabs" id="tabs-navigation">
-    <div class="tab active" onclick="showTab(event, 'login')">Login</div>
-    <div class="tab" onclick="showTab(event, 'signup')">Signup</div>
-    <div class="tab" onclick="showTab(event, 'forgot')">Forgot</div>
+
+<div class="logo">Gol<span>viral</span></div>
+<div class="subtitle">Earn while you scroll</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+  <button class="tab-btn" onclick="switchTab('signup')">Signup</button>
+  <button class="tab-btn" onclick="switchTab('forgot')">Forgot</button>
+</div>
+
+<div class="error-msg" id="error"></div>
+<div class="success-msg" id="success"></div>
+
+<!-- LOGIN TAB -->
+<div id="login-box" class="auth-box active">
+  <div class="input-group">
+    <label>Email</label>
+    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+  </div>
+  <div class="input-group">
+    <label>Password</label>
+    <input type="password" id="login-password" placeholder="••••" autocomplete="current-password">
   </div>
 
-  <form class="form active" id="login-form">
-    <input type="email" id="login-email" placeholder="Email" required>
-    <input type="password" id="login-password" placeholder="Password" required>
-    
-    <div class="math-box" id="login-math">
-      <div class="math-question" id="login-question">Loading...</div>
-      <input type="number" id="login-answer" placeholder="Your answer" required>
-      <input type="hidden" id="login-token">
-    </div>
-    
-    <div class="error" id="login-error"></div>
-    <button type="submit">Login</button>
-  </form>
+  <div class="math-box">
+    <div class="math-label">Math Verification Required</div>
+    <div class="math-question" id="login-math">Loading...</div>
+    <input type="number" id="login-answer" placeholder="?">
+    <button class="refresh-btn" onclick="loadMath('login')">Refresh</button>
+  </div>
 
-  <form class="form" id="signup-form">
-    <input type="text" id="signup-username" placeholder="Username" required>
-    <input type="email" id="signup-email" placeholder="Email" required>
-    <input type="password" id="signup-password" placeholder="Password" required>
-    <input type="text" id="signup-referral" placeholder="Referral Code - optional">
-    
-    <div class="math-box" id="signup-math">
-      <div class="math-question" id="signup-question">Loading...</div>
-      <input type="number" id="signup-answer" placeholder="Your answer" required>
-      <input type="hidden" id="signup-token">
-    </div>
-    
-    <div class="error" id="signup-error"></div>
-    <div class="success" id="signup-success"></div>
-    <button type="submit">Create Account +1500 Credits</button>
-  </form>
+  <button class="submit-btn" onclick="handleLogin()">Login</button>
 
-  <form class="form" id="forgot-form">
-    <input type="email" id="forgot-email" placeholder="Enter your email" required>
-    
-    <div class="math-box" id="forgot-math">
-      <div class="math-question" id="forgot-question">Loading...</div>
-      <input type="number" id="forgot-answer" placeholder="Your answer" required>
-      <input type="hidden" id="forgot-token">
-    </div>
-    
-    <div class="error" id="forgot-error"></div>
-    <div class="success" id="forgot-success"></div>
-    <button type="submit">Send Reset OTP</button>
-  </form>
+  <div class="forgot-link">
+    <a href="#" onclick="switchTab('forgot'); return false;">Forgot password?</a>
+  </div>
+</div>
+
+<!-- SIGNUP TAB -->
+<div id="signup-box" class="auth-box">
+  <div class="input-group">
+    <label>Username</label>
+    <input type="text" id="signup-username" placeholder="cooluser123" autocomplete="username">
+  </div>
+  <div class="input-group">
+    <label>Email</label>
+    <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email">
+  </div>
+  <div class="input-group">
+    <label>Password</label>
+    <input type="password" id="signup-password" placeholder="Min 6 characters" autocomplete="new-password">
+  </div>
+  <div class="input-group">
+    <label>Referral Code (Optional)</label>
+    <input type="text" id="signup-ref" placeholder="Paste referral link ID">
+  </div>
+
+  <div class="math-box">
+    <div class="math-label">Math Verification Required</div>
+    <div class="math-question" id="signup-math">Loading...</div>
+    <input type="number" id="signup-answer" placeholder="?">
+    <button class="refresh-btn" onclick="loadMath('signup')">Refresh</button>
+  </div>
+
+  <button class="submit-btn" onclick="handleSignup()">Create Account + 1500 Credits</button>
+
+  <div class="info-text">+1500 Free Credits on signup. 25 credits per post.</div>
+</div>
+
+<!-- FORGOT TAB -->
+<div id="forgot-box" class="auth-box">
+  <div class="input-group">
+    <label>Email</label>
+    <input type="email" id="forgot-email" placeholder="you@example.com" autocomplete="email">
+  </div>
+
+  <div class="math-box">
+    <div class="math-label">Math Verification Required</div>
+    <div class="math-question" id="forgot-math">Loading...</div>
+    <input type="number" id="forgot-answer" placeholder="?">
+    <button class="refresh-btn" onclick="loadMath('forgot')">Refresh</button>
+  </div>
+
+  <button class="submit-btn" onclick="handleForgot()">Send Reset OTP</button>
+
+  <div class="info-text">Check email for 6-digit OTP. Valid 15 minutes.</div>
 </div>
 
 <script>
-const API = 'https://golviral-api.onrender.com';
+const API_BASE = "https://golviral-api.onrender.com/api";
+let mathTokens = { login: null, signup: null, forgot: null };
 
-// FIXED: Passed explicit event target execution context 
-function showTab(e, tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
-  e.target.classList.add('active');
-  document.getElementById(tab + '-form').classList.add('active');
+document.addEventListener("DOMContentLoaded", () => {
+  lucide.createIcons();
+
+  // Auto-load math for active tab
+  loadMath('login');
+
+  // Check if referred
+  const urlParams = new URLSearchParams(window.location.search);
+  const ref = urlParams.get('ref');
+  if (ref) {
+    document.getElementById('signup-ref').value = ref;
+    switchTab('signup');
+  }
+
+  // If already logged in, redirect
+  if (localStorage.getItem('token')) {
+    location.href = 'index.html';
+  }
+});
+
+function switchTab(tab) {
+  document.querySelectorAll('.auth-box').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  document.getElementById(`${tab}-box`).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  hideMessages();
+  loadMath(tab);
 }
 
-// Math Bot Engine
-async function loadMathBot(formType) {
+// MATH BOT FUNCTIONS
+async function loadMath(type) {
   try {
-    const res = await fetch(`${API}/api/bot-challenge`, {method:'POST'});
+    const res = await fetch(`${API_BASE}/bot-challenge`, { method: 'POST' });
     const data = await res.json();
-    document.getElementById(formType + '-question').textContent = data.question;
-    document.getElementById(formType + '-token').value = data.token;
-  } catch(e) {
-    document.getElementById(formType + '-question').textContent = '5 + 5 = ?';
-    document.getElementById(formType + '-token').value = 'emergency_token_bypass';
+    document.getElementById(`${type}-math`).textContent = data.question;
+    mathTokens[type] = data.token;
+    document.getElementById(`${type}-answer`).value = '';
+  } catch (e) {
+    showError('Failed to load math challenge');
   }
 }
 
-// Verify math before submit
-async function verifyMath(formType, answer) {
-  const token = document.getElementById(formType + '-token').value;
-  const res = await fetch(`${API}/api/bot-verify`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({token, answer})
+async function verifyMath(type, answer) {
+  const token = mathTokens[type];
+  if (!token ||!answer) throw new Error('Math verification required');
+
+  const res = await fetch(`${API_BASE}/bot-verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, answer: answer.trim() })
   });
-  if (!res.ok) throw new Error("Verification challenge rejected");
+
+  if (!res.ok) throw new Error('Math verification failed');
   const data = await res.json();
   return data.passToken;
 }
 
-// Load configurations sequentially
-loadMathBot('login');
-loadMathBot('signup');
-loadMathBot('forgot');
-
 // LOGIN
-document.getElementById('login-form').onsubmit = async e => {
-  e.preventDefault();
-  const error = document.getElementById('login-error');
-  error.style.display = 'none';
-  
-  const email = document.getElementById('login-email').value;
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const answer = document.getElementById('login-answer').value;
-  
+
+  if (!email ||!password) return showError('Enter email and password');
+
+  setProcessing('login', true);
+  hideMessages();
+
   try {
+    // Step 1: Verify math
     const passToken = await verifyMath('login', answer);
-    const res = await fetch(`${API}/api/auth/login`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email, password, passToken})
+
+    // Step 2: Login
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, passToken })
     });
+
     const data = await res.json();
-    
-    if(res.ok) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.userId);
-      window.location = 'index.html';
-    } else {
-      error.textContent = data.error || 'Authentication rejected';
-      error.style.display = 'block';
-      loadMathBot('login');
-    }
-  } catch(err) {
-    error.textContent = err.message || 'Network error';
-    error.style.display = 'block';
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+
+    // Save auth
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userId', data.userId);
+
+    showSuccess('Login successful! Redirecting...');
+    setTimeout(() => location.href = 'index.html', 1000);
+
+  } catch (e) {
+    showError(e.message);
+    loadMath('login');
   }
-};
+
+  setProcessing('login', false);
+}
 
 // SIGNUP
-document.getElementById('signup-form').onsubmit = async e => {
-  e.preventDefault();
-  const error = document.getElementById('signup-error');
-  const success = document.getElementById('signup-success');
-  error.style.display = 'none';
-  success.style.display = 'none';
-  
-  const username = document.getElementById('signup-username').value;
-  const email = document.getElementById('signup-email').value;
+async function handleSignup() {
+  const username = document.getElementById('signup-username').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
-  const referralCode = document.getElementById('signup-referral').value;
+  const referralCode = document.getElementById('signup-ref').value.trim();
   const answer = document.getElementById('signup-answer').value;
-  
+
+  if (!username ||!email ||!password) return showError('Fill all required fields');
+  if (password.length < 6) return showError('Password min 6 characters');
+
+  setProcessing('signup', true);
+  hideMessages();
+
   try {
+    // Step 1: Verify math
     const passToken = await verifyMath('signup', answer);
-    const res = await fetch(`${API}/api/auth/signup`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username, email, password, referralCode, passToken})
+
+    // Step 2: Signup
+    const res = await fetch(`${API_BASE}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password, referralCode, passToken })
     });
+
     const data = await res.json();
-    
-    if(res.ok) {
-      success.textContent = 'Account created! +1500 Free Credits. Redirecting...';
-      success.style.display = 'block';
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.userId);
-      setTimeout(() => window.location = 'index.html', 1500);
-    } else {
-      error.textContent = data.error || 'Registration failed';
-      error.style.display = 'block';
-      loadMathBot('signup');
-    }
-  } catch(err) {
-    error.textContent = err.message || 'Network error';
-    error.style.display = 'block';
+    if (!res.ok) throw new Error(data.error || 'Signup failed');
+
+    // Save auth
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userId', data.userId);
+
+    showSuccess('+1500 Free Credits added! Redirecting...');
+    setTimeout(() => location.href = 'index.html', 1500);
+
+  } catch (e) {
+    showError(e.message);
+    loadMath('signup');
   }
-};
+
+  setProcessing('signup', false);
+}
 
 // FORGOT PASSWORD
-document.getElementById('forgot-form').onsubmit = async e => {
-  e.preventDefault();
-  const error = document.getElementById('forgot-error');
-  const success = document.getElementById('forgot-success');
-  error.style.display = 'none';
-  success.style.display = 'none';
-  
-  const email = document.getElementById('forgot-email').value;
+async function handleForgot() {
+  const email = document.getElementById('forgot-email').value.trim();
   const answer = document.getElementById('forgot-answer').value;
-  
+
+  if (!email) return showError('Enter email');
+
+  setProcessing('forgot', true);
+  hideMessages();
+
   try {
+    // Step 1: Verify math
     const passToken = await verifyMath('forgot', answer);
-    const res = await fetch(`${API}/api/auth/forgot-password`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email, passToken})
+
+    // Step 2: Request reset
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, passToken })
     });
-    const data = await res.json();
-    
-    // FIXED: Enforced response context evaluation safety
-    if(res.ok) {
-      success.textContent = data.message || 'Reset token dispatched to destination.';
-      success.style.display = 'block';
-    } else {
-      error.textContent = data.error || 'Verification recovery rejected.';
-      error.style.display = 'block';
-    }
-    loadMathBot('forgot');
-  } catch(err) {
-    error.textContent = err.message || 'Network error';
-    error.style.display = 'block';
+
+    await res.json();
+    showSuccess('If account exists, OTP sent to email. Valid 15 mins.');
+
+  } catch (e) {
+    showError(e.message);
+    loadMath('forgot');
   }
-};
+
+  setProcessing('forgot', false);
+}
+
+function setProcessing(type, state) {
+  const btn = document.querySelector(`#${type}-box.submit-btn`);
+  if (state) {
+    btn.classList.add('processing');
+    btn.disabled = true;
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = 'Processing...';
+  } else {
+    btn.classList.remove('processing');
+    btn.disabled = false;
+    btn.textContent = btn.dataset.originalText;
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('success').style.display = 'none';
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById('success');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('error').style.display = 'none';
+}
+
+function hideMessages() {
+  document.getElementById('error').style.display = 'none';
+  document.getElementById('success').style.display = 'none';
+}
 </script>
-<script src="a2hs.js"></script>
 </body>
 </html>
