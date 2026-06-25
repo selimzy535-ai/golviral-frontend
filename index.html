@@ -1,152 +1,617 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GolViral - Viral Feed</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#FFFFFF">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-body{background:#FFFFFF;color:#000;min-height:100vh;padding-bottom:70px}
-header{position:sticky;top:0;background:#FFFFFF;border-bottom:1px solid #E0E0E0;padding:12px 16px;z-index:10}
-header h1{font-size:20px;font-weight:700}
-.feed{max-width:600px;margin:0 auto}
-.post{background:#FFFFFF;border-bottom:8px solid #F5F5F5}
-.post-header{display:flex;align-items:center;padding:12px 16px}
-.post-avatar{width:32px;height:32px;border-radius:50%;background:#DDD;margin-right:10px}
-.post-user{font-weight:600;font-size:14px}
-.post-media{width:100%;aspect-ratio:9/16;background:#000;position:relative}
-.post-media video{width:100%;height:100%;object-fit:cover}
-.cached-badge{position:absolute;top:8px;left:8px;background:#00C853;color:#FFF;font-size:10px;padding:3px 6px;border-radius:4px;display:none}
-.post-actions{display:flex;align-items:center;padding:8px 16px;gap:20px}
-.action-btn{background:none;border:none;font-size:24px;cursor:pointer}
-.action-count{font-size:14px;font-weight:600;margin-left:-15px}
-nav{position:fixed;bottom:0;left:0;right:0;background:#FFFFFF;border-top:1px solid #E0E0E0;display:flex;justify-content:space-around;padding:8px 0}
-nav a{text-decoration:none;color:#8E8E8E;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
-nav a.active{color:#FF0050}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Golviral</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="a2hs.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <style>
+    /* --- CSS RESET & BRAND VARIABLES --- */
+    :root {
+      --bg: #FFFFFF;
+      --text: #000000;
+      --text-muted: #666666;
+      --accent: #FF0050;
+      --accent-glow: rgba(255, 0, 80, 0.25);
+      --border-color: #EAEAEA;
+      --nav-height: 64px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* --- ANIMATIONS & GLOWS --- */
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 5px var(--accent-glow), 0 0 10px var(--accent-glow); }
+      50% { box-shadow: 0 0 15px var(--accent-glow), 0 0 25px var(--accent-glow); }
+      100% { box-shadow: 0 0 5px var(--accent-glow), 0 0 10px var(--accent-glow); }
+    }
+
+    .glow-active {
+      animation: pulse-glow 2s infinite ease-in-out;
+      border: 1px solid var(--accent) !important;
+    }
+
+    .badge-glow {
+      background: var(--bg);
+      border: 1px solid #00E676;
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.3);
+      color: #00C853;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    /* --- APP LAYOUT --- */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100%;
+      position: relative;
+    }
+
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: var(--nav-height);
+      height: calc(100vh - var(--nav-height));
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* --- TAB 1: REELS COMPONENT (STRICT INSTAGRAM STYLE) --- */
+    .reels-container {
+      height: calc(100vh - var(--nav-height));
+      scroll-snap-type: y mandatory;
+      overflow-y: scroll;
+      scrollbar-width: none;
+      background: #000000;
+    }
+    .reels-container::-webkit-scrollbar { display: none; }
+
+    .reel-viewport {
+      height: calc(100vh - var(--nav-height));
+      scroll-snap-align: start;
+      position: relative;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reel-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Right Action Bar Overlays */
+    .reel-actions {
+      position: absolute;
+      right: 12px;
+      bottom: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .action-btn.active {
+      color: var(--accent);
+      background: #FFFFFF;
+      border-color: var(--accent);
+      box-shadow: 0 0 15px var(--accent);
+    }
+    .action-counter {
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 4px;
+      text-shadow: 0px 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .reel-meta {
+      position: absolute;
+      left: 16px;
+      bottom: 30px;
+      right: 80px;
+      color: #FFFFFF;
+      z-index: 10;
+      text-shadow: 0px 1px 4px rgba(0,0,0,0.8);
+    }
+    .reel-username { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+    .reel-desc { font-size: 13px; line-height: 1.4; opacity: 0.9; }
+
+    /* --- TAB 2: EXPLORE COMPONENT --- */
+    .explore-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 5;
+    }
+    .search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--text);
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+    }
+
+    .explore-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      padding: 2px;
+    }
+    .grid-item {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      background: #F5F5F5;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .grid-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .grid-icon-indicator {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      color: white;
+    }
+
+    /* --- TAB 3: PROFILE COMPONENT --- */
+    .profile-header {
+      padding: 24px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .profile-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+    .profile-avatar-container {
+      position: relative;
+    }
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border-color);
+    }
+    .profile-stats {
+      flex: 1;
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+    }
+    .stat-num { font-size: 18px; font-weight: 700; }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    
+    .profile-bio { margin-bottom: 20px; }
+    .bio-name { font-weight: 700; font-size: 16px; }
+    .bio-text { font-size: 14px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+
+    .profile-action-btn {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--text);
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .profile-action-btn:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .profile-tabs-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .p-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .p-tab.active {
+      color: var(--text);
+      border-bottom: 2px solid var(--text);
+    }
+
+    /* --- CORE SYSTEM BOTTOM NAVIGATION --- */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav-height);
+      background: var(--bg);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-decoration: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      transition: color 0.2s, background-color 0.2s;
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+    }
+    
+    .nav-post-btn {
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      background: var(--bg);
+    }
+  </style>
 </head>
 <body>
-<header><h1>GolViral</h1></header>
 
-<div class="feed" id="feed">
-  <div style="text-align:center;padding:40px;color:#8E8E8E">Loading feed...</div>
-</div>
-
-<nav>
-  <a href="index.html" class="active">🏠<span>Feed</span></a>
-  <a href="explore.html">🔍<span>Explore</span></a>
-  <a href="post.html">➕<span>Post</span></a>
-  <a href="wallet.html">💰<span>Wallet</span></a>
-  <a href="profile.html">👤<span>Profile</span></a>
-</nav>
-
-<script>
-const API = 'https://golviral-api.onrender.com'; 
-const token = localStorage.getItem('token');
-
-async function loadFeed() {
-  try {
-    const res = await fetch(`${API}/api/feed`);
-    const posts = await res.json();
-    const feedDiv = document.getElementById('feed');
+  <div class="app-shell">
     
-    if(!posts || posts.length === 0) {
-      feedDiv.innerHTML = '<div style="text-align:center;padding:40px">No posts yet. Be the first to post!</div>';
-      return;
-    }
-    
-    feedDiv.innerHTML = posts.map(p => {
-      // Defensive fallback check to avoid crashing on undefined strings
-      const displayId = p.userId ? String(p.userId).slice(0, 8) : 'anonymous';
+    <main class="main-content" id="main-scroll-view">
       
-      return `
-        <div class="post" data-id="${p.id}">
-          <div class="post-header">
-            <div class="post-avatar"></div>
-            <div class="post-user">@${displayId}</div>
+      <section id="tab-reels" class="reels-container">
+        <div class="reel-viewport" data-post-id="post_01">
+          <video class="reel-video" loop playsinline src="" poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></video>
+          
+          <div class="reel-actions">
+            <div class="badge-glow hidden" id="cache-badge-post_01">CACHED</div>
+            <div>
+              <button class="action-btn" onclick="toggleLike('post_01', this)"><i data-lucide="heart"></i></button>
+              <div class="action-counter" id="likes-post_01">0</div>
+            </div>
+            <div>
+              <button class="action-btn" onclick="openComments('post_01')"><i data-lucide="message-circle"></i></button>
+              <div class="action-counter" id="comments-post_01">0</div>
+            </div>
+            <div>
+              <button class="action-btn" onclick="sharePost('post_01')"><i data-lucide="share-2"></i></button>
+            </div>
           </div>
-          <div class="post-media">
-            <video src="${p.mediaUrl}" controls playsinline preload="metadata" poster="${p.thumbnailUrl || ''}"></video>
-            <div class="cached-badge" id="cached-${p.id}">Cached</div>
-          </div>
-          <div class="post-actions">
-            <button class="action-btn" onclick="likePost('${p.id}','${p.userId}')">❤️</button>
-            <span class="action-count" id="likes-${p.id}">${p.likes || 0}</span>
-            
-            <button class="action-btn" onclick="commentPost('${p.id}','${p.userId}')">💬</button>
-            <span class="action-count" id="comments-${p.id}">${p.comments || 0}</span>
+
+          <div class="reel-meta">
+            <div class="reel-username">@chidi_tech</div>
+            <div class="reel-desc">Building the future of decentralized monetization in Lagos 🚀 #tech #nigeria</div>
           </div>
         </div>
-      `;
-    }).join('');
-    
-    // Check cache status
-    if('caches' in window) {
-      posts.forEach(p => {
-        if(p.mediaUrl) {
-          caches.match(p.mediaUrl).then(cached => {
-            if(cached) {
-              const badge = document.getElementById(`cached-${p.id}`);
-              if(badge) badge.style.display = 'block';
-            }
-          });
-        }
-      });
+      </section>
+
+      <section id="tab-explore" class="hidden">
+        <div class="explore-header">
+          <div class="search-wrapper">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" class="search-input" placeholder="Search creators, stories, topics...">
+          </div>
+        </div>
+        <div class="explore-grid" id="explore-mesh"></div>
+      </section>
+
+      <section id="tab-profile" class="hidden">
+        <div class="profile-header">
+          <div class="profile-meta-row">
+            <div class="profile-avatar-container">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='1.5'><circle cx='12' cy='8' r='4'/><path d='M20 21a8 8 0 0 0-16 0'/></svg>" class="profile-avatar" id="user-avatar" alt="User Headshot">
+            </div>
+            <div class="profile-stats">
+              <div><div class="stat-num" id="count-posts">0</div><div class="stat-label">Posts</div></div>
+              <div><div class="stat-num" id="count-followers">0</div><div class="stat-label">Followers</div></div>
+              <div><div class="stat-num" id="count-following">0</div><div class="stat-label">Following</div></div>
+            </div>
+          </div>
+          <div class="profile-bio">
+            <div class="bio-name" id="profile-display-name">Loading Profile...</div>
+            <div class="bio-text" id="profile-display-bio">Initializing Secure Profile Session Engine...</div>
+          </div>
+          <button class="profile-action-btn" id="profile-primary-action" onclick="handleProfileButton()">Edit Profile</button>
+        </div>
+
+        <div class="profile-tabs-nav">
+          <div class="p-tab active" onclick="toggleProfileSubTab('grid')"><i data-lucide="grid" style="margin-bottom: -2px;"></i></div>
+          <div class="p-tab" onclick="toggleProfileSubTab('saved')"><i data-lucide="bookmark" style="margin-bottom: -2px;"></i></div>
+        </div>
+        <div class="explore-grid" id="profile-posts-mesh" style="padding-top: 4px;"></div>
+      </section>
+
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="#" class="nav-link active" onclick="navigateRoute('reels', event)"><i data-lucide="film"></i></a>
+      <a href="#" class="nav-link" onclick="navigateRoute('explore', event)"><i data-lucide="compass"></i></a>
+      <a href="studio.html" class="nav-link nav-post-btn"><i data-lucide="plus-square"></i></a>
+      <a href="reading.html" class="nav-link"><i data-lucide="book-open"></i></a>
+      <a href="finance.html" class="nav-link" id="nav-finance-icon"><i data-lucide="wallet"></i></a>
+      <a href="#" class="nav-link" onclick="navigateRoute('profile', event)"><i data-lucide="user"></i></a>
+    </nav>
+
+  </div>
+
+  <script>
+    // FIXED: Target correct live deployment URL endpoint
+    const API_BASE = "https://golviral-api.onrender.com/api";
+    let activeTab = "reels";
+    let watchTimers = {};
+    let viewedPosts = new Set();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // SECURITY ROUTE GUARD: If no auth token is detected, kick out to entry portal
+      if (!localStorage.getItem('token')) {
+        window.location.href = 'auth.html';
+        return;
+      }
+      
+      lucide.createIcons();
+      initializeIntersectionObservers();
+      loadExploreGrid();
+      evaluateUrlParameters();
+    });
+
+    // SPA NAVIGATION SYSTEM
+    function navigateRoute(targetRoute, event) {
+      if(event) event.preventDefault();
+      
+      document.querySelectorAll('.bottom-nav .nav-link').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.main-content > section').forEach(el => el.classList.add('hidden'));
+      
+      const currentSelector = event ? event.currentTarget : document.querySelector(`[onclick*="navigateRoute('${targetRoute}'"]`);
+      if(currentSelector) currentSelector.classList.add('active');
+      
+      const targetSection = document.getElementById(`tab-${targetRoute}`);
+      if(targetSection) targetSection.classList.remove('hidden');
+      activeTab = targetRoute;
+
+      if(targetRoute === 'reels') {
+        manageVideoPlayback();
+      } else {
+        stopAllVideos();
+      }
     }
-  } catch(e) {
-    console.error(e);
-    document.getElementById('feed').innerHTML = '<div style="text-align:center;padding:40px;color:red">Failed to load feed</div>';
-  }
-}
 
-async function likePost(postId, creatorId) {
-  if(!token) return alert('Login required');
-  try {
-    const response = await fetch(`${API}/api/like`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({postId, creatorId})
-    });
-    
-    if(!response.ok) throw new Error('Server error handling like');
-    
-    const el = document.getElementById(`likes-${postId}`);
-    if(el) el.textContent = parseInt(el.textContent || 0) + 1;
-  } catch(err) {
-    alert('Failed to register like. Try again.');
-  }
-}
+    // INTERACTION MECHANICS (REELS WATCHING INTERCEPTOR)
+    function initializeIntersectionObservers() {
+      const observerOptions = { root: document.getElementById('tab-reels'), threshold: 0.6 };
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const video = entry.target.querySelector('video');
+          const postId = entry.target.getAttribute('data-post-id');
+          
+          if (entry.isIntersecting) {
+            if(video && video.src !== "") {
+              video.play().catch(()=>{});
+              startWatchCounter(postId);
+            }
+          } else {
+            if(video) {
+              video.pause();
+              clearWatchCounter(postId);
+            }
+          }
+        });
+      }, observerOptions);
 
-async function commentPost(postId, creatorId) {
-  if(!token) return alert('Login required');
-  const text = prompt('Comment:');
-  if(!text) return;
-  
-  try {
-    const response = await fetch(`${API}/api/comment`, {
-      method:'POST', 
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({postId, creatorId, text})
-    });
-    
-    if(!response.ok) throw new Error('Server error saving comment');
-    
-    const el = document.getElementById(`comments-${postId}`);
-    if(el) el.textContent = parseInt(el.textContent || 0) + 1;
-  } catch(err) {
-    alert('Failed to post comment. Try again.');
-  }
-}
+      document.querySelectorAll('.reel-viewport').forEach(view => observer.observe(view));
+    }
 
-// Register SW
-if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW register failed:', err));
-}
+    function startWatchCounter(postId) {
+      if(viewedPosts.has(postId)) return;
+      clearWatchCounter(postId);
+      watchTimers[postId] = setTimeout(() => {
+        dispatchViewToken(postId);
+      }, 3000);
+    }
 
-loadFeed();
-</script>
+    function clearWatchCounter(postId) {
+      if(watchTimers[postId]) {
+        clearTimeout(watchTimers[postId]);
+        delete watchTimers[postId];
+      }
+    }
+
+    async function dispatchViewToken(postId) {
+      viewedPosts.add(postId);
+      try {
+        const response = await fetch(`${API_BASE}/view`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          },
+          body: JSON.stringify({ postId })
+        });
+        if(response.status === 202) {
+          console.log(`View tracking accepted for ${postId}`);
+        }
+      } catch (err) {
+        console.error("Buffer Dispatch Dropped", err);
+      }
+    }
+
+    // INTERACTION ACTIONS (LIKES / ENGAGEMENT)
+    async function toggleLike(postId, buttonElement) {
+      buttonElement.classList.toggle('active');
+      buttonElement.classList.toggle('glow-active');
+      
+      const counter = document.getElementById(`likes-${postId}`);
+      let currentLikes = parseInt(counter.innerText) || 0;
+      
+      if(buttonElement.classList.contains('active')) {
+        counter.innerText = currentLikes + 1;
+        sendEngagement(postId, 'like');
+      } else {
+        counter.innerText = Math.max(0, currentLikes - 1);
+      }
+    }
+
+    async function sendEngagement(postId, type) {
+      try {
+        await fetch(`${API_BASE}/like`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          },
+          body: JSON.stringify({ postId, type })
+        });
+      } catch(e){}
+    }
+
+    // STATIC EXPLORE POPULATOR
+    function loadExploreGrid() {
+      const mesh = document.getElementById('explore-mesh');
+      if(!mesh) return;
+      mesh.innerHTML = '';
+      for(let i = 1; i <= 12; i++) {
+        const el = document.createElement('div');
+        el.className = 'grid-item';
+        el.innerHTML = `
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23DDD' stroke-width='1'><rect width='24' height='24'/></svg>">
+          <div class="grid-icon-indicator"><i data-lucide="film" style="width:16px;height:16px;"></i></div>
+        `;
+        mesh.appendChild(el);
+      }
+      lucide.createIcons();
+    }
+
+    // DYNAMIC ACCOUNT ROUTING
+    function evaluateUrlParameters() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetUserId = urlParams.get('u');
+      
+      if(targetUserId) {
+        loadUserProfileData(targetUserId, false);
+        navigateRoute('profile');
+      } else {
+        loadUserProfileData(localStorage.getItem('userId'), true);
+      }
+    }
+
+    // FIXED: Performs actual data parsing from the backend
+    async function loadUserProfileData(userId, isSelf) {
+      const nameField = document.getElementById('profile-display-name');
+      const bioField = document.getElementById('profile-display-bio');
+      const actionBtn = document.getElementById('profile-primary-action');
+
+      try {
+        // Fetch target account array from backend database
+        const urlEndpoint = isSelf ? `${API_BASE}/users/profile` : `${API_BASE}/users/profile?id=${userId}`;
+        const response = await fetch(urlEndpoint, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          nameField.innerText = userData.username ? `@${userData.username}` : "Creator Session";
+          bioField.innerText = userData.bio || "No profile description provided.";
+          document.getElementById('count-posts').innerText = userData.postsCount || 0;
+          document.getElementById('count-followers').innerText = userData.followersCount || 0;
+          document.getElementById('count-following').innerText = userData.followingCount || 0;
+        } else {
+          throw new Error("Profile read failure");
+        }
+      } catch (err) {
+        // Fallback placeholder logic if backend endpoints are completely clean/empty
+        nameField.innerText = isSelf ? "Current Creator" : `@user_${userId}`;
+        bioField.innerText = "Golviral native portfolio framework element configuration.";
+      }
+
+      if(isSelf) {
+        actionBtn.innerText = "Edit Profile";
+        document.getElementById('nav-finance-icon').classList.remove('hidden');
+      } else {
+        actionBtn.innerText = "Follow User";
+        actionBtn.classList.add('glow-active');
+      }
+    }
+
+    function manageVideoPlayback() {
+      const activeReel = document.querySelector('.reels-container .reel-viewport');
+      if(activeReel) {
+        const vid = activeReel.querySelector('video');
+        if(vid && vid.src !== "") vid.play().catch(()=>{});
+      }
+    }
+
+    function stopAllVideos() {
+      document.querySelectorAll('video').forEach(v => v.pause());
+    }
+  </script>
 </body>
 </html>
+
