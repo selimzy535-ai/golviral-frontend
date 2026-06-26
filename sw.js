@@ -1,3 +1,4 @@
+
 const CACHE_NAME = "golviral-v4.5";
 const STATIC_CACHE = [
   "/",
@@ -28,8 +29,11 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Rule 1: API calls = Network first, fallback to cache
+  // Rule 1: API calls = Network first, fallback to cache (GET requests only)
   if (url.pathname.startsWith('/api/')) {
+    if (e.request.method !== 'GET') {
+      return; // Let standard browser network behavior handle POST/PUT updates natively
+    }
     e.respondWith(
       fetch(e.request).catch(() => caches.match(e.request))
     );
@@ -43,15 +47,21 @@ self.addEventListener('fetch', e => {
         if (cached) return cached;
 
         return fetch(e.request).then(res => {
+          // If the response is not valid or a partial content stream (206), bypass caching safely
+          if (!res || res.status !== 200) return res;
+
           const contentLength = res.headers.get('Content-Length');
           if (contentLength && parseInt(contentLength) > 1.5 * 1024 * 1024) {
-            return new Response('File too large for cache', { status: 403 });
+            return res; // FIX: Stream it directly to the user! Do NOT block it with a 403.
           }
 
           // Clone and cache if <1.5MB
           const resClone = res.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
           return res;
+        }).catch(err => {
+          // Fail gracefully if media is completely unreachable offline
+          return new Response('Media offline', { status: 408, statusText: 'Network Timeout' });
         });
       })
     );
@@ -60,19 +70,13 @@ self.addEventListener('fetch', e => {
 
   // Rule 3: Everything else = Cache first
   e.respondWith(
-    caches.match(e.request).then(res => res || fetch(e.request))
+    caches.match(e.request).then(res => res || fetch(e.request).catch(() => {
+      // Offline fallback asset rule if root layout completely misses cache boundaries
+      if (e.request.mode === 'navigate') {
+        return caches.match('/index.html');
+      }
+    }))
   );
 });
 
-// A2HS Prompt after 3 visits
-let visitCount = 0;
-self.addEventListener('message', e => {
-  if (e.data === 'VISIT') {
-    visitCount++;
-    if (visitCount >= 3) {
-      self.clients.matchAll().then(clients => {
-        clients.forEach(client => client.postMessage({ type: 'SHOW_A2HS' }));
-      });
-    }
-  }
-});
+```
