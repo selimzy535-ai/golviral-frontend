@@ -181,7 +181,7 @@
   </div>
 
   <script>
-    const API_BASE = "https://golviral-api.onrender.com/";
+    const API_BASE = "https://golviral-api.onrender.com";
     let activeAuthTab = 'login';
     let activePostType = 'reel';
     let currentBotCallback = null;
@@ -508,8 +508,14 @@
     }
 
     function loadProfileData() {
-      const uid = localStorage.getItem('userId') || "base_node";
-      fetch(`${API_BASE}/api/user/${uid}`)
+  const uid = localStorage.getItem('userId');
+  if(!uid) { 
+    window.location.hash = '#/auth'; 
+    return; 
+  } // STOP if not logged in
+  fetch(`${API_BASE}/api/user/${uid}`)
+  ...
+}
        .then(r => r.json())
        .then(d => {
           document.getElementById('p-username').innerText = `@${d.username}`;
