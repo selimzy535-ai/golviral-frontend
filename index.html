@@ -359,39 +359,108 @@
       document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily.' : 'Rule: Narrative costs 10pts.';
     }
 
-    async function executePublish() {
-      try {
-        const body = { postType: activePostType };
-        if (activePostType === 'reel') {
-          const fileInput = document.getElementById('post-file').files[0];
-          if(!fileInput) return alert("Select video file");
-          if(fileInput.size > 1.5 * 1024 * 1024) return alert("File must be <1.5MB");
-          body.fileExtension = fileInput.name.split('.').pop();
-          body.contentType = fileInput.type;
-        }
-        const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify(body)
-        }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
-        if (activePostType === 'reel') {
-          const fileInput = document.getElementById('post-file').files[0];
-          await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': fileInput.type }, body: fileInput });
-        }
-        const finalBody = { postId: intentRes.postId, objectKey: intentRes.objectKey };
-        if (activePostType!== 'reel') {
-          finalBody.title = document.getElementById('post-title').value;
-          finalBody.content = document.getElementById('post-content').value;
-        }
-        await fetch(`${API_BASE}/api/post/create`, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify(finalBody)
-        });
-        alert("Content submitted for admin approval");
-        window.location.hash = '#/feed';
-      } catch (err) { alert(err.message); }
+async function executePublish() {
+  try {
+    const body = { postType: activePostType };
+
+    if (activePostType === 'reel') {
+      const fileInput = document.getElementById('post-file').files[0];
+      if(!fileInput) return alert("Select video file");
+
+      // RULE 1: REJECT > 30s
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.src = URL.createObjectURL(fileInput);
+      await new Promise(resolve => video.onloadedmetadata = resolve);
+      const duration = video.duration;
+      URL.revokeObjectURL(video.src);
+
+      if (duration > 30) return alert("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
+      if (duration < 3) return alert("Rejected: Min 3s required");
+
+      // RULE 2: COMPRESS TO ~1MB if > 1MB
+      let fileToUpload = fileInput;
+      if (fileInput.size > 1 * 1024 * 1024) {
+        alert("Compressing to ~1MB... Wait 5s");
+        fileToUpload = await compressVideoTo1MB(fileInput, duration);
+        if (!fileToUpload) return alert("Compression failed. Use CapCut to export 720p 1Mbps");
+      }
+
+      body.fileExtension = fileToUpload.name.split('.').pop();
+      body.contentType = fileToUpload.type;
+
+      // Send to backend
+      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body)
+      }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+
+      await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': fileToUpload.type }, body: fileToUpload });
+      await fetch(`${API_BASE}/api/post/create`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
+      });
+      alert("Content submitted for admin approval");
+      window.location.hash = '#/feed';
+
+    } else {
+      // Novel/Story logic unchanged
+      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body)
+      }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+
+      const finalBody = { postId: intentRes.postId, objectKey: intentRes.objectKey };
+      finalBody.title = document.getElementById('post-title').value;
+      finalBody.content = document.getElementById('post-content').value;
+      await fetch(`${API_BASE}/api/post/create`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(finalBody)
+      });
+      alert("Content submitted for admin approval");
+      window.location.hash = '#/feed';
     }
+  } catch (err) { alert(err.message); }
+}
+
+// New helper: Compress using Canvas + MediaRecorder to ~1MB
+async function compressVideoTo1MB(file, duration) {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    video.src = URL.createObjectURL(file);
+    video.muted = true;
+    video.play();
+    video.onloadeddata = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 720;
+      canvas.height = 1280;
+      const ctx = canvas.getContext('2d');
+      const stream = canvas.captureStream(24);
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9',
+        videoBitsPerSecond: Math.floor((1 * 1024 * 1024 * 8) / duration) // ~1MB total
+      });
+      const chunks = [];
+      recorder.ondataavailable = e => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        resolve(new File([blob], file.name.replace('.mp4', '.webm'), { type: 'video/webm' }));
+      };
+      const draw = () => {
+        if (video.ended) return recorder.stop();
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(draw);
+      };
+      recorder.start();
+      draw();
+    };
+    video.onerror = () => resolve(null);
+  });
+}
 
     function loadReader(type, id) {
       const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
