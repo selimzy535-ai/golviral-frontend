@@ -181,7 +181,7 @@
   </div>
 
   <script>
-    const API_BASE = "https://your-backend.onrender.com";
+    const API_BASE = "https://golviral-api.onrender.com/";
     let activeAuthTab = 'login';
     let activePostType = 'reel';
     let currentBotCallback = null;
@@ -524,7 +524,7 @@
 
     function initializeServiceWorker() {
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').then(() => console.log("[PWA Registered]"));
+        navigator.serviceWorker.register('sw.js').then(() => console.log("[PWA Registered]"));
       }
     }
   </script>
