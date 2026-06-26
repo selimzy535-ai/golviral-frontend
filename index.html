@@ -1,498 +1,510 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Golviral Feed</title>
-<script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-<style>
-:root {
-  --bg: #FFFFFF;
-  --text: #000;
-  --accent: #FF0050;
-  --border: #EAEAEA;
-  --nav-height: 56px;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GolViral</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FF0050">
+  <style>
+    :root { --accent: #FF0050; --bg: #FFFFFF; --text: #000; --gray: #EAEAEA; --muted: #777; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    #app { padding-bottom: 70px; min-height: 100vh; }
+   .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg); border-top: 1px solid var(--gray); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+   .nav-item { background: none; border: none; fill: var(--text); color: var(--text); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; text-decoration: none; }
+   .nav-item.active { fill: var(--accent); color: var(--accent); }
+   .nav-item svg { width: 22px; height: 22px; margin-bottom: 2px; }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  padding-bottom: var(--nav-height);
-  overflow-x: hidden;
-}
+   .view-pane { display: none; padding: 15px; max-width: 500px; margin: 0 auto; }
+   .view-pane.active { display: block; }
+   .btn { display: block; width: 100%; padding: 14px; background: var(--text); color: var(--bg); border: none; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; text-decoration: none; }
+   .btn.accent { background: var(--accent); }
+   .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--gray); outline: none; font-size: 16px; border-radius: 4px; }
+   .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
+   .cached-badge { background: #00C853; color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
 
-.tab-section { display: none; }
-.tab-section.active { display: block; }
+   .reel-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: calc(100vh - 60px); width: 100%; max-width: 500px; margin: 0 auto; }
+   .reel-card { position: relative; width: 100%; height: calc(100vh - 60px); scroll-snap-align: start; background: #000; display: flex; align-items: center; justify-content: center; }
+   .reel-card video { width: 100%; height: 100%; object-fit: cover; }
+   .reel-overlay { position: absolute; bottom: 20px; left: 15px; right: 80px; color: #FFF; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+   .reel-actions { position: absolute; right: 15px; bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+   .action-bubble { background: rgba(0,0,0,0.5); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; fill: #FFF; color: #FFF; cursor: pointer; flex-direction: column; font-size: 10px; }
 
-/* FEED TAB */
-.feed-header {
-  position: sticky;
-  top: 0;
-  background: var(--bg);
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  font-weight: 900;
-  font-size: 20px;
-  z-index: 10;
-}
-.feed-header span { color: var(--accent); }
+   .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+   .card { padding: 15px; border: 1px solid var(--gray); border-radius: 4px; background: var(--bg); }
+   .tabs { display: flex; border-bottom: 1px solid var(--gray); margin-bottom: 15px; }
+   .tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; font-weight: bold; cursor: pointer; }
+   .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
 
-.post-card {
-  border-bottom: 1px solid var(--border);
-  padding: 12px 0;
-}
-.post-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 16px 8px;
-}
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-}
-.username {
-  font-weight: 700;
-  font-size: 14px;
-  flex: 1;
-}
+   .bot-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; }
+   .bot-modal.active { display: flex; }
+   .bot-content { background:#FFF; padding:25px; border-radius:6px; width:100%; max-width:340px; text-align:center; }
 
-.video-wrap {
-  position: relative;
-  width: 100%;
-  background: #000;
-}
-video {
-  width: 100%;
-  max-height: 80vh;
-  object-fit: contain;
-  background: #000;
-}
-.cached-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: rgba(0,0,0,0.7);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  display: none;
-}
-.cached-badge.show { display: block; }
-
-.post-actions {
-  display: flex;
-  gap: 20px;
-  padding: 8px 16px;
-}
-.action-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-.action-btn.liked { color: var(--accent); }
-
-/* REELS TAB */
-#reels-tab {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: #000;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-}
-.reel {
-  width: 100vw;
-  height: 100vh;
-  scroll-snap-align: start;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.reel video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.reel-side-actions {
-  position: absolute;
-  right: 12px;
-  bottom: 120px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  color: #fff;
-}
-.reel-side-actions button {
-  background: none;
-  border: none;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* EXPLORE TAB */
-.explore-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  padding: 2px;
-}
-.explore-item {
-  aspect-ratio: 9/16;
-  background: var(--border);
-  position: relative;
-  overflow: hidden;
-}
-.explore-item video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.explore-views {
-  position: absolute;
-  bottom: 4px;
-  left: 4px;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-}
-
-/* BOTTOM NAV */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: var(--nav-height);
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  z-index: 100;
-}
-.nav-btn {
-  background: none;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  color: #666;
-  cursor: pointer;
-  font-size: 10px;
-}
-.nav-btn.active { color: var(--text); }
-
-/* A2HS Banner */
-.a2hs-banner {
-  position: fixed;
-  bottom: calc(var(--nav-height) + 12px);
-  left: 12px;
-  right: 12px;
-  background: var(--text);
-  color: var(--bg);
-  padding: 12px 16px;
-  border-radius: 12px;
-  display: none;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  font-weight: 600;
-  z-index: 99;
-}
-.a2hs-banner.show { display: flex; }
-.a2hs-banner button {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-}
-</style>
+   .reader-card { min-height: 70vh; font-size: 18px; line-height: 1.8; }
+   .timer-bar { height: 4px; background: var(--gray); margin-bottom: 15px; }
+   .timer-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s linear; }
+  </style>
 </head>
 <body>
 
-<!-- FEED TAB -->
-<section id="feed-tab" class="tab-section active">
-  <div class="feed-header">Gol<span>viral</span></div>
-  <div id="feed-list">
-    <div class="loading">Loading feed...</div>
+  <div id="app">
+    <div id="view-auth" class="view-pane">
+      <div class="tabs">
+        <button class="tab active" onclick="switchAuthTab('login', event)">LOGIN</button>
+        <button class="tab" onclick="switchAuthTab('signup', event)">SIGNUP</button>
+      </div>
+      <div id="auth-form-container">
+        <input type="email" id="auth-email" class="input-field" placeholder="Email Address">
+        <input type="password" id="auth-pass" class="input-field" placeholder="Password">
+        <input type="text" id="auth-user" class="input-field" placeholder="Username" style="display:none;">
+        <input type="text" id="auth-ref" class="input-field" placeholder="Referral Code (Optional)" style="display:none;">
+        <button class="btn accent" onclick="triggerBotChallenge(submitAuth)">Continue</button>
+      </div>
+    </div>
+
+    <div id="view-feed" class="view-pane" style="padding:0; max-width:100%;">
+      <div id="reel-viewport" class="reel-container"></div>
+    </div>
+
+    <div id="view-post" class="view-pane">
+      <h3 style="margin-bottom:15px;">Publish Engine</h3>
+      <div class="tabs">
+        <button class="tab active" onclick="switchPostType('reel', event)">Reel</button>
+        <button class="tab" onclick="switchPostType('novel', event)">Novel</button>
+        <button class="tab" onclick="switchPostType('story', event)">Story</button>
+      </div>
+      <div class="card" style="margin-bottom:15px; border-color:var(--accent);">
+        <p style="font-size:12px; color:var(--accent);" id="post-warning">Rule: Reel costs 25pts. Max 3 posts daily.</p>
+      </div>
+      <div id="file-selector-group">
+        <input type="file" id="post-file" class="input-field" accept="video/mp4">
+      </div>
+      <div id="text-fields-group" style="display:none;">
+        <input type="text" id="post-title" class="input-field" placeholder="Title">
+        <textarea id="post-content" class="input-field" placeholder="Body Content..." style="height:150px;"></textarea>
+      </div>
+      <button class="btn" onclick="executePublish()">Publish Content</button>
+    </div>
+
+    <div id="view-novel" class="view-pane">
+      <div class="timer-bar"><div id="novel-timer" class="timer-fill"></div></div>
+      <div class="card reader-card" id="novel-content"></div>
+    </div>
+
+    <div id="view-story" class="view-pane">
+      <div class="timer-bar"><div id="story-timer" class="timer-fill"></div></div>
+      <div class="card reader-card" id="story-content"></div>
+    </div>
+
+    <div id="view-wallet" class="view-pane">
+      <h3 style="margin-bottom:15px;">Balance Ledger</h3>
+      <div class="wallet-grid">
+        <div class="card"><h5>Free Credits</h5><h2 id="w-free">0</h2></div>
+        <div class="card"><h5>Cash Balance</h5><h2 id="w-cash">₦0.00</h2></div>
+        <div class="card"><h5>Today's Vault</h5><h2 id="w-today">0/10000</h2></div>
+        <div class="card"><h5>Monetized</h5><h2 id="w-flag">False</h2></div>
+      </div>
+      <div class="card" style="margin-bottom:15px;">
+        <p style="font-size:12px; color:var(--muted);" id="w-requirements">Monetization: 7 Days + 5 Referrals</p>
+      </div>
+      <a href="#/deposit" class="btn" style="margin-bottom:10px;">Deposit Funds</a>
+      <button class="btn" style="background:#000;" onclick="window.location.hash='#/withdraw'">Request Payout</button>
+    </div>
+
+    <div id="view-withdraw" class="view-pane">
+      <h3>Request Cash Payout</h3><br>
+      <input type="number" id="wd-amount" class="input-field" placeholder="Points Min 50,000">
+      <input type="text" id="wd-target" class="input-field" placeholder="Bank Name / USDT">
+      <input type="text" id="wd-details" class="input-field" placeholder="Account Number / Wallet">
+      <button class="btn" onclick="submitWithdrawalInit()">Send OTP</button>
+      <div id="wd-otp-group" style="display:none; margin-top:20px; padding-top:20px; border-top:1px dashed var(--gray);">
+        <input type="text" id="wd-otp" class="input-field" placeholder="Enter OTP">
+        <button class="btn accent" onclick="confirmWithdrawal()">Confirm Payout</button>
+      </div>
+    </div>
+
+    <div id="view-deposit" class="view-pane">
+      <h3>Deposit Credits</h3><br>
+      <select id="dep-tier" class="input-field">
+        <option value="500">₦500 -> 5,000 pts</option>
+        <option value="1500">₦1,500 -> 15,000 pts</option>
+        <option value="3000">₦3,000 -> 30,000 pts</option>
+        <option value="5000">₦5,000 -> 50,000 pts</option>
+        <option value="10000">₦10,000 -> 100,000 pts</option>
+      </select>
+      <button class="btn" onclick="triggerBotChallenge(executeDepositVerification)">Pay via Selar</button>
+    </div>
+
+    <div id="view-profile" class="view-pane">
+      <div class="card" style="text-align:center; padding:30px 15px;">
+        <h2 id="p-username">@username</h2><br>
+        <div style="display:flex; justify-content:space-around; margin-bottom:20px;">
+          <div><h4 id="p-views">0</h4><span style="font-size:12px; color:var(--muted);">Views</span></div>
+          <div><h4 id="p-likes">0</h4><span style="font-size:12px; color:var(--muted);">Likes</span></div>
+          <div><h4 id="p-posts">0</h4><span style="font-size:12px; color:var(--muted);">Posts</span></div>
+        </div>
+        <div style="display:flex; justify-content:space-around; font-size:14px; margin-bottom:20px;">
+          <div>Followers: <b id="p-followers">0</b></div>
+          <div>Following: <b id="p-following">0</b></div>
+        </div>
+        <input type="text" id="p-link" class="input-field" readonly onclick="this.select()">
+        <p style="font-size:12px; color:var(--muted);">Tap to copy referral link</p>
+      </div>
+    </div>
   </div>
-</section>
 
-<!-- REELS TAB -->
-<section id="reels-tab" class="tab-section">
-  <div id="reels-list"></div>
-</section>
+  <nav class="nav-bar">
+    <a href="#/feed" class="nav-item" id="nav-feed">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed
+    </a>
+    <a href="#/post" class="nav-item" id="nav-post">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create
+    </a>
+    <a href="#/wallet" class="nav-item" id="nav-wallet">
+      <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2.9 2 2v1h-9c-1.11 0-2.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
+    </a>
+    <a href="#/profile" class="nav-item" id="nav-profile">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile
+    </a>
+  </nav>
 
-<!-- EXPLORE TAB -->
-<section id="explore-tab" class="tab-section">
-  <div class="explore-grid" id="explore-grid"></div>
-</section>
+  <div id="bot-overlay-modal" class="bot-modal">
+    <div class="bot-content">
+      <h4 style="margin-bottom:10px;">Security Gate</h4>
+      <p style="font-size:14px; color:var(--muted); margin-bottom:15px;" id="bot-question">Loading...</p>
+      <input type="text" id="bot-answer" class="input-field" placeholder="Your Answer">
+      <button class="btn accent" onclick="submitBotVerification()">Verify</button>
+    </div>
+  </div>
 
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
-  <button class="nav-btn active" onclick="switchTab('feed')">
-    <i data-lucide="home"></i>
-    <span>Feed</span>
-  </button>
-  <button class="nav-btn" onclick="switchTab('reels')">
-    <i data-lucide="play-square"></i>
-    <span>Reels</span>
-  </button>
-  <button class="nav-btn" onclick="switchTab('explore')">
-    <i data-lucide="compass"></i>
-    <span>Explore</span>
-  </button>
-  <button class="nav-btn" onclick="location.href='post.html'">
-    <i data-lucide="plus-square"></i>
-    <span>Post</span>
-  </button>
-  <button class="nav-btn" onclick="location.href='profile.html'">
-    <i data-lucide="user"></i>
-    <span>Profile</span>
-  </button>
-</nav>
+  <script>
+    const API_BASE = "https://your-backend.onrender.com";
+    let activeAuthTab = 'login';
+    let activePostType = 'reel';
+    let currentBotCallback = null;
+    let currentBotToken = "";
+    let readTimer = null;
 
-<!-- A2HS Banner -->
-<div class="a2hs-banner" id="a2hs-banner">
-  <span>Install Golviral for offline access</span>
-  <button id="a2hs-btn">Install</button>
-</div>
-
-<script>
-const API_BASE = "https://golviral-api.onrender.com/api";
-let deferredPrompt = null;
-let visitCount = parseInt(localStorage.getItem('visitCount') || '0') + 1;
-localStorage.setItem('visitCount', visitCount);
-let viewedReels = new Set();
-
-document.addEventListener("DOMContentLoaded", () => {
-  lucide.createIcons();
-  loadFeed();
-  loadReels();
-  loadExplore();
-  
-  if (visitCount >= 3) showA2HSBanner();
-});
-
-// TAB SWITCHER
-function switchTab(tab) {
-  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  
-  document.getElementById(`${tab}-tab`).classList.add('active');
-  event.currentTarget.classList.add('active');
-}
-
-// FEED LOADER
-async function loadFeed() {
-  try {
-    const res = await fetch(`${API_BASE}/feed`);
-    const posts = await res.json();
-    
-    const html = posts.map(p => `
-      <div class="post-card" data-postid="${p.id}" data-userid="${p.userId}">
-        <div class="post-head">
-          <div class="avatar">${p.userId.slice(0,2).toUpperCase()}</div>
-          <div class="username" onclick="location.href='profile.html?id=${p.userId}'">@user${p.userId.slice(0,6)}</div>
-        </div>
-        <div class="video-wrap">
-          <video src="${p.mediaUrl}" poster="${p.thumbnailUrl}" controls playsinline preload="metadata"></video>
-          <div class="cached-badge">Cached</div>
-        </div>
-        <div class="post-actions">
-          <button class="action-btn like-btn" onclick="likePost('${p.id}', '${p.userId}', this)">
-            <i data-lucide="heart"></i>
-            <span>${p.likes}</span>
-          </button>
-          <button class="action-btn" onclick="alert('Comment modal here')">
-            <i data-lucide="message-circle"></i>
-            <span>${p.comments}</span>
-          </button>
-          <button class="action-btn">
-            <i data-lucide="eye"></i>
-            <span>${p.views}</span>
-          </button>
-        </div>
-      </div>
-    `).join('');
-    
-    document.getElementById('feed-list').innerHTML = html;
-    lucide.createIcons();
-    
-    // Track 3s views
-    document.querySelectorAll('#feed-list video').forEach(v => {
-      let timer;
-      v.addEventListener('play', () => {
-        timer = setTimeout(() => trackView(v.closest('.post-card').dataset.postid, v.closest('.post-card').dataset.userid), 3000);
-      });
-      v.addEventListener('pause', () => clearTimeout(timer));
+    window.addEventListener('hashchange', routeEngine);
+    window.addEventListener('load', () => {
+      routeEngine();
+      initializeServiceWorker();
+      const ref = new URLSearchParams(window.location.search).get('ref');
+      if(ref) localStorage.setItem('ref', ref);
     });
-    
-  } catch(e) {
-    document.getElementById('feed-list').innerHTML = '<div class="loading">Failed to load feed</div>';
-  }
-}
 
-// REELS LOADER
-async function loadReels() {
-  try {
-    const res = await fetch(`${API_BASE}/feed`);
-    const posts = await res.json();
-    
-    const html = posts.map(p => `
-      <div class="reel" data-postid="${p.id}" data-userid="${p.userId}">
-        <video src="${p.mediaUrl}" poster="${p.thumbnailUrl}" playsinline loop muted></video>
-        <div class="reel-side-actions">
-          <button onclick="likePost('${p.id}', '${p.userId}', this)">
-            <i data-lucide="heart"></i>
-            <span>${p.likes}</span>
-          </button>
-          <button onclick="alert('Comment')">
-            <i data-lucide="message-circle"></i>
-            <span>${p.comments}</span>
-          </button>
-          <button onclick="navigator.share({title:'Golviral', url:'profile.html?id=${p.userId}'})">
-            <i data-lucide="share"></i>
-            <span>Share</span>
-          </button>
-        </div>
-      </div>
-    `).join('');
-    
-    document.getElementById('reels-list').innerHTML = html;
-    lucide.createIcons();
-    
-    // Auto play + 3s view tracking
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        const video = entry.target.querySelector('video');
-        if (entry.isIntersecting) {
-          video.play();
-          const postId = entry.target.dataset.postid;
-          if (!viewedReels.has(postId)) {
-            setTimeout(() => {
-              trackView(postId, entry.target.dataset.userid);
-              viewedReels.add(postId);
-            }, 3000);
-          }
+    function routeEngine() {
+      const hash = window.location.hash || '#/feed';
+      document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      if(readTimer) { clearInterval(readTimer); readTimer = null; }
+
+      if (hash.startsWith('#/feed')) { activateView('view-feed', 'nav-feed'); loadFeedEngine(); }
+      else if (hash.startsWith('#/post')) { activateView('view-post', 'nav-post'); }
+      else if (hash.startsWith('#/wallet')) { activateView('view-wallet', 'nav-wallet'); loadWalletData(); }
+      else if (hash.startsWith('#/profile')) { activateView('view-profile', 'nav-profile'); loadProfileData(); }
+      else if (hash.startsWith('#/deposit')) { activateView('view-deposit', 'nav-wallet'); }
+      else if (hash.startsWith('#/withdraw')) { activateView('view-withdraw', 'nav-wallet'); }
+      else if (hash.startsWith('#/auth')) { activateView('view-auth', ''); }
+      else if (hash.startsWith('#/novel/')) { activateView('view-novel', ''); loadReader('NOVEL', hash.split('/')[2]); }
+      else if (hash.startsWith('#/story/')) { activateView('view-story', ''); loadReader('STORY', hash.split('/')[2]); }
+    }
+
+    function activateView(viewId, navId) {
+      document.getElementById(viewId).classList.add('active');
+      if(navId) document.getElementById(navId).classList.add('active');
+    }
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem('token');
+      if (!token) { window.location.hash = '#/auth'; throw new Error("Login required"); }
+      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    }
+
+    function triggerBotChallenge(callback) {
+      currentBotCallback = callback;
+      fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
+       .then(r => r.json())
+       .then(data => {
+          currentBotToken = data.token;
+          document.getElementById('bot-question').innerText = data.question;
+          document.getElementById('bot-overlay-modal').classList.add('active');
+        });
+    }
+
+    function submitBotVerification() {
+      const answer = document.getElementById('bot-answer').value;
+      fetch(`${API_BASE}/api/bot-verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: currentBotToken, answer })
+      }).then(r => {
+        if(!r.ok) throw new Error("Incorrect answer");
+        return r.json();
+      }).then(data => {
+        document.getElementById('bot-overlay-modal').classList.remove('active');
+        document.getElementById('bot-answer').value = "";
+        if (currentBotCallback) currentBotCallback(data.passToken);
+      }).catch(err => alert(err.message));
+    }
+
+    function switchAuthTab(tab, e) {
+      activeAuthTab = tab;
+      document.querySelectorAll('#view-auth.tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
+      document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
+    }
+
+    function submitAuth(passToken) {
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-pass').value;
+      const username = document.getElementById('auth-user').value;
+      const referralCode = localStorage.getItem('ref') || document.getElementById('auth-ref').value;
+
+      const endpoint = activeAuthTab === 'login'? '/api/auth/login' : '/api/auth/signup';
+      const body = activeAuthTab === 'login'? { email, password, passToken } : { username, email, password, passToken, referralCode };
+
+      fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }).then(r => r.json()).then(data => {
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('userId', data.userId);
+          localStorage.removeItem('ref');
+          window.location.hash = '#/feed';
         } else {
-          video.pause();
+          alert(data.error || "Auth failed");
         }
       });
-    }, { threshold: 0.8 });
-    
-    document.querySelectorAll('.reel').forEach(r => observer.observe(r));
-    
-  } catch(e) {
-    document.getElementById('reels-list').innerHTML = '<div style="color:#fff;text-align:center;padding:50vh 0">Failed to load</div>';
-  }
-}
+    }
 
-// EXPLORE LOADER
-async function loadExplore() {
-  try {
-    const res = await fetch(`${API_BASE}/feed`);
-    const posts = await res.json();
-    
-    const html = posts.map(p => `
-      <div class="explore-item" onclick="location.href='profile.html?id=${p.userId}'">
-        <video src="${p.thumbnailUrl}" muted></video>
-        <div class="explore-views"><i data-lucide="play"></i> ${p.views}</div>
-      </div>
-    `).join('');
-    
-    document.getElementById('explore-grid').innerHTML = html;
-    lucide.createIcons();
-  } catch(e) {}
-}
+    function loadFeedEngine() {
+      const viewport = document.getElementById('reel-viewport');
+      viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
 
-// ENGAGEMENT FUNCTIONS - No bot check required
-async function trackView(postId, userId) {
-  await fetch(`${API_BASE}/view`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ postId, userId })
-  });
-}
+      fetch(`${API_BASE}/api/feed`)
+       .then(r => r.json())
+       .then(posts => {
+          viewport.innerHTML = "";
+          if(posts.length === 0) viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
+          posts.forEach(post => {
+            const card = document.createElement('div');
+            card.className = 'reel-card';
+            card.innerHTML = `
+              <video src="${post.mediaUrl}" loop muted playsinline></video>
+              <div class="reel-overlay">
+                <h4>@${post.userId}</h4>
+                <p>${post.title || post.type}</p>
+                <div class="cached-container" style="margin-top:5px;"></div>
+              </div>
+              <div class="reel-actions">
+                <button class="action-bubble" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
+                  <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                  <span>${post.likes}</span>
+                </button>
+                <button class="action-bubble" onclick="interactFeed('${post.id}', 'comment', '${post.userId}')">
+                  <svg viewBox="0 0 24 24" fill="#FFF"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2.9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
+                  <span>${post.comments}</span>
+                </button>
+              </div>
+            `;
 
-async function likePost(postId, creatorId, btn) {
-  const token = localStorage.getItem('token');
-  if (!token) return alert('Login required');
-  
-  btn.classList.toggle('liked');
-  const span = btn.querySelector('span');
-  span.textContent = parseInt(span.textContent) + (btn.classList.contains('liked') ? 1 : -1);
-  
-  await fetch(`${API_BASE}/like`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
-    },
-    body: JSON.stringify({ postId, creatorId })
-  });
-}
+            viewport.appendChild(card); // FIX: append first
 
-// A2HS LOGIC - Inlined to save file
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
+            if ('caches' in window) {
+              caches.match(post.mediaUrl).then(match => {
+                if(match) card.querySelector('.cached-container').innerHTML = '<span class="cached-badge">Cached</span>';
+              });
+            }
 
-function showA2HSBanner() {
-  if (!deferredPrompt) return;
-  const banner = document.getElementById('a2hs-banner');
-  banner.classList.add('show');
-  document.getElementById('a2hs-btn').onclick = async () => {
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    banner.classList.remove('show');
-  };
-}
+            let viewTriggered = false;
+            const videoEl = card.querySelector('video');
+            videoEl.addEventListener('play', () => {
+              if (!viewTriggered) {
+                setTimeout(() => {
+                  if (!videoEl.paused) {
+                    viewTriggered = true;
+                    fetch(`${API_BASE}/api/view`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ postId: post.id, userId: post.userId })
+                    });
+                  }
+                }, 3000);
+              }
+            });
 
-// REGISTER SW
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
-}
-</script>
+            card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
+
+            if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}`);
+            if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}`);
+          });
+        });
+    }
+
+    function interactFeed(postId, action, creatorId) {
+      fetch(`${API_BASE}/api/${action}`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ postId, creatorId })
+      }).then(r => { if(r.status === 202) console.log("Buffered"); });
+    }
+
+    function switchPostType(type, e) {
+      activePostType = type;
+      document.querySelectorAll('#view-post.tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
+      document.getElementById('text-fields-group').style.display = type!== 'reel'? 'block' : 'none';
+      document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily.' : 'Rule: Narrative costs 10pts.';
+    }
+
+    async function executePublish() {
+      try {
+        const body = { postType: activePostType };
+        if (activePostType === 'reel') {
+          const fileInput = document.getElementById('post-file').files[0];
+          if(!fileInput) return alert("Select video file");
+          if(fileInput.size > 1.5 * 1024 * 1024) return alert("File must be <1.5MB");
+          body.fileExtension = fileInput.name.split('.').pop();
+          body.contentType = fileInput.type;
+        }
+
+        const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(body)
+        }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+
+        if (activePostType === 'reel') {
+          const fileInput = document.getElementById('post-file').files[0];
+          await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': fileInput.type }, body: fileInput });
+        }
+
+        const finalBody = { postId: intentRes.postId, objectKey: intentRes.objectKey };
+        if (activePostType!== 'reel') {
+          finalBody.title = document.getElementById('post-title').value;
+          finalBody.content = document.getElementById('post-content').value;
+        }
+
+        await fetch(`${API_BASE}/api/post/create`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(finalBody)
+        });
+
+        alert("Content submitted for admin approval");
+        window.location.hash = '#/feed';
+      } catch (err) { alert(err.message); }
+    }
+
+    function loadReader(type, id) {
+      const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
+      const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
+      const seconds = type === 'NOVEL'? 120 : 180;
+      let elapsed = 0;
+
+      contentEl.innerHTML = `<h3>Loading ${type} ${id}...</h3>`;
+
+      readTimer = setInterval(() => {
+        elapsed++;
+        timerEl.style.width = `${(elapsed/seconds)*100}%`;
+        if(elapsed >= seconds) {
+          clearInterval(readTimer);
+          fetch(`${API_BASE}/api/read-session`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ contentId: id, authorId: 'author', contentType: type })
+          });
+          alert(`+${type==='NOVEL'?10:15}pts credited`);
+        }
+      }, 1000);
+    }
+
+    function loadWalletData() {
+      fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
+       .then(r => r.json())
+       .then(d => {
+          document.getElementById('w-free').innerText = d.freeCredits;
+          document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
+          document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
+          document.getElementById('w-flag').innerText = d.monetized? "True" : "False";
+          document.getElementById('w-requirements').innerText = `Days Left: ${d.daysToMonetize} | Referrals Left: ${d.refsLeft}`;
+        });
+    }
+
+    function generateRef() {
+      const arr = new Uint8Array(4);
+      crypto.getRandomValues(arr);
+      return "SELAR_TX_" + Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+    }
+
+    function executeDepositVerification(passToken) {
+      const tierAmount = parseInt(document.getElementById('dep-tier').value);
+      const reference = generateRef();
+      const userId = localStorage.getItem('userId');
+
+      fetch(`${API_BASE}/api/deposit/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, reference, tierAmount, passToken })
+      }).then(r => r.json()).then(d => { if(d.success) { alert("Credits added"); loadWalletData(); } else { alert(d.error); } });
+    }
+
+    function submitWithdrawalInit() {
+      const amountPoints = parseInt(document.getElementById('wd-amount').value);
+      const routingTarget = document.getElementById('wd-target').value;
+      const targetDetails = document.getElementById('wd-details').value;
+
+      fetch(`${API_BASE}/api/wallet/withdraw`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ amountPoints, routingTarget, targetDetails })
+      }).then(r => r.json()).then(d => {
+        if(d.authChallenge) {
+          document.getElementById('wd-otp-group').style.display = 'block';
+          alert("OTP sent to email");
+        } else { alert(d.error); }
+      });
+    }
+
+    function confirmWithdrawal() {
+      const otp = document.getElementById('wd-otp').value;
+      fetch(`${API_BASE}/api/wallet/withdraw/confirm`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ otp })
+      }).then(r => r.json()).then(d => {
+        if(d.transactionAcknowledged) { alert("Payout requested"); window.location.hash = '#/wallet'; }
+        else { alert(d.error); }
+      });
+    }
+
+    function loadProfileData() {
+      const uid = localStorage.getItem('userId') || "base_node";
+      fetch(`${API_BASE}/api/user/${uid}`)
+       .then(r => r.json())
+       .then(d => {
+          document.getElementById('p-username').innerText = `@${d.username}`;
+          document.getElementById('p-views').innerText = d.totalViews;
+          document.getElementById('p-likes').innerText = d.totalLikes;
+          document.getElementById('p-posts').innerText = d.totalPosts;
+          document.getElementById('p-followers').innerText = d.followers;
+          document.getElementById('p-following').innerText = d.following;
+          document.getElementById('p-link').value = d.referralLink;
+        });
+    }
+
+    function initializeServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').then(() => console.log("[PWA Registered]"));
+      }
+    }
+  </script>
 </body>
 </html>
