@@ -10,29 +10,30 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 80px; }
     h2 { margin-bottom: 15px; }
-    .tabs { display: flex; border-bottom: 1px solid var(--gray); margin-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
-    .tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; color: var(--muted); font-weight: bold; cursor: pointer; }
-    .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
-    .pane { display: none; }
-    .pane.active { display: block; }
-    .card { background: var(--card); border: 1px solid var(--gray); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+   .tabs { display: flex; border-bottom: 1px solid var(--gray); margin-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
+   .tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; color: var(--muted); font-weight: bold; cursor: pointer; }
+   .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
+   .pane { display: none; }
+   .pane.active { display: block; }
+   .card { background: var(--card); border: 1px solid var(--gray); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
     video { width: 100%; border-radius: 6px; background: #000; max-height: 70vh; }
-    .btn { background: var(--accent); color: #fff; border: none; padding: 12px 16px; border-radius: 4px; margin-right: 8px; cursor: pointer; font-weight: bold; flex: 1; }
-    .btn.reject { background: var(--gray); }
-    .btn.warn { background: #FFA500; color: #000; }
-    .row { display: flex; gap: 8px; margin-top: 10px; }
+   .btn { background: var(--accent); color: #fff; border: none; padding: 12px 16px; border-radius: 4px; margin-right: 8px; cursor: pointer; font-weight: bold; flex: 1; }
+   .btn.reject { background: var(--gray); }
+   .btn.warn { background: #FFA500; color: #000; }
+   .row { display: flex; gap: 8px; margin-top: 10px; }
     h3 { margin: 0 0 5px 0; font-size: 16px; }
     p { margin: 4px 0; color: var(--muted); font-size: 13px; }
-    .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
-    .stat { display: flex; justify-content: space-between; margin: 6px 0; font-size: 14px; }
-    .stat b { color: var(--text); }
-    .empty { text-align: center; color: var(--muted); padding: 40px 20px; }
-    .logout { position: fixed; bottom: 15px; left: 15px; right: 15px; }
+   .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
+   .stat { display: flex; justify-content: space-between; margin: 6px 0; font-size: 14px; }
+   .stat b { color: var(--text); }
+   .empty { text-align: center; color: var(--muted); padding: 40px 20px; }
+   .logout { position: fixed; bottom: 15px; left: 15px; right: 15px; }
+   .loading { color: var(--muted); font-size: 12px; }
   </style>
 </head>
 <body>
   <h2>GolViral Admin Panel <span class="badge">v4.5</span></h2>
-  
+
   <div class="tabs">
     <button class="tab active" onclick="switchTab('posts', event)">Post Queue</button>
     <button class="tab" onclick="switchTab('payouts', event)">Payouts</button>
@@ -62,10 +63,22 @@
       if(tab === 'payouts') loadPayouts();
     }
 
-    async function api(path, method='GET') {
-      const r = await fetch(`${API}${path}`, {method, headers:{Authorization:`Bearer ${token}`}});
+    async function api(path, method='GET', body=null) {
+      const opts = {method, headers:{Authorization:`Bearer ${token}`}};
+      if(body) { opts.headers['Content-Type']='application/json'; opts.body=body; }
+      const r = await fetch(`${API}${path}`, opts);
       if(r.status === 403) { alert('Admin access only'); logout(); }
+      if(r.status === 401) { alert('Session expired'); logout(); }
       return r.json();
+    }
+
+    async function signUrl(key, shard) {
+      try {
+        const r = await api(`/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`);
+        return r.url || '';
+      } catch {
+        return '';
+      }
     }
 
     // ===== POSTS QUEUE =====
@@ -74,29 +87,37 @@
       el.innerHTML = 'Loading...';
       const posts = await api('/api/admin/posts/pending');
       if(!posts.length) return el.innerHTML = '<div class="empty">No pending posts 🎉</div>';
-      
-      el.innerHTML = posts.map(p => {
-        const b2Host = p.b2Shard===0?'mock-a':p.b2Shard===1?'mock-b':'mock-c';
-        const videoUrl = `https://${b2Host}.s3.us-west-000.backblazeb2.com/${p.mediaUrl}`;
+
+      el.innerHTML = '<div class="loading">Signing video links, please wait...</div>';
+
+      const cards = await Promise.all(posts.map(async p => {
+        let mediaHtml = '';
+        if(p.type==='reel' && p.mediaUrl) {
+          const url = await signUrl(p.mediaUrl, p.b2Shard);
+          mediaHtml = url? `<video src="${url}" controls preload="metadata"></video>`
+                          : `<p style="color:red">Video URL failed. Check B2 keys.</p>`;
+        } else {
+          mediaHtml = `<h3>${p.title || 'Untitled'}</h3><p>${(p.content||'').slice(0,300)}${p.content?.length>300?'...':''}</p>`;
+        }
+
         return `
         <div class="card" id="post-${p.id}">
           <h3>@${p.user?.username || p.userId} <span class="badge">${p.type}</span></h3>
           <div class="stat"><span>Cost</span><b>${p.type==='reel'?25:10} pts</b></div>
           <div class="stat"><span>Shard</span><b>DB${p.b2Shard+1}</b></div>
-          ${p.type==='reel' 
-            ? `<video src="${videoUrl}" controls preload="metadata"></video>` 
-            : `<h3>${p.title || 'Untitled'}</h3><p>${(p.content||'').slice(0,300)}${p.content?.length>300?'...':''}</p>`
-          }
+          ${mediaHtml}
           <div class="row">
             <button class="btn" onclick="postAction('${p.id}','approve')">Approve</button>
             <button class="btn reject" onclick="postAction('${p.id}','reject')">Reject + Refund</button>
           </div>
         </div>`;
-      }).join('');
+      }));
+
+      el.innerHTML = cards.join('');
     }
 
     async function postAction(id, action) {
-      if(action==='reject' && !confirm('Reject and refund 25pts?')) return;
+      if(action==='reject' &&!confirm('Reject and refund 25pts?')) return;
       await api(`/api/admin/posts/${id}/${action}`, 'POST');
       document.getElementById('post-'+id).remove();
     }
@@ -107,7 +128,7 @@
       el.innerHTML = 'Loading...';
       const payouts = await api('/api/admin/payouts');
       if(!payouts.length) return el.innerHTML = '<div class="empty">No pending payouts 💰</div>';
-      
+
       el.innerHTML = payouts.map(p => `
         <div class="card" id="payout-${p.id}">
           <h3>Payout Request <span class="badge">₦${(p.amountPoints * 0.1).toFixed(2)}</span></h3>
