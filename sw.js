@@ -73,7 +73,7 @@ self.addEventListener('fetch', e => {
     caches.match(e.request).then(res => res || fetch(e.request).catch(() => {
       // Offline fallback asset rule if root layout completely misses cache boundaries
       if (e.request.mode === 'navigate') {
-        return caches.match('/index.html');
+        return caches.match('index.html');
       }
     }))
   );
