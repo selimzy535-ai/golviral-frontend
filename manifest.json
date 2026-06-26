@@ -1,25 +1,24 @@
 {
-  "name": "GolViral - Viral Reels & Stories",
+  "name": "GolViral",
   "short_name": "GolViral",
-  "description": "Mobile-first PWA for viral reels, novels, stories. Earn Free Credits + Cash.",
-  "start_url": "/index.html",
+  "description": "Viral Reels & Publishing Engine",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#FFFFFF",
+  "theme_color": "#FF0050",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192/FFFFFF/FF0050?text=GV",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "https://via.placeholder.com/512/FFFFFF/FF0050?text=GV",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
-  ],
-  "categories": ["social", "entertainment", "video"]
+  ]
 }
