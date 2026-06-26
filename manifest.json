@@ -3,7 +3,7 @@
   "name": "GolViral",
   "short_name": "GolViral",
   "description": "Viral Reels & Publishing Engine",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#FFFFFF",
   "theme_color": "#FF0050",
