@@ -507,26 +507,25 @@
       });
     }
 
-    function loadProfileData() {
+function loadProfileData() {
   const uid = localStorage.getItem('userId');
   if(!uid) { 
     window.location.hash = '#/auth'; 
     return; 
   } // STOP if not logged in
+
   fetch(`${API_BASE}/api/user/${uid}`)
-  ...
+   .then(r => r.json())
+   .then(d => {
+      document.getElementById('p-username').innerText = `@${d.username}`;
+      document.getElementById('p-views').innerText = d.totalViews;
+      document.getElementById('p-likes').innerText = d.totalLikes;
+      document.getElementById('p-posts').innerText = d.totalPosts;
+      document.getElementById('p-followers').innerText = d.followers;
+      document.getElementById('p-following').innerText = d.following;
+      document.getElementById('p-link').value = d.referralLink;
+    });
 }
-       .then(r => r.json())
-       .then(d => {
-          document.getElementById('p-username').innerText = `@${d.username}`;
-          document.getElementById('p-views').innerText = d.totalViews;
-          document.getElementById('p-likes').innerText = d.totalLikes;
-          document.getElementById('p-posts').innerText = d.totalPosts;
-          document.getElementById('p-followers').innerText = d.followers;
-          document.getElementById('p-following').innerText = d.following;
-          document.getElementById('p-link').value = d.referralLink;
-        });
-    }
 
     function initializeServiceWorker() {
       if ('serviceWorker' in navigator) {
