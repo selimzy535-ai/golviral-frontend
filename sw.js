@@ -1,7 +1,7 @@
 
 const CACHE_NAME = "golviral-v4.5";
 const STATIC_CACHE = [
-  "/",
+  "./",
   "index.html",
   "admin.html",
   "manifest.json"
