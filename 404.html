@@ -4,41 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral</title>
-  <link rel="manifest" href="./manifest.json"> <!-- FIX 1: relative path -->
+  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#FF0050">
   <style>
     :root { --accent: #FF0050; --bg: #FFFFFF; --text: #000; --gray: #EAEAEA; --muted: #777; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
     #app { padding-bottom: 70px; min-height: 100vh; }
-   .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg); border-top: 1px solid var(--gray); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-   .nav-item { background: none; border: none; fill: var(--text); color: var(--text); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; text-decoration: none; }
-   .nav-item.active { fill: var(--accent); color: var(--accent); }
-   .nav-item svg { width: 22px; height: 22px; margin-bottom: 2px; }
-   .view-pane { display: none; padding: 15px; max-width: 500px; margin: 0 auto; }
-   .view-pane.active { display: block; }
-   .btn { display: block; width: 100%; padding: 14px; background: var(--text); color: var(--bg); border: none; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; text-decoration: none; }
-   .btn.accent { background: var(--accent); }
-   .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--gray); outline: none; font-size: 16px; border-radius: 4px; }
-   .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
-   .cached-badge { background: #00C853; color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
-   .reel-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: calc(100vh - 60px); width: 100%; max-width: 500px; margin: 0 auto; }
-   .reel-card { position: relative; width: 100%; height: calc(100vh - 60px); scroll-snap-align: start; background: #000; display: flex; align-items: center; justify-content: center; }
-   .reel-card video { width: 100%; height: 100%; object-fit: cover; }
-   .reel-overlay { position: absolute; bottom: 20px; left: 15px; right: 80px; color: #FFF; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
-   .reel-actions { position: absolute; right: 15px; bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-   .action-bubble { background: rgba(0,0,0,0.5); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; fill: #FFF; color: #FFF; cursor: pointer; flex-direction: column; font-size: 10px; }
-   .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-   .card { padding: 15px; border: 1px solid var(--gray); border-radius: 4px; background: var(--bg); }
-   .tabs { display: flex; border-bottom: 1px solid var(--gray); margin-bottom: 15px; }
-   .tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; font-weight: bold; cursor: pointer; }
-   .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
-   .bot-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; }
-   .bot-modal.active { display: flex; }
-   .bot-content { background:#FFF; padding:25px; border-radius:6px; width:100%; max-width:340px; text-align:center; }
-   .reader-card { min-height: 70vh; font-size: 18px; line-height: 1.8; padding: 20px; }
-   .timer-bar { height: 4px; background: var(--gray); margin-bottom: 15px; width: 100%; }
-   .timer-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s linear; }
+  .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg); border-top: 1px solid var(--gray); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+  .nav-item { background: none; border: none; fill: var(--text); color: var(--text); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; text-decoration: none; }
+  .nav-item.active { fill: var(--accent); color: var(--accent); }
+  .nav-item svg { width: 22px; height: 22px; margin-bottom: 2px; }
+  .view-pane { display: none; padding: 15px; max-width: 500px; margin: 0 auto; }
+  .view-pane.active { display: block; }
+  .btn { display: block; width: 100%; padding: 14px; background: var(--text); color: var(--bg); border: none; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; text-decoration: none; }
+  .btn.accent { background: var(--accent); }
+  .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--gray); outline: none; font-size: 16px; border-radius: 4px; }
+  .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
+  .reel-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: calc(100vh - 60px); width: 100%; max-width: 500px; margin: 0 auto; }
+  .reel-card { position: relative; width: 100%; height: calc(100vh - 60px); scroll-snap-align: start; background: #000; display: flex; align-items: center; justify-content: center; }
+  .reel-card video { width: 100%; height: 100%; object-fit: cover; }
+  .reel-overlay { position: absolute; bottom: 20px; left: 15px; right: 80px; color: #FFF; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+  .reel-actions { position: absolute; right: 15px; bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  .action-bubble { background: rgba(0,0,0,0.5); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; fill: #FFF; color: #FFF; cursor: pointer; flex-direction: column; font-size: 10px; }
+  .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .card { padding: 15px; border: 1px solid var(--gray); border-radius: 4px; background: var(--bg); }
+  .tabs { display: flex; border-bottom: 1px solid var(--gray); margin-bottom: 15px; }
+  .tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; font-weight: bold; cursor: pointer; }
+  .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
+  .bot-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; }
+  .bot-modal.active { display: flex; }
+  .bot-content { background:#FFF; padding:25px; border-radius:6px; width:100%; max-width:340px; text-align:center; }
+  .reader-card { min-height: 70vh; font-size: 18px; line-height: 1.8; padding: 20px; white-space: pre-wrap; }
+  .timer-bar { height: 4px; background: var(--gray); margin-bottom: 15px; width: 100%; }
+  .timer-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s linear; }
   </style>
 </head>
 <body>
@@ -69,7 +68,7 @@
         <button class="tab" onclick="switchPostType('story', event)">Story</button>
       </div>
       <div class="card" style="margin-bottom:15px; border-color:var(--accent);">
-        <p style="font-size:12px; color:var(--accent);" id="post-warning">Rule: Reel costs 25pts. Max 3 posts daily.</p>
+        <p style="font-size:12px; color:var(--accent);" id="post-warning">Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.</p>
       </div>
       <div id="file-selector-group">
         <input type="file" id="post-file" class="input-field" accept="video/mp4">
@@ -165,7 +164,7 @@
   </div>
 
   <script>
-    const API_BASE = "https://golviral-api.onrender.com"; // FIX 2: NO TRAILING SLASH
+    const API_BASE = "https://golviral-api.onrender.com";
     let activeAuthTab = 'login';
     let activePostType = 'reel';
     let currentBotCallback = null;
@@ -227,11 +226,19 @@
       return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
     }
 
+    async function signMedia(key, shard) {
+      try {
+        const r = await fetch(`${API_BASE}/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`,{headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}});
+        const d = await r.json();
+        return d.url || '';
+      } catch { return ''; }
+    }
+
     function triggerBotChallenge(callback) {
       currentBotCallback = callback;
       fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
-      .then(r => r.json())
-      .then(data => {
+     .then(r => r.json())
+     .then(data => {
           currentBotToken = data.token;
           document.getElementById('bot-question').innerText = data.question;
           document.getElementById('bot-overlay-modal').classList.add('active');
@@ -285,61 +292,68 @@
       });
     }
 
-    function loadFeedEngine() {
+    async function loadFeedEngine() {
       const viewport = document.getElementById('reel-viewport');
       viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
-      fetch(`${API_BASE}/api/feed`)
-      .then(r => r.json())
-      .then(posts => {
-          viewport.innerHTML = "";
-          if(posts.length === 0) viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
-          posts.forEach(post => {
-            const card = document.createElement('div');
-            card.className = 'reel-card';
-            card.innerHTML = `
-              <video src="${post.mediaUrl}" loop muted playsinline></video>
-              <div class="reel-overlay">
-                <h4>@${post.userId}</h4>
-                <p>${post.title || post.type}</p>
-                <div class="cached-container" style="margin-top:5px;"></div>
-              </div>
-              <div class="reel-actions">
-                <button class="action-bubble" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
-                  <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                  <span>${post.likes}</span>
-                </button>
-                <button class="action-bubble" onclick="interactFeed('${post.id}', 'comment', '${post.userId}')">
-                  <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg> <span>${post.comments}</span>
-                </button>
-              </div>
-            `;
-            viewport.appendChild(card);
-            if ('caches' in window) {
-              caches.match(post.mediaUrl).then(match => {
-                if(match) card.querySelector('.cached-container').innerHTML = '<span class="cached-badge">Cached</span>';
-              });
+      const token = localStorage.getItem('token');
+      if(!token) return window.location.hash='#/auth';
+
+      const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
+      viewport.innerHTML = "";
+      if(posts.length === 0) return viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
+
+      for(const post of posts){
+        const card = document.createElement('div');
+        card.className = 'reel-card';
+
+        let mediaHtml = '';
+        if(post.type==='reel' && post.mediaUrl){
+          const url = await signMedia(post.mediaUrl, post.b2Shard);
+          mediaHtml = url? `<video src="${url}" loop muted playsinline></video>` : `<p style="color:red">Video unavailable</p>`;
+        } else {
+          mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
+        }
+
+        card.innerHTML = `
+          ${mediaHtml}
+          <div class="reel-overlay">
+            <h4>@${post.userId}</h4>
+            <p>${post.title || post.type}</p>
+          </div>
+          <div class="reel-actions">
+            <button class="action-bubble" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
+              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <span>${post.likes}</span>
+            </button>
+            <button class="action-bubble" onclick="interactFeed('${post.id}', 'comment', '${post.userId}')">
+              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg> <span>${post.comments}</span>
+            </button>
+          </div>
+        `;
+        viewport.appendChild(card);
+
+        let viewTriggered = false;
+        const videoEl = card.querySelector('video');
+        if(videoEl){
+          videoEl.addEventListener('play', () => {
+            if (!viewTriggered) {
+              setTimeout(() => {
+                if (!videoEl.paused) {
+                  viewTriggered = true;
+                  fetch(`${API_BASE}/api/view`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ postId: post.id, userId: post.userId })
+                  });
+                }
+              }, 3000);
             }
-            let viewTriggered = false;
-            const videoEl = card.querySelector('video');
-            videoEl.addEventListener('play', () => {
-              if (!viewTriggered) {
-                setTimeout(() => {
-                  if (!videoEl.paused) {
-                    viewTriggered = true;
-                    fetch(`${API_BASE}/api/view`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ postId: post.id, userId: post.userId })
-                    });
-                  }
-                }, 3000);
-              }
-            });
-            card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
-            if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}?author=${post.userId}`);
-            if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
           });
-        });
+          card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
+        }
+        if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}?author=${post.userId}`);
+        if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
+      }
     }
 
     function interactFeed(postId, action, creatorId) {
@@ -356,119 +370,85 @@
       e.target.classList.add('active');
       document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
       document.getElementById('text-fields-group').style.display = type!== 'reel'? 'block' : 'none';
-      document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily.' : 'Rule: Narrative costs 10pts.';
+      document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
     }
 
-async function executePublish() {
-  try {
-    const body = { postType: activePostType };
+    async function executePublish() {
+      try {
+        const body = { postType: activePostType };
 
-    if (activePostType === 'reel') {
-      const fileInput = document.getElementById('post-file').files[0];
-      if(!fileInput) return alert("Select video file");
+        if (activePostType === 'reel') {
+          const fileInput = document.getElementById('post-file').files[0];
+          if(!fileInput) return alert("Select video file");
 
-      // RULE 1: REJECT > 30s
-      const video = document.createElement('video');
-      video.preload = 'metadata';
-      video.src = URL.createObjectURL(fileInput);
-      await new Promise(resolve => video.onloadedmetadata = resolve);
-      const duration = video.duration;
-      URL.revokeObjectURL(video.src);
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+          video.src = URL.createObjectURL(fileInput);
+          await new Promise(resolve => video.onloadedmetadata = resolve);
+          const duration = video.duration;
+          URL.revokeObjectURL(video.src);
 
-      if (duration > 30) return alert("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
-      if (duration < 3) return alert("Rejected: Min 3s required");
+          if (duration > 30) return alert("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
+          if (duration < 3) return alert("Rejected: Min 3s required");
+          if (fileInput.size > 1.5 * 1024 * 1024) return alert("Rejected: Max 1.5MB. Your file is " + (fileInput.size/1024/1024).toFixed(1) + "MB. Use CapCut 720p 1Mbps");
 
-      // RULE 2: COMPRESS TO ~1MB if > 1MB
-      let fileToUpload = fileInput;
-      if (fileInput.size > 1 * 1024 * 1024) {
-        alert("Compressing to ~1MB... Wait 5s");
-        fileToUpload = await compressVideoTo1MB(fileInput, duration);
-        if (!fileToUpload) return alert("Compression failed. Use CapCut to export 720p 1Mbps");
-      }
+          body.fileExtension = fileInput.name.split('.').pop();
+          body.contentType = fileInput.type;
 
-      body.fileExtension = fileToUpload.name.split('.').pop();
-      body.contentType = fileToUpload.type;
+          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body)
+          }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
 
-      // Send to backend
-      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(body)
-      }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+          await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': fileInput.type }, body: fileInput });
+          await fetch(`${API_BASE}/api/post/create`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
+          });
+          alert("Content submitted for admin approval");
+          window.location.hash = '#/feed';
 
-      await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': fileToUpload.type }, body: fileToUpload });
-      await fetch(`${API_BASE}/api/post/create`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
-      });
-      alert("Content submitted for admin approval");
-      window.location.hash = '#/feed';
+        } else {
+          if(!document.getElementById('post-title').value) return alert("Title required");
+          if(!document.getElementById('post-content').value) return alert("Content required");
 
-    } else {
-      // Novel/Story logic unchanged
-      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(body)
-      }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body)
+          }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
 
-      const finalBody = { postId: intentRes.postId, objectKey: intentRes.objectKey };
-      finalBody.title = document.getElementById('post-title').value;
-      finalBody.content = document.getElementById('post-content').value;
-      await fetch(`${API_BASE}/api/post/create`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(finalBody)
-      });
-      alert("Content submitted for admin approval");
-      window.location.hash = '#/feed';
+          const finalBody = {
+            postId: intentRes.postId,
+            objectKey: intentRes.objectKey,
+            title: document.getElementById('post-title').value,
+            content: document.getElementById('post-content').value
+          };
+          await fetch(`${API_BASE}/api/post/create`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(finalBody)
+          });
+          alert("Content submitted for admin approval");
+          window.location.hash = '#/feed';
+        }
+      } catch (err) { alert(err.message); }
     }
-  } catch (err) { alert(err.message); }
-}
 
-// New helper: Compress using Canvas + MediaRecorder to ~1MB
-async function compressVideoTo1MB(file, duration) {
-  return new Promise((resolve) => {
-    const video = document.createElement('video');
-    video.src = URL.createObjectURL(file);
-    video.muted = true;
-    video.play();
-    video.onloadeddata = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 720;
-      canvas.height = 1280;
-      const ctx = canvas.getContext('2d');
-      const stream = canvas.captureStream(24);
-      const recorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9',
-        videoBitsPerSecond: Math.floor((1 * 1024 * 1024 * 8) / duration) // ~1MB total
-      });
-      const chunks = [];
-      recorder.ondataavailable = e => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        resolve(new File([blob], file.name.replace('.mp4', '.webm'), { type: 'video/webm' }));
-      };
-      const draw = () => {
-        if (video.ended) return recorder.stop();
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        requestAnimationFrame(draw);
-      };
-      recorder.start();
-      draw();
-    };
-    video.onerror = () => resolve(null);
-  });
-}
-
-    function loadReader(type, id) {
+    async function loadReader(type, id) {
       const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
       const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
       const authorId = new URLSearchParams(window.location.hash.split('?')[1]).get('author') || 'unknown';
       const seconds = type === 'NOVEL'? 120 : 180;
       let elapsed = 0;
-      contentEl.innerHTML = `<h3>Loading ${type} ${id}...</h3>`;
+
+      const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
+      const post = posts.find(p=>p.id===id);
+      if(!post) return contentEl.innerHTML = 'Post not found';
+
+      contentEl.innerHTML = `<h3>${post.title||''}</h3><br>${post.content||'No content'}`;
       timerEl.style.width = '0%';
       readTimer = setInterval(() => {
         elapsed++;
@@ -480,15 +460,15 @@ async function compressVideoTo1MB(file, duration) {
             headers: getAuthHeaders(),
             body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
           });
-          alert(`+${type==='NOVEL'?10:15}pts credited`);
+          alert(`+${type==='NOVEL'?10:10}pts credited`);
         }
       }, 1000);
     }
 
     function loadWalletData() {
       fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
-      .then(r => r.json())
-      .then(d => {
+     .then(r => r.json())
+     .then(d => {
           document.getElementById('w-free').innerText = d.freeCredits;
           document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
           document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
@@ -542,28 +522,24 @@ async function compressVideoTo1MB(file, duration) {
       });
     }
 
-    function loadProfileData() { // FIX 3: FULLY REBUILT FUNCTION
+    function loadProfileData() {
       const uid = localStorage.getItem('userId');
-      if(!uid) {
-        window.location.hash = '#/auth';
-        return;
-      }
+      if(!uid) { window.location.hash = '#/auth'; return; }
       fetch(`${API_BASE}/api/user/${uid}`)
-      .then(r => r.json())
-      .then(d => {
+     .then(r => r.json())
+     .then(d => {
           document.getElementById('p-username').innerText = `@${d.username}`;
           document.getElementById('p-views').innerText = d.totalViews;
           document.getElementById('p-likes').innerText = d.totalLikes;
           document.getElementById('p-posts').innerText = d.totalPosts;
           document.getElementById('p-followers').innerText = d.followers;
           document.getElementById('p-following').innerText = d.following;
-          // FIX 4: Hash route for GitHub Pages, not auth.html
           const baseUrl = window.location.origin + window.location.pathname;
           document.getElementById('p-link').value = `${baseUrl}#/?ref=${d.userId}`;
         });
     }
 
-    function initializeServiceWorker() { // FIX 5: RELATIVE PATH
+    function initializeServiceWorker() {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
       }
