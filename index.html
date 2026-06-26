@@ -1,55 +1,47 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="./manifest.json"> <!-- FIX 1: relative path -->
   <meta name="theme-color" content="#FF0050">
   <style>
     :root { --accent: #FF0050; --bg: #FFFFFF; --text: #000; --gray: #EAEAEA; --muted: #777; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
-
     #app { padding-bottom: 70px; min-height: 100vh; }
-    .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg); border-top: 1px solid var(--gray); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-    .nav-item { background: none; border: none; fill: var(--text); color: var(--text); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; text-decoration: none; }
-    .nav-item.active { fill: var(--accent); color: var(--accent); }
-    .nav-item svg { width: 22px; height: 22px; margin-bottom: 2px; }
-
-    .view-pane { display: none; padding: 15px; max-width: 500px; margin: 0 auto; }
-    .view-pane.active { display: block; }
-    .btn { display: block; width: 100%; padding: 14px; background: var(--text); color: var(--bg); border: none; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; text-decoration: none; }
-    .btn.accent { background: var(--accent); }
-    .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--gray); outline: none; font-size: 16px; border-radius: 4px; }
-    .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
-    .cached-badge { background: #00C853; color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
-
-    .reel-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: calc(100vh - 60px); width: 100%; max-width: 500px; margin: 0 auto; }
-    .reel-card { position: relative; width: 100%; height: calc(100vh - 60px); scroll-snap-align: start; background: #000; display: flex; align-items: center; justify-content: center; }
-    .reel-card video { width: 100%; height: 100%; object-fit: cover; }
-    .reel-overlay { position: absolute; bottom: 20px; left: 15px; right: 80px; color: #FFF; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
-    .reel-actions { position: absolute; right: 15px; bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-    .action-bubble { background: rgba(0,0,0,0.5); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; fill: #FFF; color: #FFF; cursor: pointer; flex-direction: column; font-size: 10px; }
-
-    .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-    .card { padding: 15px; border: 1px solid var(--gray); border-radius: 4px; background: var(--bg); }
-    .tabs { display: flex; border-bottom: 1px solid var(--gray); margin-bottom: 15px; }
-    .tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; font-weight: bold; cursor: pointer; }
-    .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
-
-    .bot-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; }
-    .bot-modal.active { display: flex; }
-    .bot-content { background:#FFF; padding:25px; border-radius:6px; width:100%; max-width:340px; text-align:center; }
-
-    .reader-card { min-height: 70vh; font-size: 18px; line-height: 1.8; padding: 20px; }
-    .timer-bar { height: 4px; background: var(--gray); margin-bottom: 15px; width: 100%; }
-    .timer-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s linear; }
+   .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg); border-top: 1px solid var(--gray); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+   .nav-item { background: none; border: none; fill: var(--text); color: var(--text); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; text-decoration: none; }
+   .nav-item.active { fill: var(--accent); color: var(--accent); }
+   .nav-item svg { width: 22px; height: 22px; margin-bottom: 2px; }
+   .view-pane { display: none; padding: 15px; max-width: 500px; margin: 0 auto; }
+   .view-pane.active { display: block; }
+   .btn { display: block; width: 100%; padding: 14px; background: var(--text); color: var(--bg); border: none; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; text-decoration: none; }
+   .btn.accent { background: var(--accent); }
+   .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--gray); outline: none; font-size: 16px; border-radius: 4px; }
+   .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
+   .cached-badge { background: #00C853; color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
+   .reel-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: calc(100vh - 60px); width: 100%; max-width: 500px; margin: 0 auto; }
+   .reel-card { position: relative; width: 100%; height: calc(100vh - 60px); scroll-snap-align: start; background: #000; display: flex; align-items: center; justify-content: center; }
+   .reel-card video { width: 100%; height: 100%; object-fit: cover; }
+   .reel-overlay { position: absolute; bottom: 20px; left: 15px; right: 80px; color: #FFF; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+   .reel-actions { position: absolute; right: 15px; bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+   .action-bubble { background: rgba(0,0,0,0.5); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; fill: #FFF; color: #FFF; cursor: pointer; flex-direction: column; font-size: 10px; }
+   .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+   .card { padding: 15px; border: 1px solid var(--gray); border-radius: 4px; background: var(--bg); }
+   .tabs { display: flex; border-bottom: 1px solid var(--gray); margin-bottom: 15px; }
+   .tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; font-weight: bold; cursor: pointer; }
+   .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
+   .bot-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; }
+   .bot-modal.active { display: flex; }
+   .bot-content { background:#FFF; padding:25px; border-radius:6px; width:100%; max-width:340px; text-align:center; }
+   .reader-card { min-height: 70vh; font-size: 18px; line-height: 1.8; padding: 20px; }
+   .timer-bar { height: 4px; background: var(--gray); margin-bottom: 15px; width: 100%; }
+   .timer-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s linear; }
   </style>
 </head>
 <body>
-
   <div id="app">
     <div id="view-auth" class="view-pane">
       <div class="tabs">
@@ -157,18 +149,10 @@
   </div>
 
   <nav class="nav-bar">
-    <a href="#/feed" class="nav-item" id="nav-feed">
-      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed
-    </a>
-    <a href="#/post" class="nav-item" id="nav-post">
-      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create
-    </a>
-    <a href="#/wallet" class="nav-item" id="nav-wallet">
-      <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
-    </a>
-    <a href="#/profile" class="nav-item" id="nav-profile">
-      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile
-    </a>
+    <a href="#/feed" class="nav-item" id="nav-feed"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed</a>
+    <a href="#/post" class="nav-item" id="nav-post"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create</a>
+    <a href="#/wallet" class="nav-item" id="nav-wallet"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2.9 2 2v1h-9c-1.11 0-2.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet</a>
+    <a href="#/profile" class="nav-item" id="nav-profile"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile</a>
   </nav>
 
   <div id="bot-overlay-modal" class="bot-modal">
@@ -181,7 +165,7 @@
   </div>
 
   <script>
-    const API_BASE = "https://golviral-api.onrender.com";
+    const API_BASE = "https://golviral-api.onrender.com"; // FIX 2: NO TRAILING SLASH
     let activeAuthTab = 'login';
     let activePostType = 'reel';
     let currentBotCallback = null;
@@ -198,7 +182,6 @@
       if(ref) localStorage.setItem('ref', ref);
     });
 
-    // PWA Installation Trigger Loop
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -247,8 +230,8 @@
     function triggerBotChallenge(callback) {
       currentBotCallback = callback;
       fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
-       .then(r => r.json())
-       .then(data => {
+      .then(r => r.json())
+      .then(data => {
           currentBotToken = data.token;
           document.getElementById('bot-question').innerText = data.question;
           document.getElementById('bot-overlay-modal').classList.add('active');
@@ -273,7 +256,7 @@
 
     function switchAuthTab(tab, e) {
       activeAuthTab = tab;
-      document.querySelectorAll('#view-auth .tab').forEach(t => t.classList.remove('active')); // FIX: Added space for child selectors
+      document.querySelectorAll('#view-auth.tab').forEach(t => t.classList.remove('active'));
       e.target.classList.add('active');
       document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
       document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
@@ -284,10 +267,8 @@
       const password = document.getElementById('auth-pass').value;
       const username = document.getElementById('auth-user').value;
       const referralCode = localStorage.getItem('ref') || document.getElementById('auth-ref').value;
-
       const endpoint = activeAuthTab === 'login'? '/api/auth/login' : '/api/auth/signup';
       const body = activeAuthTab === 'login'? { email, password, passToken } : { username, email, password, passToken, referralCode };
-
       fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -307,10 +288,9 @@
     function loadFeedEngine() {
       const viewport = document.getElementById('reel-viewport');
       viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
-
       fetch(`${API_BASE}/api/feed`)
-       .then(r => r.json())
-       .then(posts => {
+      .then(r => r.json())
+      .then(posts => {
           viewport.innerHTML = "";
           if(posts.length === 0) viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
           posts.forEach(post => {
@@ -333,15 +313,12 @@
                 </button>
               </div>
             `;
-
             viewport.appendChild(card);
-
             if ('caches' in window) {
               caches.match(post.mediaUrl).then(match => {
                 if(match) card.querySelector('.cached-container').innerHTML = '<span class="cached-badge">Cached</span>';
               });
             }
-
             let viewTriggered = false;
             const videoEl = card.querySelector('video');
             videoEl.addEventListener('play', () => {
@@ -358,9 +335,7 @@
                 }, 3000);
               }
             });
-
             card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
-
             if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}?author=${post.userId}`);
             if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
           });
@@ -377,7 +352,7 @@
 
     function switchPostType(type, e) {
       activePostType = type;
-      document.querySelectorAll('#view-post .tab').forEach(t => t.classList.remove('active')); // FIX: Added missing space
+      document.querySelectorAll('#view-post.tab').forEach(t => t.classList.remove('active'));
       e.target.classList.add('active');
       document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
       document.getElementById('text-fields-group').style.display = type!== 'reel'? 'block' : 'none';
@@ -394,30 +369,25 @@
           body.fileExtension = fileInput.name.split('.').pop();
           body.contentType = fileInput.type;
         }
-
         const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
           method: 'POST',
           headers: getAuthHeaders(),
           body: JSON.stringify(body)
         }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
-
         if (activePostType === 'reel') {
           const fileInput = document.getElementById('post-file').files[0];
           await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': fileInput.type }, body: fileInput });
         }
-
         const finalBody = { postId: intentRes.postId, objectKey: intentRes.objectKey };
         if (activePostType!== 'reel') {
           finalBody.title = document.getElementById('post-title').value;
           finalBody.content = document.getElementById('post-content').value;
         }
-
         await fetch(`${API_BASE}/api/post/create`, {
           method: 'POST',
           headers: getAuthHeaders(),
           body: JSON.stringify(finalBody)
         });
-
         alert("Content submitted for admin approval");
         window.location.hash = '#/feed';
       } catch (err) { alert(err.message); }
@@ -426,13 +396,11 @@
     function loadReader(type, id) {
       const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
       const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
-      const authorId = new URLSearchParams(window.location.hash.split('?')[1]).get('author') || 'unknown'; // FIX: Extract actual author
+      const authorId = new URLSearchParams(window.location.hash.split('?')[1]).get('author') || 'unknown';
       const seconds = type === 'NOVEL'? 120 : 180;
       let elapsed = 0;
-
       contentEl.innerHTML = `<h3>Loading ${type} ${id}...</h3>`;
       timerEl.style.width = '0%';
-
       readTimer = setInterval(() => {
         elapsed++;
         timerEl.style.width = `${(elapsed/seconds)*100}%`;
@@ -450,8 +418,8 @@
 
     function loadWalletData() {
       fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
-       .then(r => r.json())
-       .then(d => {
+      .then(r => r.json())
+      .then(d => {
           document.getElementById('w-free').innerText = d.freeCredits;
           document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
           document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
@@ -470,7 +438,6 @@
       const tierAmount = parseInt(document.getElementById('dep-tier').value);
       const reference = generateRef();
       const userId = localStorage.getItem('userId');
-
       fetch(`${API_BASE}/api/deposit/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -482,7 +449,6 @@
       const amountPoints = parseInt(document.getElementById('wd-amount').value);
       const routingTarget = document.getElementById('wd-target').value;
       const targetDetails = document.getElementById('wd-details').value;
-
       fetch(`${API_BASE}/api/wallet/withdraw`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -507,29 +473,30 @@
       });
     }
 
-function loadProfileData() {
-  const uid = localStorage.getItem('userId');
-  if(!uid) { 
-    window.location.hash = '#/auth'; 
-    return; 
-  } // STOP if not logged in
+    function loadProfileData() { // FIX 3: FULLY REBUILT FUNCTION
+      const uid = localStorage.getItem('userId');
+      if(!uid) {
+        window.location.hash = '#/auth';
+        return;
+      }
+      fetch(`${API_BASE}/api/user/${uid}`)
+      .then(r => r.json())
+      .then(d => {
+          document.getElementById('p-username').innerText = `@${d.username}`;
+          document.getElementById('p-views').innerText = d.totalViews;
+          document.getElementById('p-likes').innerText = d.totalLikes;
+          document.getElementById('p-posts').innerText = d.totalPosts;
+          document.getElementById('p-followers').innerText = d.followers;
+          document.getElementById('p-following').innerText = d.following;
+          // FIX 4: Hash route for GitHub Pages, not auth.html
+          const baseUrl = window.location.origin + window.location.pathname;
+          document.getElementById('p-link').value = `${baseUrl}#/?ref=${d.userId}`;
+        });
+    }
 
-  fetch(`${API_BASE}/api/user/${uid}`)
-   .then(r => r.json())
-   .then(d => {
-      document.getElementById('p-username').innerText = `@${d.username}`;
-      document.getElementById('p-views').innerText = d.totalViews;
-      document.getElementById('p-likes').innerText = d.totalLikes;
-      document.getElementById('p-posts').innerText = d.totalPosts;
-      document.getElementById('p-followers').innerText = d.followers;
-      document.getElementById('p-following').innerText = d.following;
-      document.getElementById('p-link').value = d.referralLink;
-    });
-}
-
-    function initializeServiceWorker() {
+    function initializeServiceWorker() { // FIX 5: RELATIVE PATH
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').then(() => console.log("[PWA Registered]"));
+        navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
       }
     }
   </script>
