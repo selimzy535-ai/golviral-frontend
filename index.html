@@ -620,13 +620,15 @@
       return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
     }
 
-    async function signMedia(key, shard) {
-      try {
-        const r = await fetch(`${API_BASE}/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`,{headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}});
-        const d = await r.json();
-        return d.url || '';
-      } catch { return ''; }
-    }
+async function signMedia(key, shard) {
+  const token = localStorage.getItem('token');
+  if(!token) return '';
+  try {
+    const r = await fetch(`${API_BASE}/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`,{headers:{Authorization:`Bearer ${token}`}});
+    const d = await r.json();
+    return d.url || '';
+  } catch { return ''; }
+}
 
     function triggerBotChallenge(callback) {
       currentBotCallback = callback;
@@ -759,31 +761,36 @@
     }
 
     function interactFeed(postId, action, creatorId) {
-      // Frontend strict gate check
-      const cacheKey = action === 'like' ? 'gv_likes' : 'gv_comments';
-      let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-      if(storageItems.includes(postId)) return;
+  const cacheKey = action === 'like' ? 'gv_likes' : 'gv_comments';
+  let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+  if(storageItems.includes(postId)) return alert("Already "+action+"d");
 
-      // Optimistically update counts and UI buttons immediately
-      const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
-      const targetedCount = document.getElementById(`count-${action}-${postId}`);
-      if(targetedBtn && targetedCount) {
-        targetedBtn.disabled = true;
-        targetedBtn.classList.add(action === 'like' ? 'voted-like' : 'voted-comment');
-        targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
-      }
+  const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
+  const targetedCount = document.getElementById(`count-${action}-${postId}`);
+  
+  let body = { postId, creatorId };
 
-      // Add to tracked validation items
-      storageItems.push(postId);
-      localStorage.setItem(cacheKey, JSON.stringify(storageItems));
+  if(action === 'comment'){
+    const text = prompt("Leave a comment:");
+    if(!text || text.length < 2) return;
+    body.text = text;
+  }
 
-      fetch(`${API_BASE}/api/${action}`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ postId, creatorId })
-      }).then(r => { if(r.status === 202) console.log("Buffered"); });
-    }
+  if(targetedBtn && targetedCount) {
+    targetedBtn.disabled = true;
+    targetedBtn.classList.add(action === 'like' ? 'voted-like' : 'voted-comment');
+    targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
+  }
 
+  storageItems.push(postId);
+  localStorage.setItem(cacheKey, JSON.stringify(storageItems));
+
+  fetch(`${API_BASE}/api/${action}`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(body)
+  }).then(r => { if(r.status === 202) console.log("Buffered"); });
+}
     function switchPostType(type, e) {
       activePostType = type;
       document.querySelectorAll('#view-post.tab').forEach(t => t.classList.remove('active'));
@@ -857,33 +864,32 @@
       } catch (err) { alert(err.message); }
     }
 
-    async function loadReader(type, id) {
-      const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
-      const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
-      const authorId = new URLSearchParams(window.location.hash.split('?')[1]).get('author') || 'unknown';
-      const seconds = type === 'NOVEL'? 120 : 180;
-      let elapsed = 0;
+async function loadReader(type, id) {
+  const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
+  const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
+  const authorId = new URLSearchParams(window.location.hash.split('?')[1]).get('author') || 'unknown';
+  const seconds = type === 'NOVEL'? 120 : 180;
+  let elapsed = 0;
 
-      const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
-      const post = posts.find(p=>p.id===id);
-      if(!post) return contentEl.innerHTML = 'Post not found';
+  const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok ? r.json() : null);
+  if(!post || post.type.toUpperCase() !== type) return contentEl.innerHTML = 'Post not found';
 
-      contentEl.innerHTML = `<h3>${post.title||''}</h3><br>${post.content||'No content'}`;
-      timerEl.style.width = '0%';
-      readTimer = setInterval(() => {
-        elapsed++;
-        timerEl.style.width = `${(elapsed/seconds)*100}%`;
-        if(elapsed >= seconds) {
-          clearInterval(readTimer);
-          fetch(`${API_BASE}/api/read-session`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
-          });
-          alert(`+${type==='NOVEL'?10:10}pts credited`);
-        }
-      }, 1000);
+  contentEl.innerHTML = `<h3>${post.title||''}</h3><br>${post.content||'No content'}`;
+  timerEl.style.width = '0%';
+  readTimer = setInterval(() => {
+    elapsed++;
+    timerEl.style.width = `${(elapsed/seconds)*100}%`;
+    if(elapsed >= seconds) {
+      clearInterval(readTimer);
+      fetch(`${API_BASE}/api/read-session`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
+      });
+      alert(`+${type==='NOVEL'?10:10}pts credited`);
     }
+  }, 1000);
+}
 
     function loadWalletData() {
       fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
