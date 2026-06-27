@@ -1,7 +1,7 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/coi-serviceworker/0.1.7/coi-serviceworker.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral</title>
@@ -732,6 +732,11 @@ async function signMedia(key, shard) {
               <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg> 
               <span id="count-comment-${post.id}">${post.comments}</span>
             </button>
+            
+    <button class="action-bubble" onclick="shareReel('${post.id}')">
+    <svg viewBox="0 0 24 24" fill="#FFF"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg> 
+    <span>Share</span>
+    </button>
           </div>
         `;
         viewport.appendChild(card);
@@ -759,7 +764,24 @@ async function signMedia(key, shard) {
         if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
       }
     }
+function shareReel(postId) {
+  const baseUrl = window.location.origin + window.location.pathname;
+  const shareUrl = `${baseUrl}#/feed?post=${postId}`;
+  const text = `Watch this on GolViral`;
 
+  if (navigator.share) {
+    navigator.share({
+      title: 'GolViral',
+      text: text,
+      url: shareUrl,
+    }).catch(() => {});
+  } else {
+    // Fallback: copy to clipboard
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('Link copied ✅');
+    });
+  }
+}
     function interactFeed(postId, action, creatorId) {
   const cacheKey = action === 'like' ? 'gv_likes' : 'gv_comments';
   let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
@@ -800,70 +822,136 @@ async function signMedia(key, shard) {
       document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
     }
 
-    async function executePublish() {
+// Global ffmpeg instance so we don't reload 5MB WASM every time
+let ffmpegInstance = null;
+let ffmpegLoading = false;
+
+async function getFFmpeg() {
+  if (ffmpegInstance) return ffmpegInstance;
+  if (ffmpegLoading) {
+    while(ffmpegLoading) await new Promise(r => setTimeout(r, 100));
+    return ffmpegInstance;
+  }
+  ffmpegLoading = true;
+  
+  const { FFmpeg } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/esm/index.js');
+  const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
+  
+  const ffmpeg = new FFmpeg();
+  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+  await ffmpeg.load({ coreURL: `${baseURL}/ffmpeg-core.js`, wasmURL: `${baseURL}/ffmpeg-core.wasm` });
+  
+  ffmpegInstance = { ffmpeg, fetchFile };
+  ffmpegLoading = false;
+  return ffmpegInstance;
+}
+
+async function executePublish() {
+  try {
+    const body = { postType: activePostType };
+
+    if (activePostType === 'reel') {
+      const fileInput = document.getElementById('post-file').files[0];
+      if(!fileInput) return alert("Select video file");
+
+      // Show silent loading overlay
+      const btn = document.querySelector('#view-post.btn');
+      const originalText = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = "Loading...";
+
       try {
-        const body = { postType: activePostType };
+        // 1. Check 30s limit before compressing
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.src = URL.createObjectURL(fileInput);
+        await new Promise(resolve => video.onloadedmetadata = resolve);
+        const duration = video.duration;
+        URL.revokeObjectURL(video.src);
 
-        if (activePostType === 'reel') {
-          const fileInput = document.getElementById('post-file').files[0];
-          if(!fileInput) return alert("Select video file");
+        if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
+        if (duration < 3) throw new Error("Rejected: Min 3s required");
 
-          const video = document.createElement('video');
-          video.preload = 'metadata';
-          video.src = URL.createObjectURL(fileInput);
-          await new Promise(resolve => video.onloadedmetadata = resolve);
-          const duration = video.duration;
-          URL.revokeObjectURL(video.src);
+        // 2. Compress to 720p or 480p, ~1.2MB target
+        const { ffmpeg, fetchFile } = await getFFmpeg();
+        await ffmpeg.writeFile('input.mp4', await fetchFile(fileInput));
 
-          if (duration > 30) return alert("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
-          if (duration < 3) return alert("Rejected: Min 3s required");
-          if (fileInput.size > 1.5 * 1024 * 1024) return alert("Rejected: Max 1.5MB. Your file is " + (fileInput.size/1024/1024).toFixed(1) + "MB. Use CapCut 720p 1Mbps");
+        // Target: 720p if >720px, else 480p. 900k video + 64k audio = ~1.1MB for 30s
+        const targetHeight = video.videoWidth > 720? '720' : '480'; 
+        const videoBitrate = '900k'; // 900k * 30s / 8 = ~3.3MB raw. x264 will crush to ~1MB
 
-          body.fileExtension = fileInput.name.split('.').pop();
-          body.contentType = fileInput.type;
+        await ffmpeg.exec([
+          '-i', 'input.mp4',
+          '-vf', `scale=-2:${targetHeight}:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2`,
+          '-vcodec', 'libx264',
+          '-b:v', videoBitrate,
+          '-maxrate', '1200k',
+          '-bufsize', '2400k',
+          '-acodec', 'aac',
+          '-b:a', '64k',
+          '-preset', 'ultrafast', // fastest, not best quality
+          '-movflags', '+faststart',
+          'output.mp4'
+        ]);
 
-          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(body)
-          }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+        const data = await ffmpeg.readFile('output.mp4');
+        const compressedFile = new File([data.buffer], fileInput.name, { type: 'video/mp4' });
 
-          await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': fileInput.type }, body: fileInput });
-          await fetch(`${API_BASE}/api/post/create`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
-          });
-          alert("Content submitted for admin approval");
-          window.location.hash = '#/feed';
-
-        } else {
-          if(!document.getElementById('post-title').value) return alert("Title required");
-          if(!document.getElementById('post-content').value) return alert("Content required");
-
-          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(body)
-          }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
-
-          const finalBody = {
-            postId: intentRes.postId,
-            objectKey: intentRes.objectKey,
-            title: document.getElementById('post-title').value,
-            content: document.getElementById('post-content').value
-          };
-          await fetch(`${API_BASE}/api/post/create`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(finalBody)
-          });
-          alert("Content submitted for admin approval");
-          window.location.hash = '#/feed';
+        if (compressedFile.size > 1.5 * 1024 * 1024) {
+          throw new Error("Still >1.5MB after compression. Your file is " + (compressedFile.size/1024/1024).toFixed(1) + "MB. Try shorter video.");
         }
-      } catch (err) { alert(err.message); }
-    }
 
+        body.fileExtension = 'mp4';
+        body.contentType = 'video/mp4';
+
+        const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(body)
+        }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+
+        await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'video/mp4' }, body: compressedFile });
+        await fetch(`${API_BASE}/api/post/create`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
+        });
+
+        alert("Content submitted ✅ ");
+        window.location.hash = '#/feed';
+
+      } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+      }
+
+    } else {
+      // Novel/Story unchanged
+      if(!document.getElementById('post-title').value) return alert("Title required");
+      if(!document.getElementById('post-content').value) return alert("Content required");
+
+      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body)
+      }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+
+      const finalBody = {
+        postId: intentRes.postId,
+        objectKey: intentRes.objectKey,
+        title: document.getElementById('post-title').value,
+        content: document.getElementById('post-content').value
+      };
+      await fetch(`${API_BASE}/api/post/create`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(finalBody)
+      });
+      alert("Content submitted for admin approval");
+      window.location.hash = '#/feed';
+    }
+  } catch (err) { alert(err.message); }
+}
 async function loadReader(type, id) {
   const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
   const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
