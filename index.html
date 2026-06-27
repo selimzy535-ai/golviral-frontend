@@ -855,7 +855,7 @@ async function executePublish() {
       if(!fileInput) return alert("Select video file");
 
       // Show silent loading overlay
-      const btn = document.querySelector('#view-post.btn');
+      const btn = document.querySelector('#view-post .btn');
       const originalText = btn.innerText;
       btn.disabled = true;
       btn.innerText = "Loading...";
