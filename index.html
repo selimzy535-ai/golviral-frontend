@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,44 +6,423 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral</title>
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#FF0050">
+  <meta name="theme-color" content="#000000">
   <style>
-    :root { --accent: #FF0050; --bg: #FFFFFF; --text: #000; --gray: #EAEAEA; --muted: #777; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
-    #app { padding-bottom: 70px; min-height: 100vh; }
-  .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg); border-top: 1px solid var(--gray); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-  .nav-item { background: none; border: none; fill: var(--text); color: var(--text); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; text-decoration: none; }
-  .nav-item.active { fill: var(--accent); color: var(--accent); }
-  .nav-item svg { width: 22px; height: 22px; margin-bottom: 2px; }
-  .view-pane { display: none; padding: 15px; max-width: 500px; margin: 0 auto; }
-  .view-pane.active { display: block; }
-  .btn { display: block; width: 100%; padding: 14px; background: var(--text); color: var(--bg); border: none; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; text-decoration: none; }
-  .btn.accent { background: var(--accent); }
-  .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--gray); outline: none; font-size: 16px; border-radius: 4px; }
-  .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
-  .reel-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: calc(100vh - 60px); width: 100%; max-width: 500px; margin: 0 auto; }
-  .reel-card { position: relative; width: 100%; height: calc(100vh - 60px); scroll-snap-align: start; background: #000; display: flex; align-items: center; justify-content: center; }
-  .reel-card video { width: 100%; height: 100%; object-fit: cover; }
-  .reel-overlay { position: absolute; bottom: 20px; left: 15px; right: 80px; color: #FFF; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
-  .reel-actions { position: absolute; right: 15px; bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-  .action-bubble { background: rgba(0,0,0,0.5); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; fill: #FFF; color: #FFF; cursor: pointer; flex-direction: column; font-size: 10px; }
-  .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-  .card { padding: 15px; border: 1px solid var(--gray); border-radius: 4px; background: var(--bg); }
-  .tabs { display: flex; border-bottom: 1px solid var(--gray); margin-bottom: 15px; }
-  .tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; font-weight: bold; cursor: pointer; }
-  .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
-  .bot-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; }
-  .bot-modal.active { display: flex; }
-  .bot-content { background:#FFF; padding:25px; border-radius:6px; width:100%; max-width:340px; text-align:center; }
-  .reader-card { min-height: 70vh; font-size: 18px; line-height: 1.8; padding: 20px; white-space: pre-wrap; }
-  .timer-bar { height: 4px; background: var(--gray); margin-bottom: 15px; width: 100%; }
-  .timer-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s linear; }
+    :root { 
+      --accent: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      --accent-solid: #e1306c;
+      --bg: #000000; 
+      --card-bg: #121212;
+      --text: #ffffff; 
+      --gray: #262626; 
+      --muted: #a8a8a8; 
+    }
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body { 
+      background-color: var(--bg); 
+      color: var(--text); 
+      overflow-x: hidden; 
+      letter-spacing: -0.2px;
+    }
+    
+    #app { 
+      padding-bottom: 65px; 
+      min-height: 100dvh; 
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Auth Screens Styling */
+    .auth-logo {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 800;
+      font-style: italic;
+      margin: 40px 0 20px 0;
+      background: var(--accent);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Fixed Navigation Bar */
+    .nav-bar { 
+      position: fixed; 
+      bottom: 0; 
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%; 
+      max-width: 500px;
+      height: 60px; 
+      background: rgba(0, 0, 0, 0.95); 
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--gray); 
+      display: flex; 
+      justify-content: space-around; 
+      align-items: center; 
+      z-index: 1000; 
+    }
+    
+    .nav-item { 
+      background: none; 
+      border: none; 
+      fill: #ffffff; 
+      color: var(--muted); 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      font-size: 10px; 
+      font-weight: 500;
+      cursor: pointer; 
+      text-decoration: none; 
+      transition: color 0.2s ease;
+    }
+    
+    .nav-item.active { 
+      color: var(--text); 
+      font-weight: 700;
+    }
+    
+    .nav-item.active svg {
+      fill: var(--text);
+      transform: scale(1.05);
+    }
+    
+    .nav-item svg { 
+      width: 24px; 
+      height: 24px; 
+      margin-bottom: 4px; 
+      transition: transform 0.2s ease;
+    }
+
+    /* View Viewports */
+    .view-pane { 
+      display: none; 
+      padding: 20px 15px; 
+      max-width: 500px; 
+      margin: 0 auto; 
+      width: 100%;
+      flex: 1;
+    }
+    
+    .view-pane.active { 
+      display: block; 
+    }
+    
+    /* Global Component Buttons */
+    .btn { 
+      display: block; 
+      width: 100%; 
+      padding: 14px; 
+      background: #0095f6; 
+      color: #ffffff; 
+      border: none; 
+      font-weight: 700; 
+      font-size: 14px;
+      border-radius: 8px; 
+      cursor: pointer; 
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+    
+    .btn:active {
+      opacity: 0.85;
+    }
+    
+    .btn.accent { 
+      background: var(--accent); 
+    }
+
+    .btn.secondary {
+      background: var(--gray);
+      color: var(--text);
+      border: 1px solid #363636;
+    }
+    
+    /* Inputs Form Layouts */
+    .input-field { 
+      width: 100%; 
+      padding: 14px; 
+      margin-bottom: 14px; 
+      background: #121212;
+      border: 1px solid var(--gray); 
+      color: var(--text);
+      outline: none; 
+      font-size: 14px; 
+      border-radius: 8px; 
+      transition: border-color 0.2s ease;
+    }
+    
+    .input-field:focus {
+      border-color: #a8a8a8;
+    }
+
+    select.input-field {
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='white'><path d='M7 10l5 5 5-5z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    
+    .badge { 
+      background: var(--accent-solid); 
+      color: white; 
+      font-size: 11px; 
+      font-weight: 600;
+      padding: 3px 8px; 
+      border-radius: 4px; 
+      display: inline-block; 
+    }
+    
+    /* Immersive Reel Components */
+    .reel-container { 
+      scroll-snap-type: y mandatory; 
+      overflow-y: scroll; 
+      height: calc(100dvh - 60px); 
+      width: 100%; 
+      max-width: 500px; 
+      margin: 0 auto; 
+      background: #000;
+      scrollbar-width: none;
+    }
+    
+    .reel-container::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .reel-card { 
+      position: relative; 
+      width: 100%; 
+      height: calc(100dvh - 60px); 
+      scroll-snap-align: start; 
+      background: #000; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+    }
+    
+    .reel-card video { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+    }
+    
+    .reel-overlay { 
+      position: absolute; 
+      bottom: 0; 
+      left: 0; 
+      right: 0; 
+      padding: 40px 80px 25px 16px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      color: #FFF; 
+      pointer-events: none;
+    }
+
+    .reel-overlay h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .reel-overlay p {
+      font-size: 14px;
+      font-weight: 400;
+      opacity: 0.9;
+      line-height: 1.3;
+    }
+    
+    .reel-actions { 
+      position: absolute; 
+      right: 12px; 
+      bottom: 30px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 18px; 
+      z-index: 10;
+    }
+    
+    .action-bubble { 
+      background: transparent;
+      width: 45px; 
+      height: 45px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      border: none; 
+      fill: #FFF; 
+      color: #FFF; 
+      cursor: pointer; 
+      flex-direction: column; 
+      font-size: 12px; 
+      font-weight: 500;
+    }
+
+    .action-bubble svg { 
+      width: 28px; 
+      height: 28px; 
+      margin-bottom: 4px;
+      filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.4));
+      transition: fill 0.2s ease, transform 0.2s ease;
+    }
+
+    .action-bubble.voted-like svg {
+      fill: #e1306c !important;
+    }
+
+    .action-bubble.voted-comment svg {
+      fill: #0095f6 !important;
+    }
+
+    .action-bubble:disabled {
+      cursor: default;
+    }
+    
+    /* Layout Cards & Modules */
+    .card { 
+      padding: 18px; 
+      border: 1px solid var(--gray); 
+      border-radius: 12px; 
+      background: var(--card-bg); 
+      margin-bottom: 16px;
+    }
+
+    .wallet-grid { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 12px; 
+      margin-bottom: 16px; 
+    }
+
+    .wallet-grid .card {
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .wallet-grid h5 {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .wallet-grid h2 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    /* Tab Architecture */
+    .tabs { 
+      display: flex; 
+      border-bottom: 1px solid var(--gray); 
+      margin-bottom: 20px; 
+    }
+    
+    .tab { 
+      flex: 1; 
+      padding: 14px; 
+      text-align: center; 
+      background: none; 
+      border: none; 
+      font-size: 13px;
+      font-weight: 600; 
+      color: var(--muted);
+      cursor: pointer; 
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active { 
+      border-bottom: 2px solid #ffffff; 
+      color: var(--text); 
+    }
+    
+    /* Modals & Popups */
+    .bot-modal { 
+      display: none; 
+      position: fixed; 
+      top:0; 
+      left:0; 
+      width:100%; 
+      height:100%; 
+      background: rgba(0,0,0,0.85); 
+      z-index:9999; 
+      justify-content:center; 
+      align-items:center; 
+      padding:20px; 
+      backdrop-filter: blur(8px);
+    }
+    
+    .bot-modal.active { 
+      display: flex; 
+    }
+    
+    .bot-content { 
+      background: var(--card-bg); 
+      padding: 25px; 
+      border: 1px solid var(--gray);
+      border-radius: 14px; 
+      width: 100%; 
+      max-width: 340px; 
+      text-align: center; 
+    }
+
+    .bot-content h4 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    
+    /* Text Readers */
+    .reader-card { 
+      min-height: 60vh; 
+      font-size: 16px; 
+      line-height: 1.6; 
+      padding: 24px; 
+      white-space: pre-wrap; 
+      background: #000000;
+      border-color: var(--gray);
+    }
+    
+    .timer-bar { 
+      height: 3px; 
+      background: var(--gray); 
+      margin-bottom: 20px; 
+      width: 100%; 
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .timer-fill { 
+      height: 100%; 
+      background: #0095f6; 
+      width: 0%; 
+      transition: width 1s linear; 
+    }
+
+    /* Headings Custom Elements */
+    h3 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
   </style>
 </head>
 <body>
   <div id="app">
     <div id="view-auth" class="view-pane">
+      <div class="auth-logo">GolViral</div>
       <div class="tabs">
         <button class="tab active" onclick="switchAuthTab('login', event)">LOGIN</button>
         <button class="tab" onclick="switchAuthTab('signup', event)">SIGNUP</button>
@@ -61,23 +441,23 @@
     </div>
 
     <div id="view-post" class="view-pane">
-      <h3 style="margin-bottom:15px;">Publish Engine</h3>
+      <h3 style="margin-bottom:20px;">Publish Engine</h3>
       <div class="tabs">
         <button class="tab active" onclick="switchPostType('reel', event)">Reel</button>
         <button class="tab" onclick="switchPostType('novel', event)">Novel</button>
         <button class="tab" onclick="switchPostType('story', event)">Story</button>
       </div>
-      <div class="card" style="margin-bottom:15px; border-color:var(--accent);">
-        <p style="font-size:12px; color:var(--accent);" id="post-warning">Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.</p>
+      <div class="card" style="margin-bottom:20px; border-color: var(--accent-solid); background: rgba(225, 48, 108, 0.05);">
+        <p style="font-size:13px; color: #ff5388; font-weight: 500;" id="post-warning">Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.</p>
       </div>
       <div id="file-selector-group">
         <input type="file" id="post-file" class="input-field" accept="video/mp4">
       </div>
       <div id="text-fields-group" style="display:none;">
         <input type="text" id="post-title" class="input-field" placeholder="Title">
-        <textarea id="post-content" class="input-field" placeholder="Body Content..." style="height:150px;"></textarea>
+        <textarea id="post-content" class="input-field" placeholder="Body Content..." style="height:180px; resize: none;"></textarea>
       </div>
-      <button class="btn" onclick="executePublish()">Publish Content</button>
+      <button class="btn accent" onclick="executePublish()">Publish Content</button>
     </div>
 
     <div id="view-novel" class="view-pane">
@@ -91,34 +471,34 @@
     </div>
 
     <div id="view-wallet" class="view-pane">
-      <h3 style="margin-bottom:15px;">Balance Ledger</h3>
+      <h3 style="margin-bottom:20px;">Balance Ledger</h3>
       <div class="wallet-grid">
         <div class="card"><h5>Free Credits</h5><h2 id="w-free">0</h2></div>
         <div class="card"><h5>Cash Balance</h5><h2 id="w-cash">₦0.00</h2></div>
         <div class="card"><h5>Today's Vault</h5><h2 id="w-today">0/10000</h2></div>
-        <div class="card"><h5>Monetized</h5><h2 id="w-flag">False</h2></div>
+        <div class="card"><h5>Monetized</h5><h2 id="w-flag" style="color: #ff3b30;">False</h2></div>
       </div>
-      <div class="card" style="margin-bottom:15px;">
-        <p style="font-size:12px; color:var(--muted);" id="w-requirements">Monetization: 7 Days + 5 Referrals</p>
+      <div class="card" style="margin-bottom:20px; background: rgba(255,255,255,0.03);">
+        <p style="font-size:13px; color:var(--muted); text-align: center; font-weight: 500;" id="w-requirements">Monetization: 7 Days + 5 Referrals</p>
       </div>
-      <a href="#/deposit" class="btn" style="margin-bottom:10px;">Deposit Funds</a>
-      <button class="btn" style="background:#000;" onclick="window.location.hash='#/withdraw'">Request Payout</button>
+      <a href="#/deposit" class="btn" style="margin-bottom:12px;">Deposit Funds</a>
+      <button class="btn secondary" onclick="window.location.hash='#/withdraw'">Request Payout</button>
     </div>
 
     <div id="view-withdraw" class="view-pane">
-      <h3>Request Cash Payout</h3><br>
+      <h3 style="margin-bottom:20px;">Request Cash Payout</h3>
       <input type="number" id="wd-amount" class="input-field" placeholder="Points Min 50,000">
       <input type="text" id="wd-target" class="input-field" placeholder="Bank Name / USDT">
       <input type="text" id="wd-details" class="input-field" placeholder="Account Number / Wallet">
-      <button class="btn" onclick="submitWithdrawalInit()">Send OTP</button>
-      <div id="wd-otp-group" style="display:none; margin-top:20px; padding-top:20px; border-top:1px dashed var(--gray);">
+      <button class="btn accent" onclick="submitWithdrawalInit()">Send OTP</button>
+      <div id="wd-otp-group" style="display:none; margin-top:24px; padding-top:24px; border-top:1px dashed var(--gray);">
         <input type="text" id="wd-otp" class="input-field" placeholder="Enter OTP">
-        <button class="btn accent" onclick="confirmWithdrawal()">Confirm Payout</button>
+        <button class="btn" onclick="confirmWithdrawal()">Confirm Payout</button>
       </div>
     </div>
 
     <div id="view-deposit" class="view-pane">
-      <h3>Deposit Credits</h3><br>
+      <h3 style="margin-bottom:20px;">Deposit Credits</h3>
       <select id="dep-tier" class="input-field">
         <option value="500">₦500 -> 5,000 pts</option>
         <option value="1500">₦1,500 -> 15,000 pts</option>
@@ -126,38 +506,52 @@
         <option value="5000">₦5,000 -> 50,000 pts</option>
         <option value="10000">₦10,000 -> 100,000 pts</option>
       </select>
-      <button class="btn" onclick="triggerBotChallenge(executeDepositVerification)">Pay via Selar</button>
+      <button class="btn accent" onclick="triggerBotChallenge(executeDepositVerification)">Pay via Selar</button>
     </div>
 
     <div id="view-profile" class="view-pane">
-      <div class="card" style="text-align:center; padding:30px 15px;">
-        <h2 id="p-username">@username</h2><br>
-        <div style="display:flex; justify-content:space-around; margin-bottom:20px;">
-          <div><h4 id="p-views">0</h4><span style="font-size:12px; color:var(--muted);">Views</span></div>
-          <div><h4 id="p-likes">0</h4><span style="font-size:12px; color:var(--muted);">Likes</span></div>
-          <div><h4 id="p-posts">0</h4><span style="font-size:12px; color:var(--muted);">Posts</span></div>
+      <div style="text-align:center; padding: 20px 0 10px 0;">
+        <div style="width: 86px; height: 86px; background: var(--accent); border-radius: 50%; margin: 0 auto 14px auto; padding: 3px;">
+          <div style="width: 100%; height: 100%; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;">👤</div>
         </div>
-        <div style="display:flex; justify-content:space-around; font-size:14px; margin-bottom:20px;">
-          <div>Followers: <b id="p-followers">0</b></div>
-          <div>Following: <b id="p-following">0</b></div>
+        <h2 id="p-username" style="font-size: 22px; font-weight: 600; margin-bottom: 24px;">@username</h2>
+        
+        <div style="display:flex; justify-content:space-around; margin-bottom:24px; border-top: 1px solid var(--gray); border-bottom: 1px solid var(--gray); padding: 12px 0;">
+          <div><h4 id="p-views" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Views</span></div>
+          <div><h4 id="p-likes" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Likes</span></div>
+          <div><h4 id="p-posts" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Posts</span></div>
         </div>
-        <input type="text" id="p-link" class="input-field" readonly onclick="this.select()">
-        <p style="font-size:12px; color:var(--muted);">Tap to copy referral link</p>
+        
+        <div style="display:flex; justify-content:space-around; font-size:14px; margin-bottom:24px; color: var(--muted);">
+          <div>Followers: <b id="p-followers" style="color: var(--text)">0</b></div>
+          <div>Following: <b id="p-following" style="color: var(--text)">0</b></div>
+        </div>
+        
+        <input type="text" id="p-link" class="input-field" readonly onclick="this.select()" style="text-align: center; background: var(--card-bg); cursor: pointer;">
+        <p style="font-size:12px; color:var(--muted); margin-top: -6px;">Tap to copy referral link</p>
       </div>
     </div>
   </div>
 
   <nav class="nav-bar">
-    <a href="#/feed" class="nav-item" id="nav-feed"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed</a>
-    <a href="#/post" class="nav-item" id="nav-post"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create</a>
-    <a href="#/wallet" class="nav-item" id="nav-wallet"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2.9 2 2v1h-9c-1.11 0-2.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet</a>
-    <a href="#/profile" class="nav-item" id="nav-profile"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile</a>
+    <a href="#/feed" class="nav-item" id="nav-feed">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed
+    </a>
+    <a href="#/post" class="nav-item" id="nav-post">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create
+    </a>
+    <a href="#/wallet" class="nav-item" id="nav-wallet">
+      <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2.9 2 2v1h-9c-1.11 0-2.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
+    </a>
+    <a href="#/profile" class="nav-item" id="nav-profile">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile
+    </a>
   </nav>
 
   <div id="bot-overlay-modal" class="bot-modal">
     <div class="bot-content">
-      <h4 style="margin-bottom:10px;">Security Gate</h4>
-      <p style="font-size:14px; color:var(--muted); margin-bottom:15px;" id="bot-question">Loading...</p>
+      <h4 style="margin-bottom:12px;">Security Gate</h4>
+      <p style="font-size:14px; color:var(--muted); margin-bottom:18px;" id="bot-question">Loading...</p>
       <input type="text" id="bot-answer" class="input-field" placeholder="Your Answer">
       <button class="btn accent" onclick="submitBotVerification()">Verify</button>
     </div>
@@ -302,17 +696,24 @@
       viewport.innerHTML = "";
       if(posts.length === 0) return viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
 
+      // Fetch persistent visual interaction lists from LocalStorage
+      const userLikes = JSON.parse(localStorage.getItem('gv_likes') || '[]');
+      const userComments = JSON.parse(localStorage.getItem('gv_comments') || '[]');
+
       for(const post of posts){
         const card = document.createElement('div');
         card.className = 'reel-card';
 
         let mediaHtml = '';
-        if(post.type==='reel' && post.mediaUrl){
+        if(post.type=='reel' && post.mediaUrl){
           const url = await signMedia(post.mediaUrl, post.b2Shard);
           mediaHtml = url? `<video src="${url}" loop muted playsinline></video>` : `<p style="color:red">Video unavailable</p>`;
         } else {
           mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
         }
+
+        const hasLiked = userLikes.includes(post.id);
+        const hasCommented = userComments.includes(post.id);
 
         card.innerHTML = `
           ${mediaHtml}
@@ -321,12 +722,13 @@
             <p>${post.title || post.type}</p>
           </div>
           <div class="reel-actions">
-            <button class="action-bubble" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
+            <button class="action-bubble ${hasLiked ? 'voted-like' : ''}" ${hasLiked ? 'disabled' : ''} id="btn-like-${post.id}" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
               <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              <span>${post.likes}</span>
+              <span id="count-like-${post.id}">${post.likes}</span>
             </button>
-            <button class="action-bubble" onclick="interactFeed('${post.id}', 'comment', '${post.userId}')">
-              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg> <span>${post.comments}</span>
+            <button class="action-bubble ${hasCommented ? 'voted-comment' : ''}" ${hasCommented ? 'disabled' : ''} id="btn-comment-${post.id}" onclick="interactFeed('${post.id}', 'comment', '${post.userId}')">
+              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg> 
+              <span id="count-comment-${post.id}">${post.comments}</span>
             </button>
           </div>
         `;
@@ -357,6 +759,24 @@
     }
 
     function interactFeed(postId, action, creatorId) {
+      // Frontend strict gate check
+      const cacheKey = action === 'like' ? 'gv_likes' : 'gv_comments';
+      let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+      if(storageItems.includes(postId)) return;
+
+      // Optimistically update counts and UI buttons immediately
+      const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
+      const targetedCount = document.getElementById(`count-${action}-${postId}`);
+      if(targetedBtn && targetedCount) {
+        targetedBtn.disabled = true;
+        targetedBtn.classList.add(action === 'like' ? 'voted-like' : 'voted-comment');
+        targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
+      }
+
+      // Add to tracked validation items
+      storageItems.push(postId);
+      localStorage.setItem(cacheKey, JSON.stringify(storageItems));
+
       fetch(`${API_BASE}/api/${action}`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -369,7 +789,7 @@
       document.querySelectorAll('#view-post.tab').forEach(t => t.classList.remove('active'));
       e.target.classList.add('active');
       document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
-      document.getElementById('text-fields-group').style.display = type!== 'reel'? 'block' : 'none';
+      document.getElementById('text-fields-group').style.display = type!= 'reel'? 'block' : 'none';
       document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
     }
 
