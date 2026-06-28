@@ -822,7 +822,7 @@ function shareReel(postId) {
       document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
     }
 
-// Global ffmpeg instance so we don't reload 5MB WASM every time
+
 async function executePublish() {
   try {
     const body = { postType: activePostType };
@@ -851,32 +851,37 @@ async function executePublish() {
       body.contentType = 'video/mp4';
 
       // 3. Upload raw file directly to B2 via presigned URL
-      const btn = document.querySelector('#view-post.btn');
-      btn.disabled = true;
-      btn.innerText = "Uploading...";
+      const btn = document.querySelector('#view-post .btn.accent'); // FIXED
+btn.disabled = true;
+btn.innerText = "Uploading...";
 
-      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(body)
-      }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+try {
+  const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(body)
+  }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
 
-      await fetch(intentRes.uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'video/mp4' },
-        body: fileInput // RAW upload. No compression.
-      });
+  await fetch(intentRes.uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'video/mp4' },
+    body: fileInput // RAW upload. No compression.
+  });
 
-      await fetch(`${API_BASE}/api/post/create`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
-      });
+  await fetch(`${API_BASE}/api/post/create`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
+  });
 
-      alert("content submitted for system reviewing  ✅ ");
-      window.location.hash = '#/feed';
-      btn.disabled = false;
-      btn.innerText = "Publish Content";
+  alert("content submitted for system reviewing  ✅ ");
+  window.location.hash = '#/feed';
+} catch (err) {
+  alert(err.message);
+} finally { // <-- Always runs even on error
+  btn.disabled = false;
+  btn.innerText = "Publish Content";
+}
 
     } else {
       // Novel/Story block unchanged
