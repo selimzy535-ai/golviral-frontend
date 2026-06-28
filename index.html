@@ -823,29 +823,6 @@ function shareReel(postId) {
     }
 
 // Global ffmpeg instance so we don't reload 5MB WASM every time
-let ffmpegInstance = null;
-let ffmpegLoading = false;
-
-async function getFFmpeg() {
-  if (ffmpegInstance) return ffmpegInstance;
-  if (ffmpegLoading) {
-    while(ffmpegLoading) await new Promise(r => setTimeout(r, 100));
-    return ffmpegInstance;
-  }
-  ffmpegLoading = true;
-  
-  const { FFmpeg } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/esm/index.js');
-  const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
-  
-  const ffmpeg = new FFmpeg();
-  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-  await ffmpeg.load({ coreURL: `${baseURL}/ffmpeg-core.js`, wasmURL: `${baseURL}/ffmpeg-core.wasm` });
-  
-  ffmpegInstance = { ffmpeg, fetchFile };
-  ffmpegLoading = false;
-  return ffmpegInstance;
-}
-
 async function executePublish() {
   try {
     const body = { postType: activePostType };
@@ -854,79 +831,55 @@ async function executePublish() {
       const fileInput = document.getElementById('post-file').files[0];
       if(!fileInput) return alert("Select video file");
 
-      // Show silent loading overlay
-      const btn = document.querySelector('#view-post .btn');
-      const originalText = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = "Loading...";
-
-      try {
-        // 1. Check 30s limit before compressing
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.src = URL.createObjectURL(fileInput);
-        await new Promise(resolve => video.onloadedmetadata = resolve);
-        const duration = video.duration;
-        URL.revokeObjectURL(video.src);
-
-        if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
-        if (duration < 3) throw new Error("Rejected: Min 3s required");
-
-        // 2. Compress to 720p or 480p, ~1.2MB target
-        const { ffmpeg, fetchFile } = await getFFmpeg();
-        await ffmpeg.writeFile('input.mp4', await fetchFile(fileInput));
-
-        // Target: 720p if >720px, else 480p. 900k video + 64k audio = ~1.1MB for 30s
-        const targetHeight = video.videoWidth > 720? '720' : '480'; 
-        const videoBitrate = '900k'; // 900k * 30s / 8 = ~3.3MB raw. x264 will crush to ~1MB
-
-        await ffmpeg.exec([
-          '-i', 'input.mp4',
-          '-vf', `scale=-2:${targetHeight}:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2`,
-          '-vcodec', 'libx264',
-          '-b:v', videoBitrate,
-          '-maxrate', '1200k',
-          '-bufsize', '2400k',
-          '-acodec', 'aac',
-          '-b:a', '64k',
-          '-preset', 'ultrafast', // fastest, not best quality
-          '-movflags', '+faststart',
-          'output.mp4'
-        ]);
-
-        const data = await ffmpeg.readFile('output.mp4');
-        const compressedFile = new File([data.buffer], fileInput.name, { type: 'video/mp4' });
-
-        if (compressedFile.size > 1.5 * 1024 * 1024) {
-          throw new Error("Still >1.5MB after compression. Your file is " + (compressedFile.size/1024/1024).toFixed(1) + "MB. Try shorter video.");
-        }
-
-        body.fileExtension = 'mp4';
-        body.contentType = 'video/mp4';
-
-        const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify(body)
-        }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
-
-        await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'video/mp4' }, body: compressedFile });
-        await fetch(`${API_BASE}/api/post/create`, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
-        });
-
-        alert("Content submitted ✅ ");
-        window.location.hash = '#/feed';
-
-      } finally {
-        btn.disabled = false;
-        btn.innerText = originalText;
+      // 1. Hard check: 1.5MB limit. No ffmpeg needed.
+      if(fileInput.size > 1.5 * 1024 * 1024) {
+        return alert("Rejected: Max 1.5MB. Your file is " + (fileInput.size/1024/1024).toFixed(1) + "MB");
       }
 
+      // 2. Soft check: 30s limit using video element
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.src = URL.createObjectURL(fileInput);
+      await new Promise(resolve => video.onloadedmetadata = resolve);
+      const duration = video.duration;
+      URL.revokeObjectURL(video.src);
+
+      if (duration > 30) return alert("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
+      if (duration < 3) return alert("Rejected: Min 3s required");
+
+      body.fileExtension = 'mp4';
+      body.contentType = 'video/mp4';
+
+      // 3. Upload raw file directly to B2 via presigned URL
+      const btn = document.querySelector('#view-post.btn');
+      btn.disabled = true;
+      btn.innerText = "Uploading...";
+
+      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body)
+      }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+
+      await fetch(intentRes.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'video/mp4' },
+        body: fileInput // RAW upload. No compression.
+      });
+
+      await fetch(`${API_BASE}/api/post/create`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
+      });
+
+      alert("content submitted for system reviewing  ✅ ");
+      window.location.hash = '#/feed';
+      btn.disabled = false;
+      btn.innerText = "Publish Content";
+
     } else {
-      // Novel/Story unchanged
+      // Novel/Story block unchanged
       if(!document.getElementById('post-title').value) return alert("Title required");
       if(!document.getElementById('post-content').value) return alert("Content required");
 
@@ -950,7 +903,11 @@ async function executePublish() {
       alert("Content submitted for admin approval");
       window.location.hash = '#/feed';
     }
-  } catch (err) { alert(err.message); }
+  } catch (err) {
+    alert(err.message);
+    document.querySelector('#view-post.btn').disabled = false;
+    document.querySelector('#view-post.btn').innerText = "Publish Content";
+  }
 }
 async function loadReader(type, id) {
   const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
