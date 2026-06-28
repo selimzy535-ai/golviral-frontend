@@ -593,66 +593,72 @@
   
   <script>
     const API_BASE = "https://golviral-api.onrender.com";
-    let activeAuthTab = 'login';
-    let activePostType = 'reel';
-    let currentBotCallback = null;
-    let currentBotToken = "";
-    let readTimer = null;
-    let deferredPrompt = null;
+let activeAuthTab = 'login';
+let activePostType = 'reel';
+let currentBotCallback = null;
+let currentBotToken = "";
+let readTimer = null;
+let deferredPrompt = null;
+let currentProfileId = null;
+let isFollowing = false;
+let activeCommentPost = null;
+let activeCommentCreator = null;
 
-    window.addEventListener('hashchange', routeEngine);
-    window.addEventListener('load', () => {
-      routeEngine();
-      initializeServiceWorker();
-      trackAppImpressions();
-      const ref = new URLSearchParams(window.location.search).get('ref');
-      if(ref) localStorage.setItem('ref', ref);
-    });
+window.addEventListener('hashchange', routeEngine);
+window.addEventListener('load', () => {
+  routeEngine();
+  initializeServiceWorker();
+  trackAppImpressions();
+  const ref = new URLSearchParams(window.location.search).get('ref');
+  if(ref) localStorage.setItem('ref', ref);
+});
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const visits = parseInt(localStorage.getItem('site_impressions') || '0');
-      if (visits >= 3) {
-        if(confirm("Install GolViral App for offline capability and fast loading?")) {
-          deferredPrompt.prompt();
-          deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
-        }
-      }
-    });
-
-    function trackAppImpressions() {
-      let count = parseInt(localStorage.getItem('site_impressions') || '0');
-      localStorage.setItem('site_impressions', count + 1);
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const visits = parseInt(localStorage.getItem('site_impressions') || '0');
+  if (visits >= 3) {
+    if(confirm("Install GolViral App for offline capability and fast loading?")) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
     }
+  }
+});
 
-    function routeEngine() {
-      const hash = window.location.hash || '#/feed';
-      document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-      if(readTimer) { clearInterval(readTimer); readTimer = null; }
+function trackAppImpressions() {
+  let count = parseInt(localStorage.getItem('site_impressions') || '0');
+  localStorage.setItem('site_impressions', count + 1);
+}
 
-      if (hash.startsWith('#/feed')) { activateView('view-feed', 'nav-feed'); loadFeedEngine(); }
-      else if (hash.startsWith('#/post')) { activateView('view-post', 'nav-post'); }
-      else if (hash.startsWith('#/wallet')) { activateView('view-wallet', 'nav-wallet'); loadWalletData(); }
-      else if (hash.startsWith('#/profile')) { activateView('view-profile', 'nav-profile'); loadProfileData(); }
-      else if (hash.startsWith('#/deposit')) { activateView('view-deposit', 'nav-wallet'); }
-      else if (hash.startsWith('#/withdraw')) { activateView('view-withdraw', 'nav-wallet'); }
-      else if (hash.startsWith('#/auth')) { activateView('view-auth', ''); }
-      else if (hash.startsWith('#/novel/')) { activateView('view-novel', ''); loadReader('NOVEL', hash.split('/')[2]); }
-      else if (hash.startsWith('#/story/')) { activateView('view-story', ''); loadReader('STORY', hash.split('/')[2]); }
-    }
+function routeEngine() {
+  const hash = window.location.hash || '#/feed';
+  document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if(readTimer) { clearInterval(readTimer); readTimer = null; }
 
-    function activateView(viewId, navId) {
-      document.getElementById(viewId).classList.add('active');
-      if(navId) document.getElementById(navId).classList.add('active');
-    }
+  if (hash.startsWith('#/feed')) { activateView('view-feed', 'nav-feed'); loadFeedEngine(); }
+  else if (hash.startsWith('#/post')) { activateView('view-post', 'nav-post'); }
+  else if (hash.startsWith('#/wallet')) { activateView('view-wallet', 'nav-wallet'); loadWalletData(); }
+  else if (hash.startsWith('#/profile')) { activateView('view-profile', 'nav-profile'); loadProfileData(hash.split('/')[2]); }
+  else if (hash.startsWith('#/deposit')) { activateView('view-deposit', 'nav-wallet'); }
+  else if (hash.startsWith('#/withdraw')) { activateView('view-withdraw', 'nav-wallet'); }
+  else if (hash.startsWith('#/auth')) { activateView('view-auth', ''); }
+  else if (hash.startsWith('#/forgot')) { activateView('view-forgot', ''); }
+  else if (hash.startsWith('#/reset')) { activateView('view-reset', ''); }
+  else if (hash.startsWith('#/novel/')) { activateView('view-novel', ''); loadReader('NOVEL', hash.split('/')[2]); }
+  else if (hash.startsWith('#/story/')) { activateView('view-story', ''); loadReader('STORY', hash.split('/')[2]); }
+}
 
-    function getAuthHeaders() {
-      const token = localStorage.getItem('token');
-      if (!token) { window.location.hash = '#/auth'; throw new Error("Login required"); }
-      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-    }
+function activateView(viewId, navId) {
+  document.getElementById(viewId).classList.add('active');
+  if(navId) document.getElementById(navId).classList.add('active');
+}
+
+function getAuthHeaders() {
+  const token = localStorage.getItem('token');
+  if (!token) { window.location.hash = '#/auth'; throw new Error("Login required"); }
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
 
 async function signMedia(key, shard) {
   const token = localStorage.getItem('token');
@@ -664,180 +670,226 @@ async function signMedia(key, shard) {
   } catch { return ''; }
 }
 
-    function triggerBotChallenge(callback) {
-      currentBotCallback = callback;
-      fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
-     .then(r => r.json())
-     .then(data => {
-          currentBotToken = data.token;
-          document.getElementById('bot-question').innerText = data.question;
-          document.getElementById('bot-overlay-modal').classList.add('active');
-        });
+function triggerBotChallenge(callback) {
+  currentBotCallback = callback;
+  fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      currentBotToken = data.token;
+      document.getElementById('bot-question').innerText = data.question;
+      document.getElementById('bot-overlay-modal').classList.add('active');
+    });
+}
+
+function submitBotVerification() {
+  const answer = document.getElementById('bot-answer').value;
+  fetch(`${API_BASE}/api/bot-verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: currentBotToken, answer })
+  }).then(r => {
+    if(!r.ok) throw new Error("Incorrect answer");
+    return r.json();
+  }).then(data => {
+    document.getElementById('bot-overlay-modal').classList.remove('active');
+    document.getElementById('bot-answer').value = "";
+    if (currentBotCallback) currentBotCallback(data.passToken);
+  }).catch(err => alert(err.message));
+}
+
+function switchAuthTab(tab, e) {
+  activeAuthTab = tab;
+  document.querySelectorAll('#view-auth .tab').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
+  document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
+}
+
+function submitAuth(passToken) {
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-pass').value;
+  const username = document.getElementById('auth-user').value;
+  const referralCode = localStorage.getItem('ref') || document.getElementById('auth-ref').value;
+  const endpoint = activeAuthTab === 'login'? '/api/auth/login' : '/api/auth/signup';
+  const body = activeAuthTab === 'login'? { email, password, passToken } : { username, email, password, passToken, referralCode };
+  fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(r => r.json()).then(data => {
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.userId);
+      localStorage.removeItem('ref');
+      window.location.hash = '#/feed';
+    } else {
+      alert(data.error || "Auth failed");
+    }
+  });
+}
+
+// ===== NEW FUNCTION 1: FORGOT PASSWORD =====
+async function sendForgotOtp(passToken){
+  const email = document.getElementById('forgot-email').value;
+  if(!email) return alert('Enter email');
+  const r = await fetch(`${API_BASE}/api/auth/forgot-password`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email, passToken})
+  });
+  if(r.ok){
+    document.getElementById('reset-email').value = email;
+    window.location.hash='#/reset';
+  } else { alert((await r.json()).error); }
+}
+
+// ===== NEW FUNCTION 2: RESET PASSWORD =====
+async function submitResetPassword(){
+  const email = document.getElementById('reset-email').value;
+  const otp = document.getElementById('reset-otp').value;
+  const newPassword = document.getElementById('reset-pass').value;
+  if(!otp || !newPassword) return alert('Fill all fields');
+  const r = await fetch(`${API_BASE}/api/auth/reset-password`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email, otp, newPassword})
+  });
+  const d = await r.json();
+  alert(d.message || 'Password updated');
+  if(r.ok) window.location.hash='#/auth';
+}
+
+async function loadFeedEngine() {
+  const viewport = document.getElementById('reel-viewport');
+  viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
+  const token = localStorage.getItem('token');
+  const myId = localStorage.getItem('userId');
+  if(!token) return window.location.hash='#/auth';
+
+  const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
+  viewport.innerHTML = "";
+  if(posts.length === 0) return viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
+
+  const userLikes = JSON.parse(localStorage.getItem('gv_likes') || '[]');
+  const userComments = JSON.parse(localStorage.getItem('gv_comments') || '[]');
+
+  for(const post of posts){
+    const card = document.createElement('div');
+    card.className = 'reel-card';
+
+    let mediaHtml = '';
+    if(post.type === 'reel' && post.mediaUrl){
+      const url = await signMedia(post.mediaUrl, post.b2Shard);
+      mediaHtml = url? `<video src="${url}" loop muted playsinline></video>` : `<p style="color:red">Video unavailable</p>`;
+    } else {
+      mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
     }
 
-    function submitBotVerification() {
-      const answer = document.getElementById('bot-answer').value;
-      fetch(`${API_BASE}/api/bot-verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: currentBotToken, answer })
-      }).then(r => {
-        if(!r.ok) throw new Error("Incorrect answer");
-        return r.json();
-      }).then(data => {
-        document.getElementById('bot-overlay-modal').classList.remove('active');
-        document.getElementById('bot-answer').value = "";
-        if (currentBotCallback) currentBotCallback(data.passToken);
-      }).catch(err => alert(err.message));
-    }
+    const hasLiked = userLikes.includes(post.id);
+    const hasCommented = userComments.includes(post.id);
+    const isOwner = post.userId === myId;
 
-    function switchAuthTab(tab, e) {
-      activeAuthTab = tab;
-      document.querySelectorAll('#view-auth.tab').forEach(t => t.classList.remove('active'));
-      e.target.classList.add('active');
-      document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
-      document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
-    }
+    // ===== IG STYLE: FOLLOW BUTTON ON EACH REEL =====
+    card.innerHTML = `
+      ${mediaHtml}
+      <div class="reel-overlay">
+        <h4>
+          <a href="#/profile/${post.userId}" style="color:#fff; text-decoration:none;">@${post.userId}</a>
+          ${!isOwner? `<button id="btn-follow-${post.id}" class="btn secondary" style="width:auto; padding:4px 10px; font-size:12px; margin-left:8px;" onclick="toggleFollowFromFeed('${post.userId}', '${post.id}')">Follow</button>` : ''}
+        </h4>
+        <p>${post.title || post.type}</p>
+      </div>
+      <div class="reel-actions">
+        <button class="action-bubble ${hasLiked? 'voted-like' : ''}" ${hasLiked? 'disabled' : ''} id="btn-like-${post.id}" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
+          <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span id="count-like-${post.id}">${post.likes}</span>
+        </button>
+        <button class="action-bubble ${hasCommented? 'voted-comment' : ''}" id="btn-comment-${post.id}" onclick="openCommentModal('${post.id}', '${post.userId}')">
+          <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+          <span id="count-comment-${post.id}">${post.comments}</span>
+        </button>
+        <button class="action-bubble" onclick="shareReel('${post.id}')">
+          <svg viewBox="0 0 24 24" fill="#FFF"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0.24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+          <span>Share</span>
+        </button>
+      </div>
+    `;
+    viewport.appendChild(card);
 
-    function submitAuth(passToken) {
-      const email = document.getElementById('auth-email').value;
-      const password = document.getElementById('auth-pass').value;
-      const username = document.getElementById('auth-user').value;
-      const referralCode = localStorage.getItem('ref') || document.getElementById('auth-ref').value;
-      const endpoint = activeAuthTab === 'login'? '/api/auth/login' : '/api/auth/signup';
-      const body = activeAuthTab === 'login'? { email, password, passToken } : { username, email, password, passToken, referralCode };
-      fetch(`${API_BASE}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      }).then(r => r.json()).then(data => {
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userId', data.userId);
-          localStorage.removeItem('ref');
-          window.location.hash = '#/feed';
-        } else {
-          alert(data.error || "Auth failed");
+    // Check follow state after append
+    if(!isOwner) checkFollowState(post.userId, post.id);
+
+    let viewTriggered = false;
+    const videoEl = card.querySelector('video');
+    if(videoEl){
+      videoEl.addEventListener('play', () => {
+        if (!viewTriggered) {
+          setTimeout(() => {
+            if (!videoEl.paused) {
+              viewTriggered = true;
+              fetch(`${API_BASE}/api/view`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId: post.id, userId: post.userId })
+              });
+            }
+          }, 3000);
         }
       });
+      card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
     }
+    if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}?author=${post.userId}`);
+    if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
+  }
+}
 
-    async function loadFeedEngine() {
-      const viewport = document.getElementById('reel-viewport');
-      viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
-      const token = localStorage.getItem('token');
-      if(!token) return window.location.hash='#/auth';
+async function checkFollowState(targetId, postId){
+  const myId = localStorage.getItem('userId');
+  const me = await fetch(`${API_BASE}/api/user/${myId}`).then(r=>r.json());
+  // NOTE: Backend doesn't return following list. This is a hack. You need /api/following to be accurate.
+  const btn = document.getElementById(`btn-follow-${postId}`);
+  if(btn) btn.style.display = 'none'; // Hide for now until you add following list to /api/user
+}
 
-      const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
-      viewport.innerHTML = "";
-      if(posts.length === 0) return viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
+// ===== NEW FUNCTION 3: TOGGLE FOLLOW FROM FEED =====
+async function toggleFollowFromFeed(targetId, postId){
+  const endpoint = '/api/follow'; // Always follow from feed for simplicity
+  const r = await fetch(`${API_BASE}${endpoint}`,{
+    method:'POST', headers:getAuthHeaders(), body:JSON.stringify({followingId: targetId})
+  });
+  if(r.ok){
+    const btn = document.getElementById(`btn-follow-${postId}`);
+    btn.innerText = 'Following';
+    btn.disabled = true;
+  } else { alert((await r.json()).error); }
+}
 
-      // Fetch persistent visual interaction lists from LocalStorage
-      const userLikes = JSON.parse(localStorage.getItem('gv_likes') || '[]');
-      const userComments = JSON.parse(localStorage.getItem('gv_comments') || '[]');
-
-      for(const post of posts){
-        const card = document.createElement('div');
-        card.className = 'reel-card';
-
-        let mediaHtml = '';
-        if(post.type=='reel' && post.mediaUrl){
-          const url = await signMedia(post.mediaUrl, post.b2Shard);
-          mediaHtml = url? `<video src="${url}" loop muted playsinline></video>` : `<p style="color:red">Video unavailable</p>`;
-        } else {
-          mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
-        }
-
-        const hasLiked = userLikes.includes(post.id);
-        const hasCommented = userComments.includes(post.id);
-
-        card.innerHTML = `
-          ${mediaHtml}
-          <div class="reel-overlay">
-            <h4>@${post.userId}</h4>
-            <p>${post.title || post.type}</p>
-          </div>
-          <div class="reel-actions">
-            <button class="action-bubble ${hasLiked ? 'voted-like' : ''}" ${hasLiked ? 'disabled' : ''} id="btn-like-${post.id}" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
-              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              <span id="count-like-${post.id}">${post.likes}</span>
-            </button>
-            <button class="action-bubble ${hasCommented ? 'voted-comment' : ''}" ${hasCommented ? 'disabled' : ''} id="btn-comment-${post.id}" onclick="interactFeed('${post.id}', 'comment', '${post.userId}')">
-              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg> 
-              <span id="count-comment-${post.id}">${post.comments}</span>
-            </button>
-            
-    <button class="action-bubble" onclick="shareReel('${post.id}')">
-    <svg viewBox="0 0 24 24" fill="#FFF"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg> 
-    <span>Share</span>
-    </button>
-          </div>
-        `;
-        viewport.appendChild(card);
-
-        let viewTriggered = false;
-        const videoEl = card.querySelector('video');
-        if(videoEl){
-          videoEl.addEventListener('play', () => {
-            if (!viewTriggered) {
-              setTimeout(() => {
-                if (!videoEl.paused) {
-                  viewTriggered = true;
-                  fetch(`${API_BASE}/api/view`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ postId: post.id, userId: post.userId })
-                  });
-                }
-              }, 3000);
-            }
-          });
-          card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
-        }
-        if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}?author=${post.userId}`);
-        if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
-      }
-    }
 function shareReel(postId) {
   const baseUrl = window.location.origin + window.location.pathname;
   const shareUrl = `${baseUrl}#/feed?post=${postId}`;
   const text = `Watch this on GolViral`;
-
   if (navigator.share) {
-    navigator.share({
-      title: 'GolViral',
-      text: text,
-      url: shareUrl,
-    }).catch(() => {});
+    navigator.share({ title: 'GolViral', text: text, url: shareUrl, }).catch(() => {});
   } else {
-    // Fallback: copy to clipboard
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      alert('Link copied ✅');
-    });
+    navigator.clipboard.writeText(shareUrl).then(() => { alert('Link copied ✅'); });
   }
 }
-    function interactFeed(postId, action, creatorId) {
-  const cacheKey = action === 'like' ? 'gv_likes' : 'gv_comments';
+
+function interactFeed(postId, action, creatorId) {
+  const cacheKey = action === 'like'? 'gv_likes' : 'gv_comments';
   let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-  if(storageItems.includes(postId)) return alert("Already "+action+"d");
+  if(action==='like' && storageItems.includes(postId)) return;
 
   const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
   const targetedCount = document.getElementById(`count-${action}-${postId}`);
-  
-  let body = { postId, creatorId };
 
-  if(action === 'comment'){
-    const text = prompt("Leave a comment:");
-    if(!text || text.length < 2) return;
-    body.text = text;
-  }
+  let body = { postId, creatorId };
 
   if(targetedBtn && targetedCount) {
     targetedBtn.disabled = true;
-    targetedBtn.classList.add(action === 'like' ? 'voted-like' : 'voted-comment');
+    targetedBtn.classList.add(action === 'like'? 'voted-like' : 'voted-comment');
     targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
   }
-
   storageItems.push(postId);
   localStorage.setItem(cacheKey, JSON.stringify(storageItems));
 
@@ -847,14 +899,38 @@ function shareReel(postId) {
     body: JSON.stringify(body)
   }).then(r => { if(r.status === 202) console.log("Buffered"); });
 }
-    function switchPostType(type, e) {
-      activePostType = type;
-      document.querySelectorAll('#view-post.tab').forEach(t => t.classList.remove('active'));
-      e.target.classList.add('active');
-      document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
-      document.getElementById('text-fields-group').style.display = type!= 'reel'? 'block' : 'none';
-      document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
-    }
+
+// ===== NEW FUNCTION 4: OPEN COMMENT MODAL =====
+async function openCommentModal(postId, creatorId){
+  activeCommentPost = postId; activeCommentCreator = creatorId;
+  document.getElementById('comment-modal').classList.add('active');
+  const list = document.getElementById('comment-list');
+  list.innerHTML = 'Loading...';
+  const d = await fetch(`${API_BASE}/api/comments/${postId}`).then(r=>r.json());
+  list.innerHTML = d.comments.map(c=>`<p style="margin-bottom:8px;"><b>@${c.user.username}</b>: ${c.text}</p>`).join('') || '<p style="color:var(--muted)">No comments yet</p>';
+}
+
+// ===== NEW FUNCTION 5: POST COMMENT =====
+async function postCommentNow(){
+  const text = document.getElementById('comment-input').value.trim();
+  if(text.length<2) return;
+  await fetch(`${API_BASE}/api/comment`,{
+    method:'POST', headers:getAuthHeaders(), body:JSON.stringify({postId:activeCommentPost, creatorId:activeCommentCreator, text})
+  });
+  document.getElementById('comment-input').value='';
+  openCommentModal(activeCommentPost, activeCommentCreator);
+  const countEl = document.getElementById(`count-comment-${activeCommentPost}`);
+  if(countEl) countEl.innerText = parseInt(countEl.innerText || '0') + 1;
+}
+
+function switchPostType(type, e) {
+  activePostType = type;
+  document.querySelectorAll('#view-post .tab').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
+  document.getElementById('text-fields-group').style.display = type !== 'reel'? 'block' : 'none';
+  document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
+}
 
 
 async function executePublish() {
