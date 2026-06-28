@@ -824,94 +824,94 @@ function shareReel(postId) {
 
 
 async function executePublish() {
+  const btn = document.querySelector('#view-post.btn.accent');
+  btn.disabled = true;
+  btn.innerText = "Uploading...";
+
   try {
     const body = { postType: activePostType };
 
     if (activePostType === 'reel') {
-      const fileInput = document.getElementById('post-file').files[0];
-      if(!fileInput) return alert("Select video file");
+      const fileInput = document.getElementById('post-file')?.files?.[0];
+      if (!fileInput) throw new Error("Select video file");
 
-      // 1. Hard check: 1.5MB limit. No ffmpeg needed.
-      if(fileInput.size > 1.5 * 1024 * 1024) {
-        return alert("Rejected: Max 1.5MB. Your file is " + (fileInput.size/1024/1024).toFixed(1) + "MB");
+      // 1. Hard check: 1.5MB limit - KEPT AS IS
+      if (fileInput.size > 1.5 * 1024 * 1024) {
+        throw new Error("Rejected: Max 1.5MB. Your file is " + (fileInput.size / 1024 / 1024).toFixed(1) + "MB");
       }
 
       // 2. Soft check: 30s limit using video element
       const video = document.createElement('video');
       video.preload = 'metadata';
       video.src = URL.createObjectURL(fileInput);
-      await new Promise(resolve => video.onloadedmetadata = resolve);
+      await new Promise(resolve => { video.onloadedmetadata = resolve; video.onerror = () => resolve(); });
       const duration = video.duration;
       URL.revokeObjectURL(video.src);
 
-      if (duration > 30) return alert("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
-      if (duration < 3) return alert("Rejected: Min 3s required");
+      if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
+      if (duration < 3) throw new Error("Rejected: Min 3s required");
 
-      body.fileExtension = 'mp4';
-      body.contentType = 'video/mp4';
+      // 3. FIX: Send real ext + mime to backend. Was hardcoded 'mp4'
+      body.fileExtension = fileInput.name.split('.').pop().toLowerCase(); // mov or mp4
+      body.contentType = fileInput.type; // video/quicktime or video/mp4
 
-      // 3. Upload raw file directly to B2 via presigned URL
-      const btn = document.querySelector('#view-post .btn.accent'); // FIXED
-btn.disabled = true;
-btn.innerText = "Uploading...";
+      // 4. Get presigned URL from backend
+      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body)
+      }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error) }); return r.json(); });
 
-try {
-  const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(body)
-  }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+      // 5. FIX: Upload RAW file with REAL Content-Type. Was 'video/mp4' hardcoded
+      const putRes = await fetch(intentRes.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': fileInput.type },
+        body: fileInput
+      });
+      if (!putRes.ok) throw new Error(`B2 Upload failed: ${putRes.status}`);
 
-  await fetch(intentRes.uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'video/mp4' },
-    body: fileInput // RAW upload. No compression.
-  });
+      // 6. Finalize post
+      await fetch(`${API_BASE}/api/post/create`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
+      });
 
-  await fetch(`${API_BASE}/api/post/create`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
-  });
-
-  alert("content submitted for system reviewing  ✅ ");
-  window.location.hash = '#/feed';
-} catch (err) {
-  alert(err.message);
-} finally { // <-- Always runs even on error
-  btn.disabled = false;
-  btn.innerText = "Publish Content";
-}
+      alert("Content submitted for system  review ✅");
+      window.location.hash = '#/feed';
 
     } else {
-      // Novel/Story block unchanged
-      if(!document.getElementById('post-title').value) return alert("Title required");
-      if(!document.getElementById('post-content').value) return alert("Content required");
+      // Novel/Story - unchanged
+      const title = document.getElementById('post-title').value.trim();
+      const content = document.getElementById('post-content').value.trim();
+      if (!title) throw new Error("Title required");
+      if (!content) throw new Error("Content required");
 
       const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(body)
-      }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
+      }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error) }); return r.json(); });
 
-      const finalBody = {
-        postId: intentRes.postId,
-        objectKey: intentRes.objectKey,
-        title: document.getElementById('post-title').value,
-        content: document.getElementById('post-content').value
-      };
       await fetch(`${API_BASE}/api/post/create`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify(finalBody)
+        body: JSON.stringify({
+          postId: intentRes.postId,
+          objectKey: intentRes.objectKey,
+          title,
+          content
+        })
       });
       alert("Content submitted for admin approval");
       window.location.hash = '#/feed';
     }
   } catch (err) {
     alert(err.message);
-    document.querySelector('#view-post.btn').disabled = false;
-    document.querySelector('#view-post.btn').innerText = "Publish Content";
+    console.error('Publish Error:', err);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "Publish Content";
   }
 }
 async function loadReader(type, id) {
