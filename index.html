@@ -844,11 +844,19 @@ async function loadFeedEngine() {
 }
 
 async function checkFollowState(targetId, postId){
-  const myId = localStorage.getItem('userId');
-  const me = await fetch(`${API_BASE}/api/user/${myId}`).then(r=>r.json());
-  // NOTE: Backend doesn't return following list. This is a hack. You need /api/following to be accurate.
   const btn = document.getElementById(`btn-follow-${postId}`);
-  if(btn) btn.style.display = 'none'; // Hide for now until you add following list to /api/user
+  if(!btn) return;
+  try {
+    const d = await fetch(`${API_BASE}/api/user/${targetId}`, {headers:getAuthHeaders()}).then(r=>r.json());
+    if(d.isFollowing){
+      btn.innerText = 'Following';
+      btn.disabled = true;
+      btn.className = 'btn'; // gray solid like IG
+    } else {
+      btn.innerText = 'Follow';
+      btn.className = 'btn secondary'; // outline like IG
+    }
+  } catch(e){ console.error(e); }
 }
 
 // ===== NEW FUNCTION 3: TOGGLE FOLLOW FROM FEED =====
@@ -1115,7 +1123,7 @@ async function loadProfileData(uidParam) {
   if (!uid) { window.location.hash = '#/auth'; return; }
   currentProfileId = uid;
 
-  const d = await fetch(`${API_BASE}/api/user/${uid}`).then(r => r.json());
+  const d = await fetch(`${API_BASE}/api/user/${uid}`, {headers:getAuthHeaders()}).then(r => r.json());
   document.getElementById('p-username').innerText = `@${d.username}`;
   document.getElementById('p-views').innerText = d.totalViews;
   document.getElementById('p-likes').innerText = d.totalLikes;
@@ -1123,17 +1131,22 @@ async function loadProfileData(uidParam) {
   document.getElementById('p-followers').innerText = d.followers;
   document.getElementById('p-following').innerText = d.following;
   const baseUrl = window.location.origin + window.location.pathname;
-  document.getElementById('p-link').value = `${baseUrl}?ref=${d.userId}#/auth`;
+  document.getElementById('p-link').value = `${baseUrl}#/?ref=${d.userId}`;
 
   const btn = document.getElementById('btn-follow');
   if (uid === myId) { btn.style.display = 'none'; return; }
   btn.style.display = 'block';
 
-  // TODO: Backend needs to return `isFollowing: true/false` on /api/user/:id for this to be 100% accurate
-  btn.innerText = 'Follow';
-  btn.className = 'btn secondary';
+  if(d.isFollowing){
+    btn.innerText = 'Following';
+    btn.disabled = true;
+    btn.className = 'btn';
+  } else {
+    btn.innerText = 'Follow';
+    btn.disabled = false;
+    btn.className = 'btn secondary';
+  }
 }
-
 // ===== NEW: Toggle Follow from Profile Page =====
 async function toggleFollow() {
   if (!currentProfileId) return;
