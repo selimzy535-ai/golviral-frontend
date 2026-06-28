@@ -1027,107 +1027,133 @@ async function executePublish() {
 async function loadReader(type, id) {
   const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
   const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
-  const authorId = new URLSearchParams(window.location.hash.split('?')[1]).get('author') || 'unknown';
-  const seconds = type === 'NOVEL'? 120 : 180;
+  const authorId = new URLSearchParams(window.location.hash.split('?')[1] || '').get('author') || 'unknown';
+  const seconds = type === 'NOVEL' ? 120 : 180;
   let elapsed = 0;
 
   const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok ? r.json() : null);
-  if(!post || post.type.toUpperCase() !== type) return contentEl.innerHTML = 'Post not found';
+  if (!post || post.type.toUpperCase() !== type) return contentEl.innerHTML = 'Post not found';
 
-  contentEl.innerHTML = `<h3>${post.title||''}</h3><br>${post.content||'No content'}`;
+  contentEl.innerHTML = `<h3>${post.title || ''}</h3><br>${post.content || 'No content'}`;
   timerEl.style.width = '0%';
   readTimer = setInterval(() => {
     elapsed++;
-    timerEl.style.width = `${(elapsed/seconds)*100}%`;
-    if(elapsed >= seconds) {
+    timerEl.style.width = `${(elapsed / seconds) * 100}%`;
+    if (elapsed >= seconds) {
       clearInterval(readTimer);
       fetch(`${API_BASE}/api/read-session`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
       });
-      alert(`+${type==='NOVEL'?10:10}pts credited`);
+      alert(`+10pts credited`);
     }
   }, 1000);
 }
 
-    function loadWalletData() {
-      fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
-     .then(r => r.json())
-     .then(d => {
-          document.getElementById('w-free').innerText = d.freeCredits;
-          document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
-          document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
-          document.getElementById('w-flag').innerText = d.monetized? "True" : "False";
-          document.getElementById('w-requirements').innerText = `Days Left: ${d.daysToMonetize} | Referrals Left: ${d.refsLeft}`;
-        });
-    }
+function loadWalletData() {
+  fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('w-free').innerText = d.freeCredits;
+      document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
+      document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
+      document.getElementById('w-flag').innerText = d.monetized ? "True" : "False";
+      document.getElementById('w-requirements').innerText = `Days Left: ${d.daysToMonetize} | Referrals Left: ${d.refsLeft}`;
+    });
+}
 
-    function generateRef() {
-      const arr = new Uint8Array(4);
-      crypto.getRandomValues(arr);
-      return "SELAR_TX_" + Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
-    }
+function generateRef() {
+  const arr = new Uint8Array(4);
+  crypto.getRandomValues(arr);
+  return "SELAR_TX_" + Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
 
-    function executeDepositVerification(passToken) {
-      const tierAmount = parseInt(document.getElementById('dep-tier').value);
-      const reference = generateRef();
-      const userId = localStorage.getItem('userId');
-      fetch(`${API_BASE}/api/deposit/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, reference, tierAmount, passToken })
-      }).then(r => r.json()).then(d => { if(d.success) { alert("Credits added"); loadWalletData(); } else { alert(d.error); } });
-    }
+function executeDepositVerification(passToken) {
+  const tierAmount = parseInt(document.getElementById('dep-tier').value);
+  const reference = generateRef();
+  const userId = localStorage.getItem('userId');
+  fetch(`${API_BASE}/api/deposit/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, reference, tierAmount, passToken })
+  }).then(r => r.json()).then(d => { if (d.success) { alert("Credits added"); loadWalletData(); } else { alert(d.error); } });
+}
 
-    function submitWithdrawalInit() {
-      const amountPoints = parseInt(document.getElementById('wd-amount').value);
-      const routingTarget = document.getElementById('wd-target').value;
-      const targetDetails = document.getElementById('wd-details').value;
-      fetch(`${API_BASE}/api/wallet/withdraw`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ amountPoints, routingTarget, targetDetails })
-      }).then(r => r.json()).then(d => {
-        if(d.authChallenge) {
-          document.getElementById('wd-otp-group').style.display = 'block';
-          alert("OTP sent to email");
-        } else { alert(d.error); }
-      });
-    }
+function submitWithdrawalInit() {
+  const amountPoints = parseInt(document.getElementById('wd-amount').value);
+  const routingTarget = document.getElementById('wd-target').value;
+  const targetDetails = document.getElementById('wd-details').value;
+  fetch(`${API_BASE}/api/wallet/withdraw`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ amountPoints, routingTarget, targetDetails })
+  }).then(r => r.json()).then(d => {
+    if (d.authChallenge) {
+      document.getElementById('wd-otp-group').style.display = 'block';
+      alert("OTP sent to email");
+    } else { alert(d.error); }
+  });
+}
 
-    function confirmWithdrawal() {
-      const otp = document.getElementById('wd-otp').value;
-      fetch(`${API_BASE}/api/wallet/withdraw/confirm`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ otp })
-      }).then(r => r.json()).then(d => {
-        if(d.transactionAcknowledged) { alert("Payout requested"); window.location.hash = '#/wallet'; }
-        else { alert(d.error); }
-      });
-    }
+function confirmWithdrawal() {
+  const otp = document.getElementById('wd-otp').value;
+  fetch(`${API_BASE}/api/wallet/withdraw/confirm`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ otp })
+  }).then(r => r.json()).then(d => {
+    if (d.transactionAcknowledged) { alert("Payout requested"); window.location.hash = '#/wallet'; }
+    else { alert(d.error); }
+  });
+}
 
-    function loadProfileData() {
-      const uid = localStorage.getItem('userId');
-      if(!uid) { window.location.hash = '#/auth'; return; }
-      fetch(`${API_BASE}/api/user/${uid}`)
-     .then(r => r.json())
-     .then(d => {
-          document.getElementById('p-username').innerText = `@${d.username}`;
-          document.getElementById('p-views').innerText = d.totalViews;
-          document.getElementById('p-likes').innerText = d.totalLikes;
-          document.getElementById('p-posts').innerText = d.totalPosts;
-          document.getElementById('p-followers').innerText = d.followers;
-          document.getElementById('p-following').innerText = d.following;
-          const baseUrl = window.location.origin + window.location.pathname;
-          document.getElementById('p-link').value = `${baseUrl}#/?ref=${d.userId}`;
-        });
-    }
+// ===== FIXED: Profile now accepts /profile/userid for visiting others =====
+async function loadProfileData(uidParam) {
+  const myId = localStorage.getItem('userId');
+  const uid = uidParam || myId;
+  if (!uid) { window.location.hash = '#/auth'; return; }
+  currentProfileId = uid;
 
-    function initializeServiceWorker() {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
+  const d = await fetch(`${API_BASE}/api/user/${uid}`).then(r => r.json());
+  document.getElementById('p-username').innerText = `@${d.username}`;
+  document.getElementById('p-views').innerText = d.totalViews;
+  document.getElementById('p-likes').innerText = d.totalLikes;
+  document.getElementById('p-posts').innerText = d.totalPosts;
+  document.getElementById('p-followers').innerText = d.followers;
+  document.getElementById('p-following').innerText = d.following;
+  const baseUrl = window.location.origin + window.location.pathname;
+  document.getElementById('p-link').value = `${baseUrl}?ref=${d.userId}#/auth`;
+
+  const btn = document.getElementById('btn-follow');
+  if (uid === myId) { btn.style.display = 'none'; return; }
+  btn.style.display = 'block';
+
+  // TODO: Backend needs to return `isFollowing: true/false` on /api/user/:id for this to be 100% accurate
+  btn.innerText = 'Follow';
+  btn.className = 'btn secondary';
+}
+
+// ===== NEW: Toggle Follow from Profile Page =====
+async function toggleFollow() {
+  if (!currentProfileId) return;
+  const endpoint = '/api/follow'; // We only allow follow from here for now
+  const r = await fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ followingId: currentProfileId })
+  });
+  if (r.ok) {
+    alert('Following');
+    document.getElementById('btn-follow').innerText = 'Following';
+    document.getElementById('btn-follow').disabled = true;
+    loadProfileData(currentProfileId);
+  } else {
+    alert((await r.json()).error);
+  }
+}
+
+function initializeServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
       }
     }
   </script>
