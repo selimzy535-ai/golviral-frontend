@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -430,10 +431,28 @@
       <div id="auth-form-container">
         <input type="email" id="auth-email" class="input-field" placeholder="Email Address">
         <input type="password" id="auth-pass" class="input-field" placeholder="Password">
+        <p style="text-align:right; font-size:12px; margin-top:-8px; margin-bottom:12px;">
+          <a href="#/forgot" style="color:#0095f6; text-decoration:none;">Forgot Password?</a>
+        </p>
         <input type="text" id="auth-user" class="input-field" placeholder="Username" style="display:none;">
         <input type="text" id="auth-ref" class="input-field" placeholder="Referral Code (Optional)" style="display:none;">
         <button class="btn accent" onclick="triggerBotChallenge(submitAuth)">Continue</button>
       </div>
+    </div>
+
+    <div id="view-forgot" class="view-pane">
+      <h3 style="margin-bottom:20px;">Reset Password</h3>
+      <input type="email" id="forgot-email" class="input-field" placeholder="Email Address">
+      <button class="btn accent" onclick="triggerBotChallenge(sendForgotOtp)">Send OTP</button>
+      <button class="btn secondary" onclick="window.location.hash='#/auth'" style="margin-top:12px;">Back to Login</button>
+    </div>
+
+    <div id="view-reset" class="view-pane">
+      <h3 style="margin-bottom:20px;">Enter OTP</h3>
+      <input type="email" id="reset-email" class="input-field" placeholder="Email Address" readonly>
+      <input type="text" id="reset-otp" class="input-field" placeholder="6 Digit OTP">
+      <input type="password" id="reset-pass" class="input-field" placeholder="New Password">
+      <button class="btn accent" onclick="submitResetPassword()">Reset Password</button>
     </div>
 
     <div id="view-feed" class="view-pane" style="padding:0; max-width:100%;">
@@ -451,7 +470,7 @@
         <p style="font-size:13px; color: #ff5388; font-weight: 500;" id="post-warning">Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.</p>
       </div>
       <div id="file-selector-group">
-        <input type="file" id="post-file" class="input-field" accept="video/mp4">
+        <input type="file" id="post-file" class="input-field" accept="video/*">
       </div>
       <div id="text-fields-group" style="display:none;">
         <input type="text" id="post-title" class="input-field" placeholder="Title">
@@ -500,11 +519,12 @@
     <div id="view-deposit" class="view-pane">
       <h3 style="margin-bottom:20px;">Deposit Credits</h3>
       <select id="dep-tier" class="input-field">
-        <option value="500">₦500 -> 5,000 pts</option>
         <option value="1500">₦1,500 -> 15,000 pts</option>
         <option value="3000">₦3,000 -> 30,000 pts</option>
         <option value="5000">₦5,000 -> 50,000 pts</option>
+        <option value="7000">₦7,000 -> 70,000 pts</option>
         <option value="10000">₦10,000 -> 100,000 pts</option>
+        <option value="15000">₦15,000 -> 150,000 pts</option>
       </select>
       <button class="btn accent" onclick="triggerBotChallenge(executeDepositVerification)">Pay via Selar</button>
     </div>
@@ -514,19 +534,20 @@
         <div style="width: 86px; height: 86px; background: var(--accent); border-radius: 50%; margin: 0 auto 14px auto; padding: 3px;">
           <div style="width: 100%; height: 100%; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;">👤</div>
         </div>
-        <h2 id="p-username" style="font-size: 22px; font-weight: 600; margin-bottom: 24px;">@username</h2>
-        
+        <h2 id="p-username" style="font-size: 22px; font-weight: 600; margin-bottom: 12px;">@username</h2>
+        <button id="btn-follow" class="btn secondary" style="width:auto; padding:8px 16px; margin-bottom:16px; display:none;" onclick="toggleFollow()">Follow</button>
+
         <div style="display:flex; justify-content:space-around; margin-bottom:24px; border-top: 1px solid var(--gray); border-bottom: 1px solid var(--gray); padding: 12px 0;">
           <div><h4 id="p-views" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Views</span></div>
           <div><h4 id="p-likes" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Likes</span></div>
           <div><h4 id="p-posts" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Posts</span></div>
         </div>
-        
+
         <div style="display:flex; justify-content:space-around; font-size:14px; margin-bottom:24px; color: var(--muted);">
           <div>Followers: <b id="p-followers" style="color: var(--text)">0</b></div>
           <div>Following: <b id="p-following" style="color: var(--text)">0</b></div>
         </div>
-        
+
         <input type="text" id="p-link" class="input-field" readonly onclick="this.select()" style="text-align: center; background: var(--card-bg); cursor: pointer;">
         <p style="font-size:12px; color:var(--muted); margin-top: -6px;">Tap to copy referral link</p>
       </div>
@@ -541,7 +562,7 @@
       <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create
     </a>
     <a href="#/wallet" class="nav-item" id="nav-wallet">
-      <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2.9 2 2v1h-9c-1.11 0-2.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
+      <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 0.9 2 2v1h-9c-1.1 0-2 0.9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
     </a>
     <a href="#/profile" class="nav-item" id="nav-profile">
       <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile
@@ -557,6 +578,20 @@
     </div>
   </div>
 
+  <div id="comment-modal" class="bot-modal">
+    <div class="bot-content" style="max-width:500px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <h4>Comments</h4><button onclick="document.getElementById('comment-modal').classList.remove('active')" style="background:none;border:none;color:#fff;font-size:20px;">×</button>
+      </div>
+      <div id="comment-list" style="max-height:40vh; overflow-y:auto; margin-bottom:12px;"></div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="comment-input" class="input-field" placeholder="Add comment..." style="margin:0;">
+        <button class="btn" onclick="postCommentNow()" style="width:auto;">Send</button>
+      </div>
+    </div>
+  </div>
+
+  
   <script>
     const API_BASE = "https://golviral-api.onrender.com";
     let activeAuthTab = 'login';
@@ -565,6 +600,10 @@
     let currentBotToken = "";
     let readTimer = null;
     let deferredPrompt = null;
+    let currentProfileId = null;
+    let isFollowing = false;
+    let activeCommentPost = null;
+    let activeCommentCreator = null;
 
     window.addEventListener('hashchange', routeEngine);
     window.addEventListener('load', () => {
@@ -601,10 +640,12 @@
       if (hash.startsWith('#/feed')) { activateView('view-feed', 'nav-feed'); loadFeedEngine(); }
       else if (hash.startsWith('#/post')) { activateView('view-post', 'nav-post'); }
       else if (hash.startsWith('#/wallet')) { activateView('view-wallet', 'nav-wallet'); loadWalletData(); }
-      else if (hash.startsWith('#/profile')) { activateView('view-profile', 'nav-profile'); loadProfileData(); }
+      else if (hash.startsWith('#/profile')) { activateView('view-profile', 'nav-profile'); loadProfileData(hash.split('/')[2]); }
       else if (hash.startsWith('#/deposit')) { activateView('view-deposit', 'nav-wallet'); }
       else if (hash.startsWith('#/withdraw')) { activateView('view-withdraw', 'nav-wallet'); }
       else if (hash.startsWith('#/auth')) { activateView('view-auth', ''); }
+      else if (hash.startsWith('#/forgot')) { activateView('view-forgot', ''); }
+      else if (hash.startsWith('#/reset')) { activateView('view-reset', ''); }
       else if (hash.startsWith('#/novel/')) { activateView('view-novel', ''); loadReader('NOVEL', hash.split('/')[2]); }
       else if (hash.startsWith('#/story/')) { activateView('view-story', ''); loadReader('STORY', hash.split('/')[2]); }
     }
@@ -620,21 +661,21 @@
       return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
     }
 
-async function signMedia(key, shard) {
-  const token = localStorage.getItem('token');
-  if(!token) return '';
-  try {
-    const r = await fetch(`${API_BASE}/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`,{headers:{Authorization:`Bearer ${token}`}});
-    const d = await r.json();
-    return d.url || '';
-  } catch { return ''; }
-}
+    async function signMedia(key, shard) {
+      const token = localStorage.getItem('token');
+      if(!token) return '';
+      try {
+        const r = await fetch(`${API_BASE}/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`,{headers:{Authorization:`Bearer ${token}`}});
+        const d = await r.json();
+        return d.url || '';
+      } catch { return ''; }
+    }
 
     function triggerBotChallenge(callback) {
       currentBotCallback = callback;
       fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
-     .then(r => r.json())
-     .then(data => {
+        .then(r => r.json())
+        .then(data => {
           currentBotToken = data.token;
           document.getElementById('bot-question').innerText = data.question;
           document.getElementById('bot-overlay-modal').classList.add('active');
@@ -659,7 +700,7 @@ async function signMedia(key, shard) {
 
     function switchAuthTab(tab, e) {
       activeAuthTab = tab;
-      document.querySelectorAll('#view-auth.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#view-auth .tab').forEach(t => t.classList.remove('active'));
       e.target.classList.add('active');
       document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
       document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
@@ -688,17 +729,48 @@ async function signMedia(key, shard) {
       });
     }
 
+    // ===== NEW FUNCTION 1: FORGOT PASSWORD =====
+    async function sendForgotOtp(passToken){
+      const email = document.getElementById('forgot-email').value;
+      if(!email) return alert('Enter email');
+      const r = await fetch(`${API_BASE}/api/auth/forgot-password`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email, passToken})
+      });
+      if(r.ok){
+        document.getElementById('reset-email').value = email;
+        window.location.hash='#/reset';
+      } else { alert((await r.json()).error); }
+    }
+
+    // ===== NEW FUNCTION 2: RESET PASSWORD =====
+    async function submitResetPassword(){
+      const email = document.getElementById('reset-email').value;
+      const otp = document.getElementById('reset-otp').value;
+      const newPassword = document.getElementById('reset-pass').value;
+      if(!otp || !newPassword) return alert('Fill all fields');
+      const r = await fetch(`${API_BASE}/api/auth/reset-password`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email, otp, newPassword})
+      });
+      const d = await r.json();
+      alert(d.message || 'Password updated');
+      if(r.ok) window.location.hash='#/auth';
+    }
+
     async function loadFeedEngine() {
       const viewport = document.getElementById('reel-viewport');
       viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
       const token = localStorage.getItem('token');
+      const myId = localStorage.getItem('userId');
       if(!token) return window.location.hash='#/auth';
 
       const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
       viewport.innerHTML = "";
       if(posts.length === 0) return viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
 
-      // Fetch persistent visual interaction lists from LocalStorage
       const userLikes = JSON.parse(localStorage.getItem('gv_likes') || '[]');
       const userComments = JSON.parse(localStorage.getItem('gv_comments') || '[]');
 
@@ -707,39 +779,47 @@ async function signMedia(key, shard) {
         card.className = 'reel-card';
 
         let mediaHtml = '';
-        if(post.type=='reel' && post.mediaUrl){
+        // ==== UPDATED BLOCK WITH FIX FOR BLANK VIDEOS ====
+        if(post.type === 'reel' && post.mediaUrl){
           const url = await signMedia(post.mediaUrl, post.b2Shard);
-          mediaHtml = url? `<video src="${url}" loop muted playsinline></video>` : `<p style="color:red">Video unavailable</p>`;
+          mediaHtml = url? `<video src="${url}" loop muted autoplay playsinline preload="auto" style="background-color: #000; width:100%; height:100%; display:block;"></video>` : `<p style="color:red">Video unavailable</p>`;
         } else {
           mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
         }
 
         const hasLiked = userLikes.includes(post.id);
         const hasCommented = userComments.includes(post.id);
+        const isOwner = post.userId === myId;
 
+        // ===== IG STYLE: FOLLOW BUTTON ON EACH REEL =====
         card.innerHTML = `
           ${mediaHtml}
           <div class="reel-overlay">
-            <h4>@${post.userId}</h4>
+            <h4>
+              <a href="#/profile/${post.userId}" style="color:#fff; text-decoration:none;">@${post.userId}</a>
+              ${!isOwner? `<button id="btn-follow-${post.id}" class="btn secondary" style="width:auto; padding:4px 10px; font-size:12px; margin-left:8px;" onclick="toggleFollowFromFeed('${post.userId}', '${post.id}')">Follow</button>` : ''}
+            </h4>
             <p>${post.title || post.type}</p>
           </div>
           <div class="reel-actions">
-            <button class="action-bubble ${hasLiked ? 'voted-like' : ''}" ${hasLiked ? 'disabled' : ''} id="btn-like-${post.id}" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
+            <button class="action-bubble ${hasLiked? 'voted-like' : ''}" ${hasLiked? 'disabled' : ''} id="btn-like-${post.id}" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
               <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
               <span id="count-like-${post.id}">${post.likes}</span>
             </button>
-            <button class="action-bubble ${hasCommented ? 'voted-comment' : ''}" ${hasCommented ? 'disabled' : ''} id="btn-comment-${post.id}" onclick="interactFeed('${post.id}', 'comment', '${post.userId}')">
-              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg> 
+            <button class="action-bubble ${hasCommented? 'voted-comment' : ''}" id="btn-comment-${post.id}" onclick="openCommentModal('${post.id}', '${post.userId}')">
+              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
               <span id="count-comment-${post.id}">${post.comments}</span>
             </button>
-            
-    <button class="action-bubble" onclick="shareReel('${post.id}')">
-    <svg viewBox="0 0 24 24" fill="#FFF"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg> 
-    <span>Share</span>
-    </button>
+            <button class="action-bubble" onclick="shareReel('${post.id}')">
+              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0.24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+              <span>Share</span>
+            </button>
           </div>
         `;
         viewport.appendChild(card);
+
+        // Check follow state after append
+        if(!isOwner) checkFollowState(post.userId, post.id);
 
         let viewTriggered = false;
         const videoEl = card.querySelector('video');
@@ -764,229 +844,239 @@ async function signMedia(key, shard) {
         if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
       }
     }
-function shareReel(postId) {
-  const baseUrl = window.location.origin + window.location.pathname;
-  const shareUrl = `${baseUrl}#/feed?post=${postId}`;
-  const text = `Watch this on GolViral`;
 
-  if (navigator.share) {
-    navigator.share({
-      title: 'GolViral',
-      text: text,
-      url: shareUrl,
-    }).catch(() => {});
-  } else {
-    // Fallback: copy to clipboard
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      alert('Link copied ✅');
-    });
-  }
-}
-    function interactFeed(postId, action, creatorId) {
-  const cacheKey = action === 'like' ? 'gv_likes' : 'gv_comments';
-  let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-  if(storageItems.includes(postId)) return alert("Already "+action+"d");
-
-  const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
-  const targetedCount = document.getElementById(`count-${action}-${postId}`);
-  
-  let body = { postId, creatorId };
-
-  if(action === 'comment'){
-    const text = prompt("Leave a comment:");
-    if(!text || text.length < 2) return;
-    body.text = text;
-  }
-
-  if(targetedBtn && targetedCount) {
-    targetedBtn.disabled = true;
-    targetedBtn.classList.add(action === 'like' ? 'voted-like' : 'voted-comment');
-    targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
-  }
-
-  storageItems.push(postId);
-  localStorage.setItem(cacheKey, JSON.stringify(storageItems));
-
-  fetch(`${API_BASE}/api/${action}`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(body)
-  }).then(r => { if(r.status === 202) console.log("Buffered"); });
-}
-    function switchPostType(type, e) {
-      activePostType = type;
-      document.querySelectorAll('#view-post.tab').forEach(t => t.classList.remove('active'));
-      e.target.classList.add('active');
-      document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
-      document.getElementById('text-fields-group').style.display = type!= 'reel'? 'block' : 'none';
-      document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
+    async function checkFollowState(targetId, postId){
+      const btn = document.getElementById(`btn-follow-${postId}`);
+      if(!btn) return;
+      try {
+        const d = await fetch(`${API_BASE}/api/user/${targetId}`, {headers:getAuthHeaders()}).then(r=>r.json());
+        if(d.isFollowing){
+          btn.innerText = 'Following';
+          btn.disabled = true;
+          btn.className = 'btn'; // gray solid like IG
+        } else {
+          btn.innerText = 'Follow';
+          btn.className = 'btn secondary'; // outline like IG
+        }
+      } catch(e){ console.error(e); }
     }
 
-// Global ffmpeg instance so we don't reload 5MB WASM every time
-let ffmpegInstance = null;
-let ffmpegLoading = false;
-
-async function getFFmpeg() {
-  if (ffmpegInstance) return ffmpegInstance;
-  if (ffmpegLoading) {
-    while(ffmpegLoading) await new Promise(r => setTimeout(r, 100));
-    return ffmpegInstance;
-  }
-  ffmpegLoading = true;
-  
-  const { FFmpeg } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/esm/index.js');
-  const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
-  
-  const ffmpeg = new FFmpeg();
-  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-  await ffmpeg.load({ coreURL: `${baseURL}/ffmpeg-core.js`, wasmURL: `${baseURL}/ffmpeg-core.wasm` });
-  
-  ffmpegInstance = { ffmpeg, fetchFile };
-  ffmpegLoading = false;
-  return ffmpegInstance;
-}
-
-async function executePublish() {
-  try {
-    const body = { postType: activePostType };
-
-    if (activePostType === 'reel') {
-      const fileInput = document.getElementById('post-file').files[0];
-      if(!fileInput) return alert("Select video file");
-
-      // Show silent loading overlay
-      const btn = document.querySelector('#view-post .btn');
-      const originalText = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = "Loading...";
-
-      try {
-        // 1. Check 30s limit before compressing
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.src = URL.createObjectURL(fileInput);
-        await new Promise(resolve => video.onloadedmetadata = resolve);
-        const duration = video.duration;
-        URL.revokeObjectURL(video.src);
-
-        if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
-        if (duration < 3) throw new Error("Rejected: Min 3s required");
-
-        // 2. Compress to 720p or 480p, ~1.2MB target
-        const { ffmpeg, fetchFile } = await getFFmpeg();
-        await ffmpeg.writeFile('input.mp4', await fetchFile(fileInput));
-
-        // Target: 720p if >720px, else 480p. 900k video + 64k audio = ~1.1MB for 30s
-        const targetHeight = video.videoWidth > 720? '720' : '480'; 
-        const videoBitrate = '900k'; // 900k * 30s / 8 = ~3.3MB raw. x264 will crush to ~1MB
-
-        await ffmpeg.exec([
-          '-i', 'input.mp4',
-          '-vf', `scale=-2:${targetHeight}:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2`,
-          '-vcodec', 'libx264',
-          '-b:v', videoBitrate,
-          '-maxrate', '1200k',
-          '-bufsize', '2400k',
-          '-acodec', 'aac',
-          '-b:a', '64k',
-          '-preset', 'ultrafast', // fastest, not best quality
-          '-movflags', '+faststart',
-          'output.mp4'
-        ]);
-
-        const data = await ffmpeg.readFile('output.mp4');
-        const compressedFile = new File([data.buffer], fileInput.name, { type: 'video/mp4' });
-
-        if (compressedFile.size > 1.5 * 1024 * 1024) {
-          throw new Error("Still >1.5MB after compression. Your file is " + (compressedFile.size/1024/1024).toFixed(1) + "MB. Try shorter video.");
+    // ===== NEW FUNCTION 3: TOGGLE FOLLOW FROM FEED =====
+    async function toggleFollowFromFeed(targetId, postId){
+      const btn = document.getElementById(`btn-follow-${postId}`);
+      const endpoint = btn.innerText === 'Follow' ? '/api/follow' : '/api/unfollow';
+      const r = await fetch(`${API_BASE}${endpoint}`,{
+        method:'POST', headers:getAuthHeaders(), body:JSON.stringify({followingId: targetId})
+      });
+      if(r.ok){
+        // Flip the button instantly like IG
+        if(btn.innerText === 'Follow'){
+          btn.innerText = 'Following';
+          btn.disabled = true;
+          btn.className = 'btn';
+        } else {
+          btn.innerText = 'Follow';
+          btn.disabled = false;
+          btn.className = 'btn secondary';
         }
+      } else { alert((await r.json()).error); }
+    }
 
-        body.fileExtension = 'mp4';
-        body.contentType = 'video/mp4';
-
-        const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify(body)
-        }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
-
-        await fetch(intentRes.uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'video/mp4' }, body: compressedFile });
-        await fetch(`${API_BASE}/api/post/create`, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
-        });
-
-        alert("Content submitted ✅ ");
-        window.location.hash = '#/feed';
-
-      } finally {
-        btn.disabled = false;
-        btn.innerText = originalText;
+    function shareReel(postId) {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const shareUrl = `${baseUrl}#/feed?post=${postId}`;
+      const text = `Watch this on GolViral`;
+      if (navigator.share) {
+        navigator.share({ title: 'GolViral', text: text, url: shareUrl, }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareUrl).then(() => { alert('Link copied ✅'); });
       }
+    }
 
-    } else {
-      // Novel/Story unchanged
-      if(!document.getElementById('post-title').value) return alert("Title required");
-      if(!document.getElementById('post-content').value) return alert("Content required");
+    function interactFeed(postId, action, creatorId) {
+      const cacheKey = action === 'like'? 'gv_likes' : 'gv_comments';
+      let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+      if(action==='like' && storageItems.includes(postId)) return;
 
-      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+      const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
+      const targetedCount = document.getElementById(`count-${action}-${postId}`);
+
+      let body = { postId, creatorId };
+
+      if(targetedBtn && targetedCount) {
+        targetedBtn.disabled = true;
+        targetedBtn.classList.add(action === 'like'? 'voted-like' : 'voted-comment');
+        targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
+      }
+      storageItems.push(postId);
+      localStorage.setItem(cacheKey, JSON.stringify(storageItems));
+
+      fetch(`${API_BASE}/api/${action}`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(body)
-      }).then(r => { if(!r.ok) return r.json().then(e => {throw new Error(e.error)}); return r.json(); });
-
-      const finalBody = {
-        postId: intentRes.postId,
-        objectKey: intentRes.objectKey,
-        title: document.getElementById('post-title').value,
-        content: document.getElementById('post-content').value
-      };
-      await fetch(`${API_BASE}/api/post/create`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(finalBody)
-      });
-      alert("Content submitted for admin approval");
-      window.location.hash = '#/feed';
+      }).then(r => { if(r.status === 202) console.log("Buffered"); });
     }
-  } catch (err) { alert(err.message); }
-}
-async function loadReader(type, id) {
-  const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
-  const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
-  const authorId = new URLSearchParams(window.location.hash.split('?')[1]).get('author') || 'unknown';
-  const seconds = type === 'NOVEL'? 120 : 180;
-  let elapsed = 0;
 
-  const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok ? r.json() : null);
-  if(!post || post.type.toUpperCase() !== type) return contentEl.innerHTML = 'Post not found';
-
-  contentEl.innerHTML = `<h3>${post.title||''}</h3><br>${post.content||'No content'}`;
-  timerEl.style.width = '0%';
-  readTimer = setInterval(() => {
-    elapsed++;
-    timerEl.style.width = `${(elapsed/seconds)*100}%`;
-    if(elapsed >= seconds) {
-      clearInterval(readTimer);
-      fetch(`${API_BASE}/api/read-session`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
-      });
-      alert(`+${type==='NOVEL'?10:10}pts credited`);
+    // ===== NEW FUNCTION 4: OPEN COMMENT MODAL =====
+    async function openCommentModal(postId, creatorId){
+      activeCommentPost = postId; activeCommentCreator = creatorId;
+      document.getElementById('comment-modal').classList.add('active');
+      const list = document.getElementById('comment-list');
+      list.innerHTML = 'Loading...';
+      const d = await fetch(`${API_BASE}/api/comments/${postId}`).then(r=>r.json());
+      list.innerHTML = d.comments.map(c=>`<p style="margin-bottom:8px;"><b>@${c.user.username}</b>: ${c.text}</p>`).join('') || '<p style="color:var(--muted)">No comments yet</p>';
     }
-  }, 1000);
-}
+
+    // ===== NEW FUNCTION 5: POST COMMENT =====
+    async function postCommentNow(){
+      const text = document.getElementById('comment-input').value.trim();
+      if(text.length<2) return;
+      await fetch(`${API_BASE}/api/comment`,{
+        method:'POST', headers:getAuthHeaders(), body:JSON.stringify({postId:activeCommentPost, creatorId:activeCommentCreator, text})
+      });
+      document.getElementById('comment-input').value='';
+      openCommentModal(activeCommentPost, activeCommentCreator);
+      const countEl = document.getElementById(`count-comment-${activeCommentPost}`);
+      if(countEl) countEl.innerText = parseInt(countEl.innerText || '0') + 1;
+    }
+
+    function switchPostType(type, e) {
+      activePostType = type;
+      document.querySelectorAll('#view-post .tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
+      document.getElementById('text-fields-group').style.display = type !== 'reel'? 'block' : 'none';
+      document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
+    }
+
+
+    async function executePublish() {
+      const btn = document.querySelector('#view-post.btn.accent');
+      btn.disabled = true;
+      btn.innerText = "Uploading...";
+
+      try {
+        const body = { postType: activePostType };
+
+        if (activePostType === 'reel') {
+          const fileInput = document.getElementById('post-file')?.files?.[0];
+          if (!fileInput) throw new Error("Select video file");
+
+          // 1. Hard check: 1.5MB limit - KEPT AS IS
+          if (fileInput.size > 1.5 * 1024 * 1024) {
+            throw new Error("Rejected: Max 1.5MB. Your file is " + (fileInput.size / 1024 / 1024).toFixed(1) + "MB");
+          }
+
+          // 2. Soft check: 30s limit using video element
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+          video.src = URL.createObjectURL(fileInput);
+          await new Promise(resolve => { video.onloadedmetadata = resolve; video.onerror = () => resolve(); });
+          const duration = video.duration;
+          URL.revokeObjectURL(video.src);
+
+          if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
+          if (duration < 3) throw new Error("Rejected: Min 3s required");
+
+          // 3. FIX: Send real ext + mime to backend. Was hardcoded 'mp4'
+          body.fileExtension = fileInput.name.split('.').pop().toLowerCase(); // mov or mp4
+          body.contentType = fileInput.type; // video/quicktime or video/mp4
+
+          // 4. Get presigned URL from backend
+          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body)
+          }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error) }); return r.json(); });
+
+          // 5. FIX: Upload RAW file with REAL Content-Type. Was 'video/mp4' hardcoded
+          const putRes = await fetch(intentRes.uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': fileInput.type },
+            body: fileInput
+          });
+          if (!putRes.ok) throw new Error(`B2 Upload failed: ${putRes.status}`);
+
+          // 6. Finalize post
+          await fetch(`${API_BASE}/api/post/create`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
+          });
+
+          alert("Content submitted for system  review ✅");
+          window.location.hash = '#/feed';
+
+        } else {
+          // Novel/Story - unchanged
+          const title = document.getElementById('post-title').value.trim();
+          const content = document.getElementById('post-content').value.trim();
+          if (!title) throw new Error("Title required");
+          if (!content) throw new Error("Content required");
+
+          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body)
+          }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error) }); return r.json(); });
+
+          await fetch(`${API_BASE}/api/post/create`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+              postId: intentRes.postId,
+              objectKey: intentRes.objectKey,
+              title,
+              content
+            })
+          });
+          alert("Content submitted for admin approval");
+          window.location.hash = '#/feed';
+        }
+      } catch (err) {
+        alert(err.message);
+        console.error('Publish Error:', err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Publish Content";
+      }
+    }
+    async function loadReader(type, id) {
+      const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
+      const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
+      const authorId = new URLSearchParams(window.location.hash.split('?')[1] || '').get('author') || 'unknown';
+      const seconds = type === 'NOVEL' ? 120 : 180;
+      let elapsed = 0;
+
+      const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok ? r.json() : null);
+      if (!post || post.type.toUpperCase() !== type) return contentEl.innerHTML = 'Post not found';
+
+      contentEl.innerHTML = `<h3>${post.title || ''}</h3><br>${post.content || 'No content'}`;
+      timerEl.style.width = '0%';
+      readTimer = setInterval(() => {
+        elapsed++;
+        timerEl.style.width = `${(elapsed / seconds) * 100}%`;
+        if (elapsed >= seconds) {
+          clearInterval(readTimer);
+          fetch(`${API_BASE}/api/read-session`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
+          });
+          alert(`+10pts credited`);
+        }
+      }, 1000);
+    }
 
     function loadWalletData() {
       fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
-     .then(r => r.json())
-     .then(d => {
+        .then(r => r.json())
+        .then(d => {
           document.getElementById('w-free').innerText = d.freeCredits;
           document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
           document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
-          document.getElementById('w-flag').innerText = d.monetized? "True" : "False";
+          document.getElementById('w-flag').innerText = d.monetized ? "True" : "False";
           document.getElementById('w-requirements').innerText = `Days Left: ${d.daysToMonetize} | Referrals Left: ${d.refsLeft}`;
         });
     }
@@ -994,7 +1084,7 @@ async function loadReader(type, id) {
     function generateRef() {
       const arr = new Uint8Array(4);
       crypto.getRandomValues(arr);
-      return "SELAR_TX_" + Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+      return "SELAR_TX_" + Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
     }
 
     function executeDepositVerification(passToken) {
@@ -1005,7 +1095,7 @@ async function loadReader(type, id) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, reference, tierAmount, passToken })
-      }).then(r => r.json()).then(d => { if(d.success) { alert("Credits added"); loadWalletData(); } else { alert(d.error); } });
+      }).then(r => r.json()).then(d => { if (d.success) { alert("Credits added"); loadWalletData(); } else { alert(d.error); } });
     }
 
     function submitWithdrawalInit() {
@@ -1017,7 +1107,7 @@ async function loadReader(type, id) {
         headers: getAuthHeaders(),
         body: JSON.stringify({ amountPoints, routingTarget, targetDetails })
       }).then(r => r.json()).then(d => {
-        if(d.authChallenge) {
+        if (d.authChallenge) {
           document.getElementById('wd-otp-group').style.display = 'block';
           alert("OTP sent to email");
         } else { alert(d.error); }
@@ -1031,33 +1121,63 @@ async function loadReader(type, id) {
         headers: getAuthHeaders(),
         body: JSON.stringify({ otp })
       }).then(r => r.json()).then(d => {
-        if(d.transactionAcknowledged) { alert("Payout requested"); window.location.hash = '#/wallet'; }
+        if (d.transactionAcknowledged) { alert("Payout requested"); window.location.hash = '#/wallet'; }
         else { alert(d.error); }
       });
     }
 
-    function loadProfileData() {
-      const uid = localStorage.getItem('userId');
-      if(!uid) { window.location.hash = '#/auth'; return; }
-      fetch(`${API_BASE}/api/user/${uid}`)
-     .then(r => r.json())
-     .then(d => {
-          document.getElementById('p-username').innerText = `@${d.username}`;
-          document.getElementById('p-views').innerText = d.totalViews;
-          document.getElementById('p-likes').innerText = d.totalLikes;
-          document.getElementById('p-posts').innerText = d.totalPosts;
-          document.getElementById('p-followers').innerText = d.followers;
-          document.getElementById('p-following').innerText = d.following;
-          const baseUrl = window.location.origin + window.location.pathname;
-          document.getElementById('p-link').value = `${baseUrl}#/?ref=${d.userId}`;
-        });
+    // ===== FIXED: Profile now accepts /profile/userid for visiting others =====
+    async function loadProfileData(uidParam) {
+      const myId = localStorage.getItem('userId');
+      const uid = uidParam || myId;
+      if (!uid) { window.location.hash = '#/auth'; return; }
+      currentProfileId = uid;
+
+      const d = await fetch(`${API_BASE}/api/user/${uid}`, {headers:getAuthHeaders()}).then(r => r.json());
+      document.getElementById('p-username').innerText = `@${d.username}`;
+      document.getElementById('p-views').innerText = d.totalViews;
+      document.getElementById('p-likes').innerText = d.totalLikes;
+      document.getElementById('p-posts').innerText = d.totalPosts;
+      document.getElementById('p-followers').innerText = d.followers;
+      document.getElementById('p-following').innerText = d.following;
+      const baseUrl = window.location.origin + window.location.pathname;
+      document.getElementById('p-link').value = `${baseUrl}#/?ref=${d.userId}`;
+
+      const btn = document.getElementById('btn-follow');
+      if (uid === myId) { btn.style.display = 'none'; return; }
+      btn.style.display = 'block';
+
+      if(d.isFollowing){
+        btn.innerText = 'Following';
+        btn.disabled = true;
+        btn.className = 'btn';
+      } else {
+        btn.innerText = 'Follow';
+        btn.disabled = false;
+        btn.className = 'btn secondary';
+      }
+    }
+    // ===== NEW: Toggle Follow from Profile Page =====
+    async function toggleFollow() {
+      if (!currentProfileId) return;
+      const btn = document.getElementById('btn-follow');
+      const endpoint = btn.innerText === 'Follow' ? '/api/follow' : '/api/unfollow';
+      
+      const r = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ followingId: currentProfileId })
+      });
+      if (r.ok) {
+        loadProfileData(currentProfileId); // reload to flip button + counts
+      } else {
+        alert((await r.json()).error);
+      }
     }
 
     function initializeServiceWorker() {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
-      }
-    }
+          }
+        }
   </script>
 </body>
 </html>
