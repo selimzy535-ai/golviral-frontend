@@ -861,14 +861,22 @@ async function checkFollowState(targetId, postId){
 
 // ===== NEW FUNCTION 3: TOGGLE FOLLOW FROM FEED =====
 async function toggleFollowFromFeed(targetId, postId){
-  const endpoint = '/api/follow'; // Always follow from feed for simplicity
+  const btn = document.getElementById(`btn-follow-${postId}`);
+  const endpoint = btn.innerText === 'Follow' ? '/api/follow' : '/api/unfollow';
   const r = await fetch(`${API_BASE}${endpoint}`,{
     method:'POST', headers:getAuthHeaders(), body:JSON.stringify({followingId: targetId})
   });
   if(r.ok){
-    const btn = document.getElementById(`btn-follow-${postId}`);
-    btn.innerText = 'Following';
-    btn.disabled = true;
+    // Flip the button instantly like IG
+    if(btn.innerText === 'Follow'){
+      btn.innerText = 'Following';
+      btn.disabled = true;
+      btn.className = 'btn';
+    } else {
+      btn.innerText = 'Follow';
+      btn.disabled = false;
+      btn.className = 'btn secondary';
+    }
   } else { alert((await r.json()).error); }
 }
 
@@ -1150,15 +1158,14 @@ async function loadProfileData(uidParam) {
 // ===== NEW: Toggle Follow from Profile Page =====
 async function toggleFollow() {
   if (!currentProfileId) return;
-  const endpoint = '/api/follow'; // We only allow follow from here for now
+  const btn = document.getElementById('btn-follow');
+  const endpoint = btn.innerText === 'Follow' ? '/api/follow' : '/api/unfollow';
+  
   const r = await fetch(`${API_BASE}${endpoint}`, {
     method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ followingId: currentProfileId })
   });
   if (r.ok) {
-    alert('Following');
-    document.getElementById('btn-follow').innerText = 'Following';
-    document.getElementById('btn-follow').disabled = true;
-    loadProfileData(currentProfileId);
+    loadProfileData(currentProfileId); // reload to flip button + counts
   } else {
     alert((await r.json()).error);
   }
