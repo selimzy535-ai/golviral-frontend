@@ -777,10 +777,19 @@ async function loadFeedEngine() {
     card.className = 'reel-card';
 
     let mediaHtml = '';
-    if(post.type === 'reel' && post.mediaUrl){
-      const url = await signMedia(post.mediaUrl, post.b2Shard);
-      mediaHtml = url? `<video src="${url}" loop muted playsinline></video>` : `<p style="color:red">Video unavailable</p>`;
-    } else {
+if(post.type === 'reel' && post.mediaUrl){
+  const url = await signMedia(post.mediaUrl, post.b2Shard);
+  const isMov = post.mediaUrl.toLowerCase().endsWith('.mov');
+  mediaHtml = url ? `
+    <video 
+      src="${url}" 
+      loop muted autoplay playsinline 
+      preload="metadata"
+      style="background-color:#000;width:100%;height:100%;display:block;"
+      onerror="this.closest('.reel-card').innerHTML='<p style=color:red;padding:20px;text-align:center>${isMov ? 'iPhone .MOV not supported' : 'Video failed'}</p>';"
+    ></video>` 
+  : `<p style="color:red">Video unavailable</p>`;
+}else {
       mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
     }
 
@@ -949,7 +958,7 @@ function switchPostType(type, e) {
 
 
 async function executePublish() {
-  const btn = document.querySelector('#view-post.btn.accent'); // FIX 1: Added space
+  const btn = document.querySelector('#view-post .btn.accent'); // ✅ Added space
   if(!btn) return alert('Button not found');
   btn.disabled = true;
   btn.innerText = "Uploading...";
