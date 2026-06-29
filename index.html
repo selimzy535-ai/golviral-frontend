@@ -468,7 +468,7 @@
         <p style="font-size:13px; color: #ff5388; font-weight: 500;" id="post-warning">Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.</p>
       </div>
       <div id="file-selector-group">
-        <input type="file" id="post-file" class="input-field" accept="video/*">
+        <input type="file" id="post-file" class="input-field" accept="video/mp4">
       </div>
       <div id="text-fields-group" style="display:none;">
         <input type="text" id="post-title" class="input-field" placeholder="Title">
@@ -786,7 +786,6 @@ if(post.type === 'reel' && post.mediaUrl){
       loop muted autoplay playsinline 
       preload="metadata"
       style="background-color:#000;width:100%;height:100%;display:block;"
-      onerror="this.closest('.reel-card').innerHTML='<p style=color:red;padding:20px;text-align:center>${isMov ? 'iPhone .MOV not supported' : 'Video failed'}</p>';"
     ></video>` 
   : `<p style="color:red">Video unavailable</p>`;
 }else {
@@ -1043,8 +1042,10 @@ async function executePublish() {
       window.location.hash = '#/feed';
     }
   } catch (err) {
-    alert(err.message); // FIX 5: You will now see WHY it failed
-    console.error('Publish Error:', err);
+  const size = fileInput ? (fileInput.size/1024/1024).toFixed(2) + 'MB' : 'N/A';
+  alert('ERROR: ' + err.message + '\nSize: ' + size);
+  console.error('Publish Error:', err);
+}
   } finally {
     btn.disabled = false;
     btn.innerText = "Publish Content";
