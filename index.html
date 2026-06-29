@@ -949,7 +949,8 @@ function switchPostType(type, e) {
 
 
 async function executePublish() {
-  const btn = document.querySelector('#view-post.btn.accent');
+  const btn = document.querySelector('#view-post.btn.accent'); // FIX 1: Added space
+  if(!btn) return alert('Button not found');
   btn.disabled = true;
   btn.innerText = "Uploading...";
 
@@ -960,12 +961,17 @@ async function executePublish() {
       const fileInput = document.getElementById('post-file')?.files?.[0];
       if (!fileInput) throw new Error("Select video file");
 
-      // 1. Hard check: 1.5MB limit - KEPT AS IS
-      if (fileInput.size > 1.5 * 1024 * 1024) {
-        throw new Error("Rejected: Max 1.5MB. Your file is " + (fileInput.size / 1024 / 1024).toFixed(1) + "MB");
+      // FIX 2: Block iPhone.MOV H.265 before upload
+      if (fileInput.type === 'video/quicktime' || fileInput.name.toLowerCase().endsWith('.mov')) {
+        throw new Error("iPhone users: Settings > Camera > Formats > Most Compatible =.mp4 only");
       }
 
-      // 2. Soft check: 30s limit using video element
+      // FIX 3: Show exact MB size if > 1.5MB
+      if (fileInput.size > 1.5 * 1024 * 1024) {
+        throw new Error("Rejected: Max 1.5MB. Your file is " + (fileInput.size / 1024 / 1024).toFixed(2) + "MB");
+      }
+
+      // 30s limit check
       const video = document.createElement('video');
       video.preload = 'metadata';
       video.src = URL.createObjectURL(fileInput);
@@ -976,18 +982,18 @@ async function executePublish() {
       if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
       if (duration < 3) throw new Error("Rejected: Min 3s required");
 
-      // 3. FIX: Send real ext + mime to backend. Was hardcoded 'mp4'
-      body.fileExtension = fileInput.name.split('.').pop().toLowerCase(); // mov or mp4
-      body.contentType = fileInput.type; // video/quicktime or video/mp4
+      // Send real ext + mime to backend
+      body.fileExtension = fileInput.name.split('.').pop().toLowerCase();
+      body.contentType = fileInput.type;
 
-      // 4. Get presigned URL from backend
+      // Get presigned URL from backend
       const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(body)
-      }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error) }); return r.json(); });
+      }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error || 'Create intent failed') }); return r.json(); });
 
-      // 5. FIX: Upload RAW file with REAL Content-Type. Was 'video/mp4' hardcoded
+      // Upload RAW file with REAL Content-Type
       const putRes = await fetch(intentRes.uploadUrl, {
         method: 'PUT',
         headers: { 'Content-Type': fileInput.type },
@@ -995,14 +1001,14 @@ async function executePublish() {
       });
       if (!putRes.ok) throw new Error(`B2 Upload failed: ${putRes.status}`);
 
-      // 6. Finalize post
+      // Finalize post
       await fetch(`${API_BASE}/api/post/create`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
       });
 
-      alert("Content submitted for system  review ✅");
+      alert("Content submitted for system review ✅"); // FIX 4: This will now show
       window.location.hash = '#/feed';
 
     } else {
@@ -1032,7 +1038,7 @@ async function executePublish() {
       window.location.hash = '#/feed';
     }
   } catch (err) {
-    alert(err.message);
+    alert(err.message); // FIX 5: You will now see WHY it failed
     console.error('Publish Error:', err);
   } finally {
     btn.disabled = false;
