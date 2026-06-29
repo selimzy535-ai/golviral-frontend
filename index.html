@@ -970,10 +970,6 @@ async function executePublish() {
       const fileInput = document.getElementById('post-file')?.files?.[0];
       if (!fileInput) throw new Error("Select video file");
 
-      // FIX 2: Block iPhone.MOV H.265 before upload
-      if (fileInput.type === 'video/quicktime' || fileInput.name.toLowerCase().endsWith('.mov')) {
-        throw new Error("iPhone users: Settings > Camera > Formats > Most Compatible =.mp4 only");
-      }
 
       // FIX 3: Show exact MB size if > 1.5MB
       if (fileInput.size > 1.5 * 1024 * 1024) {
