@@ -1042,11 +1042,10 @@ async function executePublish() {
       window.location.hash = '#/feed';
     }
   } catch (err) {
-    const fileInput = document.getElementById('post-file')?.files?.[0]; // <-- Added this line
+  const fileInput = document.getElementById('post-file')?.files?.[0]; // <-- Added this line
   const size = fileInput ? (fileInput.size/1024/1024).toFixed(2) + 'MB' : 'N/A';
   alert('ERROR: ' + err.message + '\nSize: ' + size);
   console.error('Publish Error:', err);
-}
   } finally {
     btn.disabled = false;
     btn.innerText = "Publish Content";
