@@ -3,165 +3,1190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GolViral Admin</title>
-  <meta name="theme-color" content="#FF0050">
+  <title>GolViral</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000">
   <style>
-    :root { --accent: #FF0050; --bg: #0A0A0A; --card: #111; --gray: #222; --text: #FFF; --muted: #888; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 80px; }
-    h2 { margin-bottom: 15px; }
-   .tabs { display: flex; border-bottom: 1px solid var(--gray); margin-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
-   .tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; color: var(--muted); font-weight: bold; cursor: pointer; }
-   .tab.active { border-bottom: 2px solid var(--accent); color: var(--accent); }
-   .pane { display: none; }
-   .pane.active { display: block; }
-   .card { background: var(--card); border: 1px solid var(--gray); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-    video { width: 100%; border-radius: 6px; background: #000; max-height: 70vh; }
-   .btn { background: var(--accent); color: #fff; border: none; padding: 12px 16px; border-radius: 4px; margin-right: 8px; cursor: pointer; font-weight: bold; flex: 1; }
-   .btn.reject { background: var(--gray); }
-   .btn.warn { background: #FFA500; color: #000; }
-   .row { display: flex; gap: 8px; margin-top: 10px; }
-    h3 { margin: 0 0 5px 0; font-size: 16px; }
-    p { margin: 4px 0; color: var(--muted); font-size: 13px; }
-   .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 12px; display: inline-block; }
-   .stat { display: flex; justify-content: space-between; margin: 6px 0; font-size: 14px; }
-   .stat b { color: var(--text); }
-   .empty { text-align: center; color: var(--muted); padding: 40px 20px; }
-   .logout { position: fixed; bottom: 15px; left: 15px; right: 15px; }
-   .loading { color: var(--muted); font-size: 12px; }
+    :root { 
+      --accent: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      --accent-solid: #e1306c;
+      --bg: #000000; 
+      --card-bg: #121212;
+      --text: #ffffff; 
+      --gray: #262626; 
+      --muted: #a8a8a8; 
+    }
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body { 
+      background-color: var(--bg); 
+      color: var(--text); 
+      overflow-x: hidden; 
+      letter-spacing: -0.2px;
+    }
+    
+    #app { 
+      padding-bottom: 65px; 
+      min-height: 100dvh; 
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Auth Screens Styling */
+    .auth-logo {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 800;
+      font-style: italic;
+      margin: 40px 0 20px 0;
+      background: var(--accent);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Fixed Navigation Bar */
+    .nav-bar { 
+      position: fixed; 
+      bottom: 0; 
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%; 
+      max-width: 500px;
+      height: 60px; 
+      background: rgba(0, 0, 0, 0.95); 
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--gray); 
+      display: flex; 
+      justify-content: space-around; 
+      align-items: center; 
+      z-index: 1000; 
+    }
+    
+    .nav-item { 
+      background: none; 
+      border: none; 
+      fill: #ffffff; 
+      color: var(--muted); 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      font-size: 10px; 
+      font-weight: 500;
+      cursor: pointer; 
+      text-decoration: none; 
+      transition: color 0.2s ease;
+    }
+    
+    .nav-item.active { 
+      color: var(--text); 
+      font-weight: 700;
+    }
+    
+    .nav-item.active svg {
+      fill: var(--text);
+      transform: scale(1.05);
+    }
+    
+    .nav-item svg { 
+      width: 24px; 
+      height: 24px; 
+      margin-bottom: 4px; 
+      transition: transform 0.2s ease;
+    }
+
+    /* View Viewports */
+    .view-pane { 
+      display: none; 
+      padding: 20px 15px; 
+      max-width: 500px; 
+      margin: 0 auto; 
+      width: 100%;
+      flex: 1;
+    }
+    
+    .view-pane.active { 
+      display: block; 
+    }
+    
+    /* Global Component Buttons */
+    .btn { 
+      display: block; 
+      width: 100%; 
+      padding: 14px; 
+      background: #0095f6; 
+      color: #ffffff; 
+      border: none; 
+      font-weight: 700; 
+      font-size: 14px;
+      border-radius: 8px; 
+      cursor: pointer; 
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+    
+    .btn:active {
+      opacity: 0.85;
+    }
+    
+    .btn.accent { 
+      background: var(--accent); 
+    }
+
+    .btn.secondary {
+      background: var(--gray);
+      color: var(--text);
+      border: 1px solid #363636;
+    }
+    
+    /* Inputs Form Layouts */
+    .input-field { 
+      width: 100%; 
+      padding: 14px; 
+      margin-bottom: 14px; 
+      background: #121212;
+      border: 1px solid var(--gray); 
+      color: var(--text);
+      outline: none; 
+      font-size: 14px; 
+      border-radius: 8px; 
+      transition: border-color 0.2s ease;
+    }
+    
+    .input-field:focus {
+      border-color: #a8a8a8;
+    }
+
+    select.input-field {
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='white'><path d='M7 10l5 5 5-5z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    
+    .badge { 
+      background: var(--accent-solid); 
+      color: white; 
+      font-size: 11px; 
+      font-weight: 600;
+      padding: 3px 8px; 
+      border-radius: 4px; 
+      display: inline-block; 
+    }
+    
+    /* Immersive Reel Components */
+    .reel-container { 
+      scroll-snap-type: y mandatory; 
+      overflow-y: scroll; 
+      height: calc(100dvh - 60px); 
+      width: 100%; 
+      max-width: 500px; 
+      margin: 0 auto; 
+      background: #000;
+      scrollbar-width: none;
+    }
+    
+    .reel-container::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .reel-card { 
+      position: relative; 
+      width: 100%; 
+      height: calc(100dvh - 60px); 
+      scroll-snap-align: start; 
+      background: #000; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+    }
+    
+    .reel-card video { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+    }
+    
+    .reel-overlay { 
+      position: absolute; 
+      bottom: 0; 
+      left: 0; 
+      right: 0; 
+      padding: 40px 80px 25px 16px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      color: #FFF; 
+      pointer-events: none;
+    }
+
+    .reel-overlay h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .reel-overlay p {
+      font-size: 14px;
+      font-weight: 400;
+      opacity: 0.9;
+      line-height: 1.3;
+    }
+    
+    .reel-actions { 
+      position: absolute; 
+      right: 12px; 
+      bottom: 30px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 18px; 
+      z-index: 10;
+    }
+    
+    .action-bubble { 
+      background: transparent;
+      width: 45px; 
+      height: 45px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      border: none; 
+      fill: #FFF; 
+      color: #FFF; 
+      cursor: pointer; 
+      flex-direction: column; 
+      font-size: 12px; 
+      font-weight: 500;
+    }
+
+    .action-bubble svg { 
+      width: 28px; 
+      height: 28px; 
+      margin-bottom: 4px;
+      filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.4));
+      transition: fill 0.2s ease, transform 0.2s ease;
+    }
+
+    .action-bubble.voted-like svg {
+      fill: #e1306c !important;
+    }
+
+    .action-bubble.voted-comment svg {
+      fill: #0095f6 !important;
+    }
+
+    .action-bubble:disabled {
+      cursor: default;
+    }
+    
+    /* Layout Cards & Modules */
+    .card { 
+      padding: 18px; 
+      border: 1px solid var(--gray); 
+      border-radius: 12px; 
+      background: var(--card-bg); 
+      margin-bottom: 16px;
+    }
+
+    .wallet-grid { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 12px; 
+      margin-bottom: 16px; 
+    }
+
+    .wallet-grid .card {
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .wallet-grid h5 {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .wallet-grid h2 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    /* Tab Architecture */
+    .tabs { 
+      display: flex; 
+      border-bottom: 1px solid var(--gray); 
+      margin-bottom: 20px; 
+    }
+    
+    .tab { 
+      flex: 1; 
+      padding: 14px; 
+      text-align: center; 
+      background: none; 
+      border: none; 
+      font-size: 13px;
+      font-weight: 600; 
+      color: var(--muted);
+      cursor: pointer; 
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active { 
+      border-bottom: 2px solid #ffffff; 
+      color: var(--text); 
+    }
+    
+    /* Modals & Popups */
+    .bot-modal { 
+      display: none; 
+      position: fixed; 
+      top:0; 
+      left:0; 
+      width:100%; 
+      height:100%; 
+      background: rgba(0,0,0,0.85); 
+      z-index:9999; 
+      justify-content:center; 
+      align-items:center; 
+      padding:20px; 
+      backdrop-filter: blur(8px);
+    }
+    
+    .bot-modal.active { 
+      display: flex; 
+    }
+    
+    .bot-content { 
+      background: var(--card-bg); 
+      padding: 25px; 
+      border: 1px solid var(--gray);
+      border-radius: 14px; 
+      width: 100%; 
+      max-width: 340px; 
+      text-align: center; 
+    }
+
+    .bot-content h4 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    
+    /* Text Readers */
+    .reader-card { 
+      min-height: 60vh; 
+      font-size: 16px; 
+      line-height: 1.6; 
+      padding: 24px; 
+      white-space: pre-wrap; 
+      background: #000000;
+      border-color: var(--gray);
+    }
+    
+    .timer-bar { 
+      height: 3px; 
+      background: var(--gray); 
+      margin-bottom: 20px; 
+      width: 100%; 
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .timer-fill { 
+      height: 100%; 
+      background: #0095f6; 
+      width: 0%; 
+      transition: width 1s linear; 
+    }
+
+    /* Headings Custom Elements */
+    h3 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
   </style>
 </head>
 <body>
-  <h2>GolViral Admin Panel <span class="badge">v4.5</span></h2>
+  <div id="app">
+    <div id="view-auth" class="view-pane">
+      <div class="auth-logo">GolViral</div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchAuthTab('login', event)">LOGIN</button>
+        <button class="tab" onclick="switchAuthTab('signup', event)">SIGNUP</button>
+      </div>
+      <div id="auth-form-container">
+        <input type="email" id="auth-email" class="input-field" placeholder="Email Address">
+        <input type="password" id="auth-pass" class="input-field" placeholder="Password">
+        <p style="text-align:right; font-size:12px; margin-top:-8px; margin-bottom:12px;">
+          <a href="#/forgot" style="color:#0095f6; text-decoration:none;">Forgot Password?</a>
+        </p>
+        <input type="text" id="auth-user" class="input-field" placeholder="Username" style="display:none;">
+        <input type="text" id="auth-ref" class="input-field" placeholder="Referral Code (Optional)" style="display:none;">
+        <button class="btn accent" onclick="triggerBotChallenge(submitAuth)">Continue</button>
+      </div>
+    </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('posts', event)">Post Queue</button>
-    <button class="tab" onclick="switchTab('payouts', event)">Payouts</button>
-  </div>
+    <div id="view-forgot" class="view-pane">
+      <h3 style="margin-bottom:20px;">Reset Password</h3>
+      <input type="email" id="forgot-email" class="input-field" placeholder="Email Address">
+      <button class="btn accent" onclick="triggerBotChallenge(sendForgotOtp)">Send OTP</button>
+      <button class="btn secondary" onclick="window.location.hash='#/auth'" style="margin-top:12px;">Back to Login</button>
+    </div>
 
-  <div id="pane-posts" class="pane active">
-    <div id="list-posts">Loading posts...</div>
-  </div>
+    <div id="view-reset" class="view-pane">
+      <h3 style="margin-bottom:20px;">Enter OTP</h3>
+      <input type="email" id="reset-email" class="input-field" placeholder="Email Address" readonly>
+      <input type="text" id="reset-otp" class="input-field" placeholder="6 Digit OTP">
+      <input type="password" id="reset-pass" class="input-field" placeholder="New Password">
+      <button class="btn accent" onclick="submitResetPassword()">Reset Password</button>
+    </div>
 
-  <div id="pane-payouts" class="pane">
-    <div id="list-payouts">Loading payouts...</div>
-  </div>
+    <div id="view-feed" class="view-pane" style="padding:0; max-width:100%;">
+      <div id="reel-viewport" class="reel-container"></div>
+    </div>
 
-  <button class="btn logout" onclick="logout()">Logout</button>
+    <div id="view-post" class="view-pane">
+      <h3 style="margin-bottom:20px;">Publish Engine</h3>
+      <div class="tabs">
+        <button class="tab active" onclick="switchPostType('reel', event)">Reel</button>
+        <button class="tab" onclick="switchPostType('novel', event)">Novel</button>
+        <button class="tab" onclick="switchPostType('story', event)">Story</button>
+      </div>
+      <div class="card" style="margin-bottom:20px; border-color: var(--accent-solid); background: rgba(225, 48, 108, 0.05);">
+        <p style="font-size:13px; color: #ff5388; font-weight: 500;" id="post-warning">Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.</p>
+      </div>
+      <div id="file-selector-group">
+        <input type="file" id="post-file" class="input-field" accept="video/mp4">
+      </div>
+      <div id="text-fields-group" style="display:none;">
+        <input type="text" id="post-title" class="input-field" placeholder="Title">
+        <textarea id="post-content" class="input-field" placeholder="Body Content..." style="height:180px; resize: none;"></textarea>
+      </div>
+      <button class="btn accent" onclick="executePublish()">Publish Content</button>
+    </div>
 
-  <script>
-    const API = 'https://golviral-api.onrender.com';
-    const token = localStorage.getItem('token');
-    if(!token) location.href = './index.html#/auth';
+    <div id="view-novel" class="view-pane">
+      <div class="timer-bar"><div id="novel-timer" class="timer-fill"></div></div>
+      <div class="card reader-card" id="novel-content"></div>
+    </div>
 
-    function switchTab(tab, e) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
-      e.target.classList.add('active');
-      document.getElementById('pane-' + tab).classList.add('active');
-      if(tab === 'posts') loadPosts();
-      if(tab === 'payouts') loadPayouts();
-    }
+    <div id="view-story" class="view-pane">
+      <div class="timer-bar"><div id="story-timer" class="timer-fill"></div></div>
+      <div class="card reader-card" id="story-content"></div>
+    </div>
 
-    async function api(path, method='GET', body=null) {
-      const opts = {method, headers:{Authorization:`Bearer ${token}`}};
-      if(body) { opts.headers['Content-Type']='application/json'; opts.body=body; }
-      const r = await fetch(`${API}${path}`, opts);
-      if(r.status === 403) { alert('Admin access only'); logout(); }
-      if(r.status === 401) { alert('Session expired'); logout(); }
-      return r.json();
-    }
+    <div id="view-wallet" class="view-pane">
+      <h3 style="margin-bottom:20px;">Balance Ledger</h3>
+      <div class="wallet-grid">
+        <div class="card"><h5>Free Credits</h5><h2 id="w-free">0</h2></div>
+        <div class="card"><h5>Cash Balance</h5><h2 id="w-cash">₦0.00</h2></div>
+        <div class="card"><h5>Today's Vault</h5><h2 id="w-today">0/10000</h2></div>
+        <div class="card"><h5>Monetized</h5><h2 id="w-flag" style="color: #ff3b30;">False</h2></div>
+      </div>
+      <div class="card" style="margin-bottom:20px; background: rgba(255,255,255,0.03);">
+        <p style="font-size:13px; color:var(--muted); text-align: center; font-weight: 500;" id="w-requirements">Monetization: 7 Days + 5 Referrals</p>
+      </div>
+      <a href="#/deposit" class="btn" style="margin-bottom:12px;">Deposit Funds</a>
+      <button class="btn secondary" onclick="window.location.hash='#/withdraw'">Request Payout</button>
+    </div>
 
-    async function signUrl(key, shard) {
-      try {
-        const r = await api(`/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`);
-        return r.url || '';
-      } catch {
-        return '';
-      }
-    }
+    <div id="view-withdraw" class="view-pane">
+      <h3 style="margin-bottom:20px;">Request Cash Payout</h3>
+      <input type="number" id="wd-amount" class="input-field" placeholder="Points Min 50,000">
+      <input type="text" id="wd-target" class="input-field" placeholder="Bank Name / USDT">
+      <input type="text" id="wd-details" class="input-field" placeholder="Account Number / Wallet">
+      <button class="btn accent" onclick="submitWithdrawalInit()">Send OTP</button>
+      <div id="wd-otp-group" style="display:none; margin-top:24px; padding-top:24px; border-top:1px dashed var(--gray);">
+        <input type="text" id="wd-otp" class="input-field" placeholder="Enter OTP">
+        <button class="btn" onclick="confirmWithdrawal()">Confirm Payout</button>
+      </div>
+    </div>
 
-    // ===== POSTS QUEUE =====
-    async function loadPosts() {
-      const el = document.getElementById('list-posts');
-      el.innerHTML = 'Loading...';
-      const posts = await api('/api/admin/posts/pending');
-      if(!posts.length) return el.innerHTML = '<div class="empty">No pending posts 🎉</div>';
+    <div id="view-deposit" class="view-pane">
+      <h3 style="margin-bottom:20px;">Deposit Credits</h3>
+      <select id="dep-tier" class="input-field">
+        <option value="1500">₦1,500 -> 15,000 pts</option>
+        <option value="3000">₦3,000 -> 30,000 pts</option>
+        <option value="5000">₦5,000 -> 50,000 pts</option>
+        <option value="7000">₦7,000 -> 70,000 pts</option>
+        <option value="10000">₦10,000 -> 100,000 pts</option>
+        <option value="15000">₦15,000 -> 150,000 pts</option>
+      </select>
+      <button class="btn accent" onclick="triggerBotChallenge(executeDepositVerification)">Pay via Selar</button>
+    </div>
 
-      el.innerHTML = '<div class="loading">Signing video links, please wait...</div>';
-
-      const cards = await Promise.all(posts.map(async p => {
-        let mediaHtml = '';
-        if(p.type==='reel' && p.mediaUrl) {
-          const url = await signUrl(p.mediaUrl, p.b2Shard);
-          mediaHtml = url? `<video src="${url}" controls preload="metadata"></video>`
-                          : `<p style="color:red">Video URL failed. Check B2 keys.</p>`;
-        } else {
-          mediaHtml = `<h3>${p.title || 'Untitled'}</h3><p>${(p.content||'').slice(0,300)}${p.content?.length>300?'...':''}</p>`;
-        }
-
-        return `
-        <div class="card" id="post-${p.id}">
-          <h3>@${p.user?.username || p.userId} <span class="badge">${p.type}</span></h3>
-          <div class="stat"><span>Cost</span><b>${p.type==='reel'?25:10} pts</b></div>
-          <div class="stat"><span>Shard</span><b>DB${p.b2Shard+1}</b></div>
-          ${mediaHtml}
-          <div class="row">
-            <button class="btn" onclick="postAction('${p.id}','approve')">Approve</button>
-            <button class="btn reject" onclick="postAction('${p.id}','reject')">Reject + Refund</button>
-          </div>
-        </div>`;
-      }));
-
-      el.innerHTML = cards.join('');
-    }
-
-    async function postAction(id, action) {
-      if(action==='reject' &&!confirm('Reject and refund 25pts?')) return;
-      await api(`/api/admin/posts/${id}/${action}`, 'POST');
-      document.getElementById('post-'+id).remove();
-    }
-
-    // ===== PAYOUTS QUEUE =====
-    async function loadPayouts() {
-      const el = document.getElementById('list-payouts');
-      el.innerHTML = 'Loading...';
-      const payouts = await api('/api/admin/payouts');
-      if(!payouts.length) return el.innerHTML = '<div class="empty">No pending payouts 💰</div>';
-
-      el.innerHTML = payouts.map(p => `
-        <div class="card" id="payout-${p.id}">
-          <h3>Payout Request <span class="badge">₦${(p.amountPoints * 0.1).toFixed(2)}</span></h3>
-          <div class="stat"><span>User ID</span><b>${p.userId}</b></div>
-          <div class="stat"><span>Points</span><b>${p.amountPoints}</b></div>
-          <div class="stat"><span>To</span><b>${p.routingTarget}</b></div>
-          <div class="stat"><span>Details</span><b>${p.targetDetails}</b></div>
-          <div class="row">
-            <button class="btn" onclick="payoutAction('${p.id}','${p.userId}','approve')">Approve</button>
-            <button class="btn reject" onclick="payoutAction('${p.id}','${p.userId}','reject')">Reject</button>
-          </div>
+    <div id="view-profile" class="view-pane">
+      <div style="text-align:center; padding: 20px 0 10px 0;">
+        <div style="width: 86px; height: 86px; background: var(--accent); border-radius: 50%; margin: 0 auto 14px auto; padding: 3px;">
+          <div style="width: 100%; height: 100%; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;">👤</div>
         </div>
-      `).join('');
+        <h2 id="p-username" style="font-size: 22px; font-weight: 600; margin-bottom: 12px;">@username</h2>
+        <button id="btn-follow" class="btn secondary" style="width:auto; padding:8px 16px; margin-bottom:16px; display:none;" onclick="toggleFollow()">Follow</button>
+
+        <div style="display:flex; justify-content:space-around; margin-bottom:24px; border-top: 1px solid var(--gray); border-bottom: 1px solid var(--gray); padding: 12px 0;">
+          <div><h4 id="p-views" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Views</span></div>
+          <div><h4 id="p-likes" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Likes</span></div>
+          <div><h4 id="p-posts" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Posts</span></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-around; font-size:14px; margin-bottom:24px; color: var(--muted);">
+          <div>Followers: <b id="p-followers" style="color: var(--text)">0</b></div>
+          <div>Following: <b id="p-following" style="color: var(--text)">0</b></div>
+        </div>
+
+        <input type="text" id="p-link" class="input-field" readonly onclick="this.select()" style="text-align: center; background: var(--card-bg); cursor: pointer;">
+        <p style="font-size:12px; color:var(--muted); margin-top: -6px;">Tap to copy referral link</p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav-bar">
+    <a href="#/feed" class="nav-item" id="nav-feed">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed
+    </a>
+    <a href="#/post" class="nav-item" id="nav-post">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create
+    </a>
+    <a href="#/wallet" class="nav-item" id="nav-wallet">
+      <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 0.9 2 2v1h-9c-1.1 0-2 0.9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
+    </a>
+    <a href="#/profile" class="nav-item" id="nav-profile">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile
+    </a>
+  </nav>
+
+  <div id="bot-overlay-modal" class="bot-modal">
+    <div class="bot-content">
+      <h4 style="margin-bottom:12px;">Security Gate</h4>
+      <p style="font-size:14px; color:var(--muted); margin-bottom:18px;" id="bot-question">Loading...</p>
+      <input type="text" id="bot-answer" class="input-field" placeholder="Your Answer">
+      <button class="btn accent" onclick="submitBotVerification()">Verify</button>
+    </div>
+  </div>
+
+  <div id="comment-modal" class="bot-modal">
+    <div class="bot-content" style="max-width:500px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <h4>Comments</h4><button onclick="document.getElementById('comment-modal').classList.remove('active')" style="background:none;border:none;color:#fff;font-size:20px;">×</button>
+      </div>
+      <div id="comment-list" style="max-height:40vh; overflow-y:auto; margin-bottom:12px;"></div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="comment-input" class="input-field" placeholder="Add comment..." style="margin:0;">
+        <button class="btn" onclick="postCommentNow()" style="width:auto;">Send</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <script>
+    const API_BASE = "https://golviral-api.onrender.com";
+let activeAuthTab = 'login';
+let activePostType = 'reel';
+let currentBotCallback = null;
+let currentBotToken = "";
+let readTimer = null;
+let deferredPrompt = null;
+let currentProfileId = null;
+let isFollowing = false;
+let activeCommentPost = null;
+let activeCommentCreator = null;
+
+window.addEventListener('hashchange', routeEngine);
+window.addEventListener('load', () => {
+  routeEngine();
+  initializeServiceWorker();
+  trackAppImpressions();
+  const ref = new URLSearchParams(window.location.search).get('ref');
+  if(ref) localStorage.setItem('ref', ref);
+});
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const visits = parseInt(localStorage.getItem('site_impressions') || '0');
+  if (visits >= 3) {
+    if(confirm("Install GolViral App for offline capability and fast loading?")) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    }
+  }
+});
+
+function trackAppImpressions() {
+  let count = parseInt(localStorage.getItem('site_impressions') || '0');
+  localStorage.setItem('site_impressions', count + 1);
+}
+
+function routeEngine() {
+  const hash = window.location.hash || '#/feed';
+  document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if(readTimer) { clearInterval(readTimer); readTimer = null; }
+
+  if (hash.startsWith('#/feed')) { activateView('view-feed', 'nav-feed'); loadFeedEngine(); }
+  else if (hash.startsWith('#/post')) { activateView('view-post', 'nav-post'); }
+  else if (hash.startsWith('#/wallet')) { activateView('view-wallet', 'nav-wallet'); loadWalletData(); }
+  else if (hash.startsWith('#/profile')) { activateView('view-profile', 'nav-profile'); loadProfileData(hash.split('/')[2]); }
+  else if (hash.startsWith('#/deposit')) { activateView('view-deposit', 'nav-wallet'); }
+  else if (hash.startsWith('#/withdraw')) { activateView('view-withdraw', 'nav-wallet'); }
+  else if (hash.startsWith('#/auth')) { activateView('view-auth', ''); }
+  else if (hash.startsWith('#/forgot')) { activateView('view-forgot', ''); }
+  else if (hash.startsWith('#/reset')) { activateView('view-reset', ''); }
+  else if (hash.startsWith('#/novel/')) { activateView('view-novel', ''); loadReader('NOVEL', hash.split('/')[2]); }
+  else if (hash.startsWith('#/story/')) { activateView('view-story', ''); loadReader('STORY', hash.split('/')[2]); }
+}
+
+function activateView(viewId, navId) {
+  document.getElementById(viewId).classList.add('active');
+  if(navId) document.getElementById(navId).classList.add('active');
+}
+
+function getAuthHeaders() {
+  const token = localStorage.getItem('token');
+  if (!token) { window.location.hash = '#/auth'; throw new Error("Login required"); }
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+
+async function signMedia(key, shard) {
+  const token = localStorage.getItem('token');
+  if(!token) return '';
+  try {
+    const r = await fetch(`${API_BASE}/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`,{headers:{Authorization:`Bearer ${token}`}});
+    const d = await r.json();
+    return d.url || '';
+  } catch { return ''; }
+}
+
+function triggerBotChallenge(callback) {
+  currentBotCallback = callback;
+  fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      currentBotToken = data.token;
+      document.getElementById('bot-question').innerText = data.question;
+      document.getElementById('bot-overlay-modal').classList.add('active');
+    });
+}
+
+function submitBotVerification() {
+  const answer = document.getElementById('bot-answer').value;
+  fetch(`${API_BASE}/api/bot-verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: currentBotToken, answer })
+  }).then(r => {
+    if(!r.ok) throw new Error("Incorrect answer");
+    return r.json();
+  }).then(data => {
+    document.getElementById('bot-overlay-modal').classList.remove('active');
+    document.getElementById('bot-answer').value = "";
+    if (currentBotCallback) currentBotCallback(data.passToken);
+  }).catch(err => alert(err.message));
+}
+
+function switchAuthTab(tab, e) {
+  activeAuthTab = tab;
+  document.querySelectorAll('#view-auth .tab').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
+  document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
+}
+
+function submitAuth(passToken) {
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-pass').value;
+  const username = document.getElementById('auth-user').value;
+  const referralCode = localStorage.getItem('ref') || document.getElementById('auth-ref').value;
+  const endpoint = activeAuthTab === 'login'? '/api/auth/login' : '/api/auth/signup';
+  const body = activeAuthTab === 'login'? { email, password, passToken } : { username, email, password, passToken, referralCode };
+  fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(r => r.json()).then(data => {
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.userId);
+      localStorage.removeItem('ref');
+      window.location.hash = '#/feed';
+    } else {
+      alert(data.error || "Auth failed");
+    }
+  });
+}
+
+// ===== NEW FUNCTION 1: FORGOT PASSWORD =====
+async function sendForgotOtp(passToken){
+  const email = document.getElementById('forgot-email').value;
+  if(!email) return alert('Enter email');
+  const r = await fetch(`${API_BASE}/api/auth/forgot-password`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email, passToken})
+  });
+  if(r.ok){
+    document.getElementById('reset-email').value = email;
+    window.location.hash='#/reset';
+  } else { alert((await r.json()).error); }
+}
+
+// ===== NEW FUNCTION 2: RESET PASSWORD =====
+async function submitResetPassword(){
+  const email = document.getElementById('reset-email').value;
+  const otp = document.getElementById('reset-otp').value;
+  const newPassword = document.getElementById('reset-pass').value;
+  if(!otp || !newPassword) return alert('Fill all fields');
+  const r = await fetch(`${API_BASE}/api/auth/reset-password`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email, otp, newPassword})
+  });
+  const d = await r.json();
+  alert(d.message || 'Password updated');
+  if(r.ok) window.location.hash='#/auth';
+}
+
+async function loadFeedEngine() {
+  const viewport = document.getElementById('reel-viewport');
+  viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
+  const token = localStorage.getItem('token');
+  const myId = localStorage.getItem('userId');
+  if(!token) return window.location.hash='#/auth';
+
+  const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
+  viewport.innerHTML = "";
+  if(posts.length === 0) return viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
+
+  const userLikes = JSON.parse(localStorage.getItem('gv_likes') || '[]');
+  const userComments = JSON.parse(localStorage.getItem('gv_comments') || '[]');
+
+  for(const post of posts){
+    const card = document.createElement('div');
+    card.className = 'reel-card';
+
+    let mediaHtml = '';
+if(post.type === 'reel' && post.mediaUrl){
+  const url = await signMedia(post.mediaUrl, post.b2Shard);
+  const isMov = post.mediaUrl.toLowerCase().endsWith('.mov');
+  mediaHtml = url ? `
+    <video 
+      src="${url}" 
+      loop muted autoplay playsinline 
+      preload="metadata"
+      style="background-color:#000;width:100%;height:100%;display:block;"
+    ></video>` 
+  : `<p style="color:red">Video unavailable</p>`;
+}else {
+      mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
     }
 
-    async function payoutAction(id, userId, action) {
-      if(action==='reject') {
-        const reason = prompt('Rejection reason for user:');
-        if(!reason) return;
-        await api(`/api/admin/payouts/reject`, 'POST', JSON.stringify({payoutId:id, userId, reason}));
-      } else {
-        await api(`/api/admin/payouts/approve`, 'POST', JSON.stringify({payoutId:id, userId}));
+    const hasLiked = userLikes.includes(post.id);
+    const hasCommented = userComments.includes(post.id);
+    const isOwner = post.userId === myId;
+
+    // ===== IG STYLE: FOLLOW BUTTON ON EACH REEL =====
+    card.innerHTML = `
+      ${mediaHtml}
+      <div class="reel-overlay">
+        <h4>
+          <a href="#/profile/${post.userId}" style="color:#fff; text-decoration:none;">@${post.userId}</a>
+          ${!isOwner? `<button id="btn-follow-${post.id}" class="btn secondary" style="width:auto; padding:4px 10px; font-size:12px; margin-left:8px;" onclick="toggleFollowFromFeed('${post.userId}', '${post.id}')">Follow</button>` : ''}
+        </h4>
+        <p>${post.title || post.type}</p>
+      </div>
+      <div class="reel-actions">
+        <button class="action-bubble ${hasLiked? 'voted-like' : ''}" ${hasLiked? 'disabled' : ''} id="btn-like-${post.id}" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
+          <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span id="count-like-${post.id}">${post.likes}</span>
+        </button>
+        <button class="action-bubble ${hasCommented? 'voted-comment' : ''}" id="btn-comment-${post.id}" onclick="openCommentModal('${post.id}', '${post.userId}')">
+          <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+          <span id="count-comment-${post.id}">${post.comments}</span>
+        </button>
+        <button class="action-bubble" onclick="shareReel('${post.id}')">
+          <svg viewBox="0 0 24 24" fill="#FFF"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0.24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+          <span>Share</span>
+        </button>
+      </div>
+    `;
+    viewport.appendChild(card);
+
+    // Check follow state after append
+    if(!isOwner) checkFollowState(post.userId, post.id);
+
+    let viewTriggered = false;
+    const videoEl = card.querySelector('video');
+    if(videoEl){
+      videoEl.addEventListener('play', () => {
+        if (!viewTriggered) {
+          setTimeout(() => {
+            if (!videoEl.paused) {
+              viewTriggered = true;
+              fetch(`${API_BASE}/api/view`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId: post.id, userId: post.userId })
+              });
+            }
+          }, 3000);
+        }
+      });
+      card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
+    }
+    if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}?author=${post.userId}`);
+    if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
+  }
+}
+
+async function checkFollowState(targetId, postId){
+  const btn = document.getElementById(`btn-follow-${postId}`);
+  if(!btn) return;
+  try {
+    const d = await fetch(`${API_BASE}/api/user/${targetId}`, {headers:getAuthHeaders()}).then(r=>r.json());
+    if(d.isFollowing){
+      btn.innerText = 'Following';
+      btn.disabled = true;
+      btn.className = 'btn'; // gray solid like IG
+    } else {
+      btn.innerText = 'Follow';
+      btn.className = 'btn secondary'; // outline like IG
+    }
+  } catch(e){ console.error(e); }
+}
+
+// ===== NEW FUNCTION 3: TOGGLE FOLLOW FROM FEED =====
+async function toggleFollowFromFeed(targetId, postId){
+  const btn = document.getElementById(`btn-follow-${postId}`);
+  const endpoint = btn.innerText === 'Follow' ? '/api/follow' : '/api/unfollow';
+  const r = await fetch(`${API_BASE}${endpoint}`,{
+    method:'POST', headers:getAuthHeaders(), body:JSON.stringify({followingId: targetId})
+  });
+  if(r.ok){
+    // Flip the button instantly like IG
+    if(btn.innerText === 'Follow'){
+      btn.innerText = 'Following';
+      btn.disabled = true;
+      btn.className = 'btn';
+    } else {
+      btn.innerText = 'Follow';
+      btn.disabled = false;
+      btn.className = 'btn secondary';
+    }
+  } else { alert((await r.json()).error); }
+}
+
+function shareReel(postId) {
+  const baseUrl = window.location.origin + window.location.pathname;
+  const shareUrl = `${baseUrl}#/feed?post=${postId}`;
+  const text = `Watch this on GolViral`;
+  if (navigator.share) {
+    navigator.share({ title: 'GolViral', text: text, url: shareUrl, }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(shareUrl).then(() => { alert('Link copied ✅'); });
+  }
+}
+
+function interactFeed(postId, action, creatorId) {
+  const cacheKey = action === 'like'? 'gv_likes' : 'gv_comments';
+  let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+  if(action==='like' && storageItems.includes(postId)) return;
+
+  const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
+  const targetedCount = document.getElementById(`count-${action}-${postId}`);
+
+  let body = { postId, creatorId };
+
+  if(targetedBtn && targetedCount) {
+    targetedBtn.disabled = true;
+    targetedBtn.classList.add(action === 'like'? 'voted-like' : 'voted-comment');
+    targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
+  }
+  storageItems.push(postId);
+  localStorage.setItem(cacheKey, JSON.stringify(storageItems));
+
+  fetch(`${API_BASE}/api/${action}`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(body)
+  }).then(r => { if(r.status === 202) console.log("Buffered"); });
+}
+
+// ===== NEW FUNCTION 4: OPEN COMMENT MODAL =====
+async function openCommentModal(postId, creatorId){
+  activeCommentPost = postId; activeCommentCreator = creatorId;
+  document.getElementById('comment-modal').classList.add('active');
+  const list = document.getElementById('comment-list');
+  list.innerHTML = 'Loading...';
+  const d = await fetch(`${API_BASE}/api/comments/${postId}`).then(r=>r.json());
+  list.innerHTML = d.comments.map(c=>`<p style="margin-bottom:8px;"><b>@${c.user.username}</b>: ${c.text}</p>`).join('') || '<p style="color:var(--muted)">No comments yet</p>';
+}
+
+// ===== NEW FUNCTION 5: POST COMMENT =====
+async function postCommentNow(){
+  const text = document.getElementById('comment-input').value.trim();
+  if(text.length<2) return;
+  await fetch(`${API_BASE}/api/comment`,{
+    method:'POST', headers:getAuthHeaders(), body:JSON.stringify({postId:activeCommentPost, creatorId:activeCommentCreator, text})
+  });
+  document.getElementById('comment-input').value='';
+  openCommentModal(activeCommentPost, activeCommentCreator);
+  const countEl = document.getElementById(`count-comment-${activeCommentPost}`);
+  if(countEl) countEl.innerText = parseInt(countEl.innerText || '0') + 1;
+}
+
+function switchPostType(type, e) {
+  activePostType = type;
+  document.querySelectorAll('#view-post .tab').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
+  document.getElementById('text-fields-group').style.display = type !== 'reel'? 'block' : 'none';
+  document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
+}
+
+
+async function executePublish() {
+  const btn = document.querySelector('#view-post .btn.accent'); // ✅ Added space
+  if(!btn) return alert('Button not found');
+  btn.disabled = true;
+  btn.innerText = "Uploading...";
+
+  try {
+    const body = { postType: activePostType };
+
+    if (activePostType === 'reel') {
+      const fileInput = document.getElementById('post-file')?.files?.[0];
+      if (!fileInput) throw new Error("Select video file");
+
+
+      // FIX 3: Show exact MB size if > 1.5MB
+      if (fileInput.size > 1.5 * 1024 * 1024) {
+        throw new Error("Rejected: Max 1.5MB. Your file is " + (fileInput.size / 1024 / 1024).toFixed(2) + "MB");
       }
-      document.getElementById('payout-'+id).remove();
-    }
 
-    function logout() {
-      localStorage.removeItem('token');
-      location.href = './index.html#/auth';
-    }
+      // 30s limit check
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.src = URL.createObjectURL(fileInput);
+      await new Promise(resolve => { video.onloadedmetadata = resolve; video.onerror = () => resolve(); });
+      const duration = video.duration;
+      URL.revokeObjectURL(video.src);
 
-    // init
-    loadPosts();
+      if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
+      if (duration < 3) throw new Error("Rejected: Min 3s required");
+
+      // Send real ext + mime to backend
+      body.fileExtension = fileInput.name.split('.').pop().toLowerCase();
+      body.contentType = fileInput.type;
+
+      // Get presigned URL from backend
+      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body)
+      }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error || 'Create intent failed') }); return r.json(); });
+
+      // Upload RAW file with REAL Content-Type
+      const putRes = await fetch(intentRes.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': fileInput.type },
+        body: fileInput
+      });
+      if (!putRes.ok) throw new Error(`B2 Upload failed: ${putRes.status}`);
+
+      // Finalize post
+      await fetch(`${API_BASE}/api/post/create`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
+      });
+
+      alert("Content submitted for system review ✅"); // FIX 4: This will now show
+      window.location.hash = '#/feed';
+
+    } else {
+      // Novel/Story - unchanged
+      const title = document.getElementById('post-title').value.trim();
+      const content = document.getElementById('post-content').value.trim();
+      if (!title) throw new Error("Title required");
+      if (!content) throw new Error("Content required");
+
+      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body)
+      }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error) }); return r.json(); });
+
+      await fetch(`${API_BASE}/api/post/create`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          postId: intentRes.postId,
+          objectKey: intentRes.objectKey,
+          title,
+          content
+        })
+      });
+      alert("Content submitted for admin approval");
+      window.location.hash = '#/feed';
+    }
+  } catch (err) {
+  const fileInput = document.getElementById('post-file')?.files?.[0]; // <-- Added this line
+  const size = fileInput ? (fileInput.size/1024/1024).toFixed(2) + 'MB' : 'N/A';
+  alert('ERROR: ' + err.message + '\nSize: ' + size);
+  console.error('Publish Error:', err);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "Publish Content";
+  }
+}
+async function loadReader(type, id) {
+  const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
+  const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
+  const authorId = new URLSearchParams(window.location.hash.split('?')[1] || '').get('author') || 'unknown';
+  const seconds = type === 'NOVEL' ? 120 : 180;
+  let elapsed = 0;
+
+  const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok ? r.json() : null);
+  if (!post || post.type.toUpperCase() !== type) return contentEl.innerHTML = 'Post not found';
+
+  contentEl.innerHTML = `<h3>${post.title || ''}</h3><br>${post.content || 'No content'}`;
+  timerEl.style.width = '0%';
+  readTimer = setInterval(() => {
+    elapsed++;
+    timerEl.style.width = `${(elapsed / seconds) * 100}%`;
+    if (elapsed >= seconds) {
+      clearInterval(readTimer);
+      fetch(`${API_BASE}/api/read-session`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
+      });
+      alert(`+10pts credited`);
+    }
+  }, 1000);
+}
+
+function loadWalletData() {
+  fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('w-free').innerText = d.freeCredits;
+      document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
+      document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
+      document.getElementById('w-flag').innerText = d.monetized ? "True" : "False";
+      document.getElementById('w-requirements').innerText = `Days Left: ${d.daysToMonetize} | Referrals Left: ${d.refsLeft}`;
+    });
+}
+
+function generateRef() {
+  const arr = new Uint8Array(4);
+  crypto.getRandomValues(arr);
+  return "SELAR_TX_" + Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+function executeDepositVerification(passToken) {
+  const tierAmount = parseInt(document.getElementById('dep-tier').value);
+  const reference = generateRef();
+  const userId = localStorage.getItem('userId');
+  fetch(`${API_BASE}/api/deposit/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, reference, tierAmount, passToken })
+  }).then(r => r.json()).then(d => { if (d.success) { alert("Credits added"); loadWalletData(); } else { alert(d.error); } });
+}
+
+function submitWithdrawalInit() {
+  const amountPoints = parseInt(document.getElementById('wd-amount').value);
+  const routingTarget = document.getElementById('wd-target').value;
+  const targetDetails = document.getElementById('wd-details').value;
+  fetch(`${API_BASE}/api/wallet/withdraw`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ amountPoints, routingTarget, targetDetails })
+  }).then(r => r.json()).then(d => {
+    if (d.authChallenge) {
+      document.getElementById('wd-otp-group').style.display = 'block';
+      alert("OTP sent to email");
+    } else { alert(d.error); }
+  });
+}
+
+function confirmWithdrawal() {
+  const otp = document.getElementById('wd-otp').value;
+  fetch(`${API_BASE}/api/wallet/withdraw/confirm`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ otp })
+  }).then(r => r.json()).then(d => {
+    if (d.transactionAcknowledged) { alert("Payout requested"); window.location.hash = '#/wallet'; }
+    else { alert(d.error); }
+  });
+}
+
+// ===== FIXED: Profile now accepts /profile/userid for visiting others =====
+async function loadProfileData(uidParam) {
+  const myId = localStorage.getItem('userId');
+  const uid = uidParam || myId;
+  if (!uid) { window.location.hash = '#/auth'; return; }
+  currentProfileId = uid;
+
+  const d = await fetch(`${API_BASE}/api/user/${uid}`, {headers:getAuthHeaders()}).then(r => r.json());
+  document.getElementById('p-username').innerText = `@${d.username}`;
+  document.getElementById('p-views').innerText = d.totalViews;
+  document.getElementById('p-likes').innerText = d.totalLikes;
+  document.getElementById('p-posts').innerText = d.totalPosts;
+  document.getElementById('p-followers').innerText = d.followers;
+  document.getElementById('p-following').innerText = d.following;
+  const baseUrl = window.location.origin + window.location.pathname;
+  document.getElementById('p-link').value = `${baseUrl}#/?ref=${d.userId}`;
+
+  const btn = document.getElementById('btn-follow');
+  if (uid === myId) { btn.style.display = 'none'; return; }
+  btn.style.display = 'block';
+
+  if(d.isFollowing){
+    btn.innerText = 'Following';
+    btn.disabled = true;
+    btn.className = 'btn';
+  } else {
+    btn.innerText = 'Follow';
+    btn.disabled = false;
+    btn.className = 'btn secondary';
+  }
+}
+// ===== NEW: Toggle Follow from Profile Page =====
+async function toggleFollow() {
+  if (!currentProfileId) return;
+  const btn = document.getElementById('btn-follow');
+  const endpoint = btn.innerText === 'Follow' ? '/api/follow' : '/api/unfollow';
+  
+  const r = await fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ followingId: currentProfileId })
+  });
+  if (r.ok) {
+    loadProfileData(currentProfileId); // reload to flip button + counts
+  } else {
+    alert((await r.json()).error);
+  }
+}
+
+function initializeServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
+      }
+    }
   </script>
 </body>
 </html>
