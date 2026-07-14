@@ -2,24 +2,46 @@
   "name": "GolViral",
   "short_name": "GolViral",
   "description": "Short Reels, Novels, Stories. Earn while you scroll.",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/golviral-frontend/",
+  "scope": "/golviral-frontend/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#FF0050",
+  "background_color": "#000",
+  "theme_color": "#e1306c",
   "orientation": "portrait",
+  "categories": ["social", "entertainment", "video"],
+  "lang": "en",
   "icons": [
     {
       "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./screenshot-feed.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpg",
+      "form_factor": "narrow"
     }
   ]
 }
