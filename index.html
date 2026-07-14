@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral</title>
@@ -516,14 +517,10 @@
 
     <div id="view-deposit" class="view-pane">
       <h3 style="margin-bottom:20px;">Deposit Credits</h3>
-      <select id="dep-tier" class="input-field">
-        <option value="1500">₦1,500 -> 15,000 pts</option>
-        <option value="3000">₦3,000 -> 30,000 pts</option>
-        <option value="5000">₦5,000 -> 50,000 pts</option>
-        <option value="7000">₦7,000 -> 70,000 pts</option>
-        <option value="10000">₦10,000 -> 100,000 pts</option>
-        <option value="15000">₦15,000 -> 150,000 pts</option>
-      </select>
+     <select id="dep-tier" class="input-field">
+  <option value="1500">₦1,500 -> 15,000 pts</option>
+  <option value="7000">₦7,000 -> 70,000 pts</option>
+</select>
       <button class="btn accent" onclick="triggerBotChallenge(executeDepositVerification)">Pay via Selar</button>
     </div>
 
@@ -552,6 +549,23 @@
     </div>
   </div>
 
+    <div id="view-dm-list" class="view-pane">
+  <h3 style="margin-bottom:20px;">Messages</h3>
+  <div id="dm-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+</div>
+
+<div id="view-dm-chat" class="view-pane" style="padding:0; display:flex; flex-direction:column; height:calc(100dvh - 60px);">
+  <div style="padding:12px 16px; border-bottom:1px solid var(--gray); display:flex; align-items:center; gap:10px;">
+    <button onclick="window.location.hash='#/dm-list'" style="background:none;border:none;color:#fff;font-size:20px;">←</button>
+    <h4 id="chat-username">@user</h4>
+  </div>
+  <div id="chat-messages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;"></div>
+  <div style="padding:12px; border-top:1px solid var(--gray); display:flex; gap:8px;">
+    <input type="text" id="chat-input" class="input-field" placeholder="Message..." style="margin:0; flex:1;">
+    <button class="btn" onclick="sendSocketMessage()" style="width:auto; padding:12px 18px;">Send</button>
+  </div>
+</div>
+  
   <nav class="nav-bar">
     <a href="#/feed" class="nav-item" id="nav-feed">
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed
@@ -565,6 +579,9 @@
     <a href="#/profile" class="nav-item" id="nav-profile">
       <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile
     </a>
+    <a href="#/dm-list" class="nav-item" id="nav-dm">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2.9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>DM
+</a>
   </nav>
 
   <div id="bot-overlay-modal" class="bot-modal">
@@ -591,7 +608,7 @@
 
   
   <script>
-    const API_BASE = "https://golviral-api.onrender.com";
+const API_BASE = "https://golviral-api.onrender.com";
 let activeAuthTab = 'login';
 let activePostType = 'reel';
 let currentBotCallback = null;
@@ -610,18 +627,6 @@ window.addEventListener('load', () => {
   trackAppImpressions();
   const ref = new URLSearchParams(window.location.search).get('ref');
   if(ref) localStorage.setItem('ref', ref);
-});
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const visits = parseInt(localStorage.getItem('site_impressions') || '0');
-  if (visits >= 3) {
-    if(confirm("Install GolViral App for offline capability and fast loading?")) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
-    }
-  }
 });
 
 function trackAppImpressions() {
@@ -648,6 +653,99 @@ function routeEngine() {
   else if (hash.startsWith('#/story/')) { activateView('view-story', ''); loadReader('STORY', hash.split('/')[2]); }
 }
 
+// ===== SOCKET.IO DM ENGINE =====
+function connectSocket(){
+  if(socket) return;
+  const token = localStorage.getItem('token');
+  if(!token) return;
+  socket = io(API_BASE, { auth: { token } });
+
+  socket.on('connect', () => console.log('[WS Connected]'));
+  socket.on('receive_message', (msg) => {
+    if(activeChatUser && (msg.senderId === activeChatUser || msg.receiverId === activeChatUser)){
+      appendMessage(msg);
+    }
+    loadDMList(); // refresh list
+  });
+  socket.on('user_typing', ({from}) => {
+    if(from === activeChatUser) console.log('typing...');
+  });
+  socket.on('error_msg', (e) => alert(e.error));
+}
+
+function sendSocketMessage(){
+  const text = document.getElementById('chat-input').value.trim();
+  if(!text ||!activeChatUser) return;
+  socket.emit('send_message', { receiverId: activeChatUser, text });
+  document.getElementById('chat-input').value = '';
+  socket.emit('typing', { receiverId: activeChatUser });
+}
+
+function appendMessage(msg){
+  const div = document.createElement('div');
+  const me = localStorage.getItem('userId');
+  const isMe = msg.senderId === me;
+  div.style.cssText = `max-width:75%; padding:10px 14px; border-radius:18px; ${isMe? 'background:#0095f6; align-self:flex-end;' : 'background:var(--gray); align-self:flex-start;'}`;
+  div.innerText = msg.text;
+  document.getElementById('chat-messages').appendChild(div);
+  document.getElementById('chat-messages').scrollTop = 99999;
+}
+
+async function loadChat(userId){
+  document.getElementById('chat-messages').innerHTML = 'Loading...';
+  const d = await fetch(`${API_BASE}/api/user/${userId}`, {headers:getAuthHeaders()}).then(r=>r.json());
+  document.getElementById('chat-username').innerText = '@' + d.username;
+
+  if(!d.dmUnlocked){
+    if(confirm('Unlock DM for ₦3000 to chat?')){
+      const r = await fetch(`${API_BASE}/api/dm/init`, {method:'POST', headers:getAuthHeaders()});
+      const data = await r.json();
+      window.location.href = data.sel arLink; // redirect to pay
+      return;
+    }
+  }
+
+  const msgs = await fetch(`${API_BASE}/api/messages/${userId}`, {headers:getAuthHeaders()}).then(r=>r.json());
+  document.getElementById('chat-messages').innerHTML = '';
+  msgs.forEach(appendMessage);
+}
+
+async function loadDMList(){
+  const list = document.getElementById('dm-list');
+  list.innerHTML = 'Loading...';
+  // For now we just show people you follow. Later you can make /api/conversations
+  const myId = localStorage.getItem('userId');
+  const d = await fetch(`${API_BASE}/api/user/${myId}`, {headers:getAuthHeaders()}).then(r=>r.json());
+  // Quick hack: show last 5 people you interacted with from feed
+  list.innerHTML = `<div class="card" onclick="window.location.hash='#/dm/${d.userId}'">Start DM with @${d.username}</div>`;
+}
+
+// Add "Message" button on profile page
+async function loadProfileData(uidParam) {
+  //... keep all your existing code...
+  const btn = document.getElementById('btn-follow');
+  if (uid === myId) { btn.style.display = 'none'; return; }
+  btn.style.display = 'block';
+
+  // ADD MESSAGE BUTTON
+  const msgBtn = document.createElement('button');
+  msgBtn.innerText = 'Message';
+  msgBtn.className = 'btn accent';
+  msgBtn.style.cssText = 'width:auto; padding:8px 16px; margin-left:8px;';
+  msgBtn.onclick = () => window.location.hash = `#/dm/${uid}`;
+  btn.parentNode.appendChild(msgBtn);
+
+  if(d.isFollowing){
+    btn.innerText = 'Following';
+    btn.disabled = true;
+    btn.className = 'btn';
+  } else {
+    btn.innerText = 'Follow';
+    btn.disabled = false;
+    btn.className = 'btn secondary';
+  }
+}
+    
 function activateView(viewId, navId) {
   document.getElementById(viewId).classList.add('active');
   if(navId) document.getElementById(navId).classList.add('active');
@@ -672,8 +770,8 @@ async function signMedia(key, shard) {
 function triggerBotChallenge(callback) {
   currentBotCallback = callback;
   fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
-    .then(r => r.json())
-    .then(data => {
+   .then(r => r.json())
+   .then(data => {
       currentBotToken = data.token;
       document.getElementById('bot-question').innerText = data.question;
       document.getElementById('bot-overlay-modal').classList.add('active');
@@ -698,7 +796,7 @@ function submitBotVerification() {
 
 function switchAuthTab(tab, e) {
   activeAuthTab = tab;
-  document.querySelectorAll('#view-auth .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#view-auth.tab').forEach(t => t.classList.remove('active'));
   e.target.classList.add('active');
   document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
   document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
@@ -727,7 +825,6 @@ function submitAuth(passToken) {
   });
 }
 
-// ===== NEW FUNCTION 1: FORGOT PASSWORD =====
 async function sendForgotOtp(passToken){
   const email = document.getElementById('forgot-email').value;
   if(!email) return alert('Enter email');
@@ -742,12 +839,11 @@ async function sendForgotOtp(passToken){
   } else { alert((await r.json()).error); }
 }
 
-// ===== NEW FUNCTION 2: RESET PASSWORD =====
 async function submitResetPassword(){
   const email = document.getElementById('reset-email').value;
   const otp = document.getElementById('reset-otp').value;
   const newPassword = document.getElementById('reset-pass').value;
-  if(!otp || !newPassword) return alert('Fill all fields');
+  if(!otp ||!newPassword) return alert('Fill all fields');
   const r = await fetch(`${API_BASE}/api/auth/reset-password`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -777,18 +873,20 @@ async function loadFeedEngine() {
     card.className = 'reel-card';
 
     let mediaHtml = '';
-if(post.type === 'reel' && post.mediaUrl){
-  const url = await signMedia(post.mediaUrl, post.b2Shard);
-  const isMov = post.mediaUrl.toLowerCase().endsWith('.mov');
-  mediaHtml = url ? `
-    <video 
-      src="${url}" 
-      loop muted autoplay playsinline 
-      preload="metadata"
-      style="background-color:#000;width:100%;height:100%;display:block;"
-    ></video>` 
-  : `<p style="color:red">Video unavailable</p>`;
-}else {
+    if(post.type === 'reel' && post.mediaUrl){
+      const url = await signMedia(post.mediaUrl, post.b2Shard);
+      // FIX: Fallback if thumbnailUrl is empty
+      const thumb = post.thumbnailUrl? await signMedia(post.thumbnailUrl, post.b2Shard) : '';
+      mediaHtml = url? `
+        <video
+          src="${url}"
+          poster="${thumb}"
+          loop muted autoplay playsinline
+          preload="metadata"
+          style="background-color:#000;width:100%;height:100%;display:block;"
+        ></video>`
+      : `<p style="color:red">Video unavailable</p>`;
+    } else {
       mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
     }
 
@@ -796,7 +894,6 @@ if(post.type === 'reel' && post.mediaUrl){
     const hasCommented = userComments.includes(post.id);
     const isOwner = post.userId === myId;
 
-    // ===== IG STYLE: FOLLOW BUTTON ON EACH REEL =====
     card.innerHTML = `
       ${mediaHtml}
       <div class="reel-overlay">
@@ -823,7 +920,6 @@ if(post.type === 'reel' && post.mediaUrl){
     `;
     viewport.appendChild(card);
 
-    // Check follow state after append
     if(!isOwner) checkFollowState(post.userId, post.id);
 
     let viewTriggered = false;
@@ -858,23 +954,21 @@ async function checkFollowState(targetId, postId){
     if(d.isFollowing){
       btn.innerText = 'Following';
       btn.disabled = true;
-      btn.className = 'btn'; // gray solid like IG
+      btn.className = 'btn';
     } else {
       btn.innerText = 'Follow';
-      btn.className = 'btn secondary'; // outline like IG
+      btn.className = 'btn secondary';
     }
   } catch(e){ console.error(e); }
 }
 
-// ===== NEW FUNCTION 3: TOGGLE FOLLOW FROM FEED =====
 async function toggleFollowFromFeed(targetId, postId){
   const btn = document.getElementById(`btn-follow-${postId}`);
-  const endpoint = btn.innerText === 'Follow' ? '/api/follow' : '/api/unfollow';
+  const endpoint = btn.innerText === 'Follow'? '/api/follow' : '/api/unfollow';
   const r = await fetch(`${API_BASE}${endpoint}`,{
     method:'POST', headers:getAuthHeaders(), body:JSON.stringify({followingId: targetId})
   });
   if(r.ok){
-    // Flip the button instantly like IG
     if(btn.innerText === 'Follow'){
       btn.innerText = 'Following';
       btn.disabled = true;
@@ -906,8 +1000,6 @@ function interactFeed(postId, action, creatorId) {
   const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
   const targetedCount = document.getElementById(`count-${action}-${postId}`);
 
-  let body = { postId, creatorId };
-
   if(targetedBtn && targetedCount) {
     targetedBtn.disabled = true;
     targetedBtn.classList.add(action === 'like'? 'voted-like' : 'voted-comment');
@@ -919,11 +1011,10 @@ function interactFeed(postId, action, creatorId) {
   fetch(`${API_BASE}/api/${action}`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify(body)
+    body: JSON.stringify({postId, creatorId})
   }).then(r => { if(r.status === 202) console.log("Buffered"); });
 }
 
-// ===== NEW FUNCTION 4: OPEN COMMENT MODAL =====
 async function openCommentModal(postId, creatorId){
   activeCommentPost = postId; activeCommentCreator = creatorId;
   document.getElementById('comment-modal').classList.add('active');
@@ -933,7 +1024,6 @@ async function openCommentModal(postId, creatorId){
   list.innerHTML = d.comments.map(c=>`<p style="margin-bottom:8px;"><b>@${c.user.username}</b>: ${c.text}</p>`).join('') || '<p style="color:var(--muted)">No comments yet</p>';
 }
 
-// ===== NEW FUNCTION 5: POST COMMENT =====
 async function postCommentNow(){
   const text = document.getElementById('comment-input').value.trim();
   if(text.length<2) return;
@@ -948,16 +1038,15 @@ async function postCommentNow(){
 
 function switchPostType(type, e) {
   activePostType = type;
-  document.querySelectorAll('#view-post .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#view-post.tab').forEach(t => t.classList.remove('active'));
   e.target.classList.add('active');
   document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
-  document.getElementById('text-fields-group').style.display = type !== 'reel'? 'block' : 'none';
+  document.getElementById('text-fields-group').style.display = type!== 'reel'? 'block' : 'none';
   document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
 }
 
-
 async function executePublish() {
-  const btn = document.querySelector('#view-post .btn.accent'); // ✅ Added space
+  const btn = document.querySelector('#view-post.btn.accent');
   if(!btn) return alert('Button not found');
   btn.disabled = true;
   btn.innerText = "Uploading...";
@@ -969,13 +1058,10 @@ async function executePublish() {
       const fileInput = document.getElementById('post-file')?.files?.[0];
       if (!fileInput) throw new Error("Select video file");
 
-
-      // FIX 3: Show exact MB size if > 1.5MB
       if (fileInput.size > 1.5 * 1024 * 1024) {
         throw new Error("Rejected: Max 1.5MB. Your file is " + (fileInput.size / 1024 / 1024).toFixed(2) + "MB");
       }
 
-      // 30s limit check
       const video = document.createElement('video');
       video.preload = 'metadata';
       video.src = URL.createObjectURL(fileInput);
@@ -986,18 +1072,15 @@ async function executePublish() {
       if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
       if (duration < 3) throw new Error("Rejected: Min 3s required");
 
-      // Send real ext + mime to backend
       body.fileExtension = fileInput.name.split('.').pop().toLowerCase();
       body.contentType = fileInput.type;
 
-      // Get presigned URL from backend
       const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(body)
       }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error || 'Create intent failed') }); return r.json(); });
 
-      // Upload RAW file with REAL Content-Type
       const putRes = await fetch(intentRes.uploadUrl, {
         method: 'PUT',
         headers: { 'Content-Type': fileInput.type },
@@ -1005,18 +1088,16 @@ async function executePublish() {
       });
       if (!putRes.ok) throw new Error(`B2 Upload failed: ${putRes.status}`);
 
-      // Finalize post
       await fetch(`${API_BASE}/api/post/create`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
       });
 
-      alert("Content submitted for system review ✅"); // FIX 4: This will now show
+      alert("Content submitted for system review ✅");
       window.location.hash = '#/feed';
 
     } else {
-      // Novel/Story - unchanged
       const title = document.getElementById('post-title').value.trim();
       const content = document.getElementById('post-content').value.trim();
       if (!title) throw new Error("Title required");
@@ -1031,35 +1112,31 @@ async function executePublish() {
       await fetch(`${API_BASE}/api/post/create`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({
-          postId: intentRes.postId,
-          objectKey: intentRes.objectKey,
-          title,
-          content
-        })
+        body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey, title, content })
       });
       alert("Content submitted for admin approval");
       window.location.hash = '#/feed';
     }
   } catch (err) {
-  const fileInput = document.getElementById('post-file')?.files?.[0]; // <-- Added this line
-  const size = fileInput ? (fileInput.size/1024/1024).toFixed(2) + 'MB' : 'N/A';
-  alert('ERROR: ' + err.message + '\nSize: ' + size);
-  console.error('Publish Error:', err);
+    const fileInput = document.getElementById('post-file')?.files?.[0];
+    const size = fileInput? (fileInput.size/1024/1024).toFixed(2) + 'MB' : 'N/A';
+    alert('ERROR: ' + err.message + '\nSize: ' + size);
+    console.error('Publish Error:', err);
   } finally {
     btn.disabled = false;
     btn.innerText = "Publish Content";
   }
 }
+
 async function loadReader(type, id) {
   const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
   const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
   const authorId = new URLSearchParams(window.location.hash.split('?')[1] || '').get('author') || 'unknown';
-  const seconds = type === 'NOVEL' ? 120 : 180;
+  const seconds = type === 'NOVEL'? 120 : 180;
   let elapsed = 0;
 
-  const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok ? r.json() : null);
-  if (!post || post.type.toUpperCase() !== type) return contentEl.innerHTML = 'Post not found';
+  const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok? r.json() : null);
+  if (!post || post.type.toUpperCase()!== type) return contentEl.innerHTML = 'Post not found';
 
   contentEl.innerHTML = `<h3>${post.title || ''}</h3><br>${post.content || 'No content'}`;
   timerEl.style.width = '0%';
@@ -1080,31 +1157,27 @@ async function loadReader(type, id) {
 
 function loadWalletData() {
   fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
-    .then(r => r.json())
-    .then(d => {
+   .then(r => r.json())
+   .then(d => {
       document.getElementById('w-free').innerText = d.freeCredits;
       document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
       document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
-      document.getElementById('w-flag').innerText = d.monetized ? "True" : "False";
-      document.getElementById('w-requirements').innerText = `Days Left: ${d.daysToMonetize} | Referrals Left: ${d.refsLeft}`;
+      document.getElementById('w-flag').innerText = d.monetized? "True" : "False";
+      document.getElementById('w-requirements').innerText = `Days: ${d.daysProgress} | Followers: ${d.followersProgress}`; // FIXED
     });
 }
 
-function generateRef() {
-  const arr = new Uint8Array(4);
-  crypto.getRandomValues(arr);
-  return "SELAR_TX_" + Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
-}
-
+// FIX: Backend only allows 1500 and 7000
 function executeDepositVerification(passToken) {
   const tierAmount = parseInt(document.getElementById('dep-tier').value);
-  const reference = generateRef();
-  const userId = localStorage.getItem('userId');
-  fetch(`${API_BASE}/api/deposit/verify`, {
+  fetch(`${API_BASE}/api/deposit/init`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, reference, tierAmount, passToken })
-  }).then(r => r.json()).then(d => { if (d.success) { alert("Credits added"); loadWalletData(); } else { alert(d.error); } });
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ tierAmount, passToken })
+  }).then(r => r.json()).then(d => {
+    if (d.sel arLink) { window.location.href = d.sel arLink; } // redirect to selar
+    else { alert(d.error); }
+  });
 }
 
 function submitWithdrawalInit() {
@@ -1135,7 +1208,6 @@ function confirmWithdrawal() {
   });
 }
 
-// ===== FIXED: Profile now accepts /profile/userid for visiting others =====
 async function loadProfileData(uidParam) {
   const myId = localStorage.getItem('userId');
   const uid = uidParam || myId;
@@ -1150,7 +1222,7 @@ async function loadProfileData(uidParam) {
   document.getElementById('p-followers').innerText = d.followers;
   document.getElementById('p-following').innerText = d.following;
   const baseUrl = window.location.origin + window.location.pathname;
-  document.getElementById('p-link').value = `${baseUrl}#/?ref=${d.userId}`;
+  document.getElementById('p-link').value = `${baseUrl}#/auth?ref=${d.userId}`; // FIXED ref link
 
   const btn = document.getElementById('btn-follow');
   if (uid === myId) { btn.style.display = 'none'; return; }
@@ -1166,17 +1238,16 @@ async function loadProfileData(uidParam) {
     btn.className = 'btn secondary';
   }
 }
-// ===== NEW: Toggle Follow from Profile Page =====
+
 async function toggleFollow() {
   if (!currentProfileId) return;
   const btn = document.getElementById('btn-follow');
-  const endpoint = btn.innerText === 'Follow' ? '/api/follow' : '/api/unfollow';
-  
+  const endpoint = btn.innerText === 'Follow'? '/api/follow' : '/api/unfollow';
   const r = await fetch(`${API_BASE}${endpoint}`, {
     method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ followingId: currentProfileId })
   });
   if (r.ok) {
-    loadProfileData(currentProfileId); // reload to flip button + counts
+    loadProfileData(currentProfileId);
   } else {
     alert((await r.json()).error);
   }
@@ -1185,8 +1256,8 @@ async function toggleFollow() {
 function initializeServiceWorker() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
-      }
-    }
-  </script>
+  }
+}
+</script>
 </body>
 </html>
