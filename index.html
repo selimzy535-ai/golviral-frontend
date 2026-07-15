@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,16 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral</title>
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#e1306c">
   <style>
-    :root { 
+    :root {
       --accent: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
       --accent-solid: #e1306c;
-      --bg: #000000; 
+      --bg: #000000;
       --card-bg: #121212;
-      --text: #ffffff; 
-      --gray: #262626; 
-      --muted: #a8a8a8; 
+      --text: #ffffff;
+      --gray: #262626;
+      --muted: #a8a8a8;
     }
     
     * { 
@@ -232,6 +233,7 @@
       display: flex;
       align-items: center;
       gap: 5px;
+      pointer-events: auto;
     }
     
     .reel-overlay p {
@@ -517,10 +519,10 @@
 
     <div id="view-deposit" class="view-pane">
       <h3 style="margin-bottom:20px;">Deposit Credits</h3>
-     <select id="dep-tier" class="input-field">
-  <option value="1500">₦1,500 -> 15,000 pts</option>
-  <option value="7000">₦7,000 -> 70,000 pts</option>
-</select>
+      <select id="dep-tier" class="input-field">
+        <option value="1500">₦1,500 -> 15,000 pts</option>
+        <option value="7000">₦7,000 -> 70,000 pts</option>
+      </select>
       <button class="btn accent" onclick="triggerBotChallenge(executeDepositVerification)">Pay via Selar</button>
     </div>
 
@@ -547,717 +549,688 @@
         <p style="font-size:12px; color:var(--muted); margin-top: -6px;">Tap to copy referral link</p>
       </div>
     </div>
-  </div>
 
     <div id="view-dm-list" class="view-pane">
-  <h3 style="margin-bottom:20px;">Messages</h3>
-  <div id="dm-list" style="display:flex; flex-direction:column; gap:12px;"></div>
-</div>
+      <h3 style="margin-bottom:20px;">Messages</h3>
+      <div id="dm-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </div>
 
-<div id="view-dm-chat" class="view-pane" style="padding:0; display:flex; flex-direction:column; height:calc(100dvh - 60px);">
-  <div style="padding:12px 16px; border-bottom:1px solid var(--gray); display:flex; align-items:center; gap:10px;">
-    <button onclick="window.location.hash='#/dm-list'" style="background:none;border:none;color:#fff;font-size:20px;">←</button>
-    <h4 id="chat-username">@user</h4>
+    <div id="view-dm-chat" class="view-pane" style="padding:0; display:flex; flex-direction:column; height:calc(100dvh - 60px);">
+      <div style="padding:12px 16px; border-bottom:1px solid var(--gray); display:flex; align-items:center; gap:10px;">
+        <button onclick="window.location.hash='#/dm-list'" style="background:none;border:none;color:#fff;font-size:20px;">←</button>
+        <h4 id="chat-username">@user</h4>
+      </div>
+      <div id="chat-messages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;"></div>
+      <div style="padding:12px; border-top:1px solid var(--gray); display:flex; gap:8px;">
+        <input type="text" id="chat-input" class="input-field" placeholder="Message..." style="margin:0; flex:1;" onkeydown="if(event.key==='Enter') sendSocketMessage()">
+        <button class="btn" onclick="sendSocketMessage()" style="width:auto; padding:12px 18px;">Send</button>
+      </div>
+    </div>
   </div>
-  <div id="chat-messages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;"></div>
-  <div style="padding:12px; border-top:1px solid var(--gray); display:flex; gap:8px;">
-    <input type="text" id="chat-input" class="input-field" placeholder="Message..." style="margin:0; flex:1;">
-    <button class="btn" onclick="sendSocketMessage()" style="width:auto; padding:12px 18px;">Send</button>
-  </div>
-</div>
-  
+
   <nav class="nav-bar">
-    <a href="#/feed" class="nav-item" id="nav-feed">
-      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed
-    </a>
-    <a href="#/post" class="nav-item" id="nav-post">
-      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create
-    </a>
-    <a href="#/wallet" class="nav-item" id="nav-wallet">
-      <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 0.9 2 2v1h-9c-1.1 0-2 0.9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
-    </a>
-    <a href="#/profile" class="nav-item" id="nav-profile">
-      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile
-    </a>
-    <a href="#/dm-list" class="nav-item" id="nav-dm">
-  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2.9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>DM
-</a>
+    <a href="#/feed" class="nav-item" id="nav-feed"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed</a>
+    <a href="#/post" class="nav-item" id="nav-post"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create</a>
+    <a href="#/wallet" class="nav-item" id="nav-wallet"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 0.9 2 2v1h-9c-1.1 0-2 0.9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet</a>
+    <a href="#/dm-list" class="nav-item" id="nav-dm"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>DM</a>
+    <a href="#/profile" class="nav-item" id="nav-profile"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile</a>
   </nav>
 
   <div id="bot-overlay-modal" class="bot-modal">
     <div class="bot-content">
-      <h4 style="margin-bottom:12px;">Security Gate</h4>
-      <p style="font-size:14px; color:var(--muted); margin-bottom:18px;" id="bot-question">Loading...</p>
-      <input type="text" id="bot-answer" class="input-field" placeholder="Your Answer">
+      <h4 style="margin-bottom: 15px;">Bot Verification</h4>
+      <p id="bot-question" style="margin-bottom: 15px; font-weight: 500;"></p>
+      <input type="text" id="bot-answer" class="input-field" placeholder="Your Answer" style="text-align: center;">
       <button class="btn accent" onclick="submitBotVerification()">Verify</button>
     </div>
   </div>
 
   <div id="comment-modal" class="bot-modal">
-    <div class="bot-content" style="max-width:500px; text-align:left;">
-      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-        <h4>Comments</h4><button onclick="document.getElementById('comment-modal').classList.remove('active')" style="background:none;border:none;color:#fff;font-size:20px;">×</button>
+    <div class="bot-content" style="max-width: 400px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h4 style="margin: 0;">Comments</h4>
+        <button onclick="document.getElementById('comment-modal').classList.remove('active')" style="background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer;">&times;</button>
       </div>
-      <div id="comment-list" style="max-height:40vh; overflow-y:auto; margin-bottom:12px;"></div>
-      <div style="display:flex; gap:8px;">
-        <input type="text" id="comment-input" class="input-field" placeholder="Add comment..." style="margin:0;">
-        <button class="btn" onclick="postCommentNow()" style="width:auto;">Send</button>
+      <div id="comment-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px; font-size: 14px;"></div>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="comment-input" class="input-field" placeholder="Write a comment..." style="margin-bottom: 0; flex: 1;">
+        <button class="btn accent" onclick="postCommentNow()" style="width: auto; padding: 10px 15px;">Post</button>
       </div>
     </div>
   </div>
 
-  
   <script>
-const API_BASE = "https://golviral-api.onrender.com";
-let activeAuthTab = 'login';
-let activePostType = 'reel';
-let currentBotCallback = null;
-let currentBotToken = "";
-let readTimer = null;
-let deferredPrompt = null;
-let currentProfileId = null;
-let isFollowing = false;
-let activeCommentPost = null;
-let activeCommentCreator = null;
+    const API_BASE = "https://golviral-api.onrender.com";
+    let activeAuthTab = 'login';
+    let activePostType = 'reel';
+    let currentBotCallback = null;
+    let currentBotToken = "";
+    let readTimer = null;
+    let deferredPrompt = null;
+    let currentProfileId = null;
+    let isFollowing = false;
+    let activeCommentPost = null;
+    let activeCommentCreator = null;
+    let socket = null;
+    let activeChatUser = null;
 
-window.addEventListener('hashchange', routeEngine);
-window.addEventListener('load', () => {
-  routeEngine();
-  initializeServiceWorker();
-  trackAppImpressions();
-  const ref = new URLSearchParams(window.location.search).get('ref');
-  if(ref) localStorage.setItem('ref', ref);
-});
-
-function trackAppImpressions() {
-  let count = parseInt(localStorage.getItem('site_impressions') || '0');
-  localStorage.setItem('site_impressions', count + 1);
-}
-
-function routeEngine() {
-  const hash = window.location.hash || '#/feed';
-  document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-  if(readTimer) { clearInterval(readTimer); readTimer = null; }
-
-  if (hash.startsWith('#/feed')) { activateView('view-feed', 'nav-feed'); loadFeedEngine(); }
-  else if (hash.startsWith('#/post')) { activateView('view-post', 'nav-post'); }
-  else if (hash.startsWith('#/wallet')) { activateView('view-wallet', 'nav-wallet'); loadWalletData(); }
-  else if (hash.startsWith('#/profile')) { activateView('view-profile', 'nav-profile'); loadProfileData(hash.split('/')[2]); }
-  else if (hash.startsWith('#/deposit')) { activateView('view-deposit', 'nav-wallet'); }
-  else if (hash.startsWith('#/withdraw')) { activateView('view-withdraw', 'nav-wallet'); }
-  else if (hash.startsWith('#/auth')) { activateView('view-auth', ''); }
-  else if (hash.startsWith('#/forgot')) { activateView('view-forgot', ''); }
-  else if (hash.startsWith('#/reset')) { activateView('view-reset', ''); }
-  else if (hash.startsWith('#/novel/')) { activateView('view-novel', ''); loadReader('NOVEL', hash.split('/')[2]); }
-  else if (hash.startsWith('#/story/')) { activateView('view-story', ''); loadReader('STORY', hash.split('/')[2]); }
-}
-
-// ===== SOCKET.IO DM ENGINE =====
-function connectSocket(){
-  if(socket) return;
-  const token = localStorage.getItem('token');
-  if(!token) return;
-  socket = io(API_BASE, { auth: { token } });
-
-  socket.on('connect', () => console.log('[WS Connected]'));
-  socket.on('receive_message', (msg) => {
-    if(activeChatUser && (msg.senderId === activeChatUser || msg.receiverId === activeChatUser)){
-      appendMessage(msg);
-    }
-    loadDMList(); // refresh list
-  });
-  socket.on('user_typing', ({from}) => {
-    if(from === activeChatUser) console.log('typing...');
-  });
-  socket.on('error_msg', (e) => alert(e.error));
-}
-
-function sendSocketMessage(){
-  const text = document.getElementById('chat-input').value.trim();
-  if(!text ||!activeChatUser) return;
-  socket.emit('send_message', { receiverId: activeChatUser, text });
-  document.getElementById('chat-input').value = '';
-  socket.emit('typing', { receiverId: activeChatUser });
-}
-
-function appendMessage(msg){
-  const div = document.createElement('div');
-  const me = localStorage.getItem('userId');
-  const isMe = msg.senderId === me;
-  div.style.cssText = `max-width:75%; padding:10px 14px; border-radius:18px; ${isMe? 'background:#0095f6; align-self:flex-end;' : 'background:var(--gray); align-self:flex-start;'}`;
-  div.innerText = msg.text;
-  document.getElementById('chat-messages').appendChild(div);
-  document.getElementById('chat-messages').scrollTop = 99999;
-}
-
-async function loadChat(userId){
-  document.getElementById('chat-messages').innerHTML = 'Loading...';
-  const d = await fetch(`${API_BASE}/api/user/${userId}`, {headers:getAuthHeaders()}).then(r=>r.json());
-  document.getElementById('chat-username').innerText = '@' + d.username;
-
-  if(!d.dmUnlocked){
-    if(confirm('Unlock DM for ₦3000 to chat?')){
-      const r = await fetch(`${API_BASE}/api/dm/init`, {method:'POST', headers:getAuthHeaders()});
-      const data = await r.json();
-      window.location.href = data.sel arLink; // redirect to pay
-      return;
-    }
-  }
-
-  const msgs = await fetch(`${API_BASE}/api/messages/${userId}`, {headers:getAuthHeaders()}).then(r=>r.json());
-  document.getElementById('chat-messages').innerHTML = '';
-  msgs.forEach(appendMessage);
-}
-
-async function loadDMList(){
-  const list = document.getElementById('dm-list');
-  list.innerHTML = 'Loading...';
-  // For now we just show people you follow. Later you can make /api/conversations
-  const myId = localStorage.getItem('userId');
-  const d = await fetch(`${API_BASE}/api/user/${myId}`, {headers:getAuthHeaders()}).then(r=>r.json());
-  // Quick hack: show last 5 people you interacted with from feed
-  list.innerHTML = `<div class="card" onclick="window.location.hash='#/dm/${d.userId}'">Start DM with @${d.username}</div>`;
-}
-
-// Add "Message" button on profile page
-async function loadProfileData(uidParam) {
-  //... keep all your existing code...
-  const btn = document.getElementById('btn-follow');
-  if (uid === myId) { btn.style.display = 'none'; return; }
-  btn.style.display = 'block';
-
-  // ADD MESSAGE BUTTON
-  const msgBtn = document.createElement('button');
-  msgBtn.innerText = 'Message';
-  msgBtn.className = 'btn accent';
-  msgBtn.style.cssText = 'width:auto; padding:8px 16px; margin-left:8px;';
-  msgBtn.onclick = () => window.location.hash = `#/dm/${uid}`;
-  btn.parentNode.appendChild(msgBtn);
-
-  if(d.isFollowing){
-    btn.innerText = 'Following';
-    btn.disabled = true;
-    btn.className = 'btn';
-  } else {
-    btn.innerText = 'Follow';
-    btn.disabled = false;
-    btn.className = 'btn secondary';
-  }
-}
-    
-function activateView(viewId, navId) {
-  document.getElementById(viewId).classList.add('active');
-  if(navId) document.getElementById(navId).classList.add('active');
-}
-
-function getAuthHeaders() {
-  const token = localStorage.getItem('token');
-  if (!token) { window.location.hash = '#/auth'; throw new Error("Login required"); }
-  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-}
-
-async function signMedia(key, shard) {
-  const token = localStorage.getItem('token');
-  if(!token) return '';
-  try {
-    const r = await fetch(`${API_BASE}/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`,{headers:{Authorization:`Bearer ${token}`}});
-    const d = await r.json();
-    return d.url || '';
-  } catch { return ''; }
-}
-
-function triggerBotChallenge(callback) {
-  currentBotCallback = callback;
-  fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
-   .then(r => r.json())
-   .then(data => {
-      currentBotToken = data.token;
-      document.getElementById('bot-question').innerText = data.question;
-      document.getElementById('bot-overlay-modal').classList.add('active');
+    window.addEventListener('hashchange', routeEngine);
+    window.addEventListener('load', () => {
+      routeEngine();
+      initializeServiceWorker();
+      trackAppImpressions();
+      const ref = new URLSearchParams(window.location.search).get('ref');
+      if(ref) localStorage.setItem('ref', ref);
     });
-}
 
-function submitBotVerification() {
-  const answer = document.getElementById('bot-answer').value;
-  fetch(`${API_BASE}/api/bot-verify`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: currentBotToken, answer })
-  }).then(r => {
-    if(!r.ok) throw new Error("Incorrect answer");
-    return r.json();
-  }).then(data => {
-    document.getElementById('bot-overlay-modal').classList.remove('active');
-    document.getElementById('bot-answer').value = "";
-    if (currentBotCallback) currentBotCallback(data.passToken);
-  }).catch(err => alert(err.message));
-}
-
-function switchAuthTab(tab, e) {
-  activeAuthTab = tab;
-  document.querySelectorAll('#view-auth.tab').forEach(t => t.classList.remove('active'));
-  e.target.classList.add('active');
-  document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
-  document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
-}
-
-function submitAuth(passToken) {
-  const email = document.getElementById('auth-email').value;
-  const password = document.getElementById('auth-pass').value;
-  const username = document.getElementById('auth-user').value;
-  const referralCode = localStorage.getItem('ref') || document.getElementById('auth-ref').value;
-  const endpoint = activeAuthTab === 'login'? '/api/auth/login' : '/api/auth/signup';
-  const body = activeAuthTab === 'login'? { email, password, passToken } : { username, email, password, passToken, referralCode };
-  fetch(`${API_BASE}${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  }).then(r => r.json()).then(data => {
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.userId);
-      localStorage.removeItem('ref');
-      window.location.hash = '#/feed';
-    } else {
-      alert(data.error || "Auth failed");
-    }
-  });
-}
-
-async function sendForgotOtp(passToken){
-  const email = document.getElementById('forgot-email').value;
-  if(!email) return alert('Enter email');
-  const r = await fetch(`${API_BASE}/api/auth/forgot-password`,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email, passToken})
-  });
-  if(r.ok){
-    document.getElementById('reset-email').value = email;
-    window.location.hash='#/reset';
-  } else { alert((await r.json()).error); }
-}
-
-async function submitResetPassword(){
-  const email = document.getElementById('reset-email').value;
-  const otp = document.getElementById('reset-otp').value;
-  const newPassword = document.getElementById('reset-pass').value;
-  if(!otp ||!newPassword) return alert('Fill all fields');
-  const r = await fetch(`${API_BASE}/api/auth/reset-password`,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email, otp, newPassword})
-  });
-  const d = await r.json();
-  alert(d.message || 'Password updated');
-  if(r.ok) window.location.hash='#/auth';
-}
-
-async function loadFeedEngine() {
-  const viewport = document.getElementById('reel-viewport');
-  viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
-  const token = localStorage.getItem('token');
-  const myId = localStorage.getItem('userId');
-  if(!token) return window.location.hash='#/auth';
-
-  const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
-  viewport.innerHTML = "";
-  if(posts.length === 0) return viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
-
-  const userLikes = JSON.parse(localStorage.getItem('gv_likes') || '[]');
-  const userComments = JSON.parse(localStorage.getItem('gv_comments') || '[]');
-
-  for(const post of posts){
-    const card = document.createElement('div');
-    card.className = 'reel-card';
-
-    let mediaHtml = '';
-    if(post.type === 'reel' && post.mediaUrl){
-      const url = await signMedia(post.mediaUrl, post.b2Shard);
-      // FIX: Fallback if thumbnailUrl is empty
-      const thumb = post.thumbnailUrl? await signMedia(post.thumbnailUrl, post.b2Shard) : '';
-      mediaHtml = url? `
-        <video
-          src="${url}"
-          poster="${thumb}"
-          loop muted autoplay playsinline
-          preload="metadata"
-          style="background-color:#000;width:100%;height:100%;display:block;"
-        ></video>`
-      : `<p style="color:red">Video unavailable</p>`;
-    } else {
-      mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
+    function trackAppImpressions() {
+      let count = parseInt(localStorage.getItem('site_impressions') || '0');
+      localStorage.setItem('site_impressions', count + 1);
     }
 
-    const hasLiked = userLikes.includes(post.id);
-    const hasCommented = userComments.includes(post.id);
-    const isOwner = post.userId === myId;
+    function routeEngine() {
+      const hash = window.location.hash || '#/feed';
+      document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      if(readTimer) { clearInterval(readTimer); readTimer = null; }
 
-    card.innerHTML = `
-      ${mediaHtml}
-      <div class="reel-overlay">
-        <h4>
-          <a href="#/profile/${post.userId}" style="color:#fff; text-decoration:none;">@${post.userId}</a>
-          ${!isOwner? `<button id="btn-follow-${post.id}" class="btn secondary" style="width:auto; padding:4px 10px; font-size:12px; margin-left:8px;" onclick="toggleFollowFromFeed('${post.userId}', '${post.id}')">Follow</button>` : ''}
-        </h4>
-        <p>${post.title || post.type}</p>
-      </div>
-      <div class="reel-actions">
-        <button class="action-bubble ${hasLiked? 'voted-like' : ''}" ${hasLiked? 'disabled' : ''} id="btn-like-${post.id}" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
-          <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-          <span id="count-like-${post.id}">${post.likes}</span>
-        </button>
-        <button class="action-bubble ${hasCommented? 'voted-comment' : ''}" id="btn-comment-${post.id}" onclick="openCommentModal('${post.id}', '${post.userId}')">
-          <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
-          <span id="count-comment-${post.id}">${post.comments}</span>
-        </button>
-        <button class="action-bubble" onclick="shareReel('${post.id}')">
-          <svg viewBox="0 0 24 24" fill="#FFF"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0.24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-          <span>Share</span>
-        </button>
-      </div>
-    `;
-    viewport.appendChild(card);
+      if (hash.startsWith('#/feed')) { activateView('view-feed', 'nav-feed'); loadFeedEngine(); }
+      else if (hash.startsWith('#/post')) { activateView('view-post', 'nav-post'); }
+      else if (hash.startsWith('#/wallet')) { activateView('view-wallet', 'nav-wallet'); loadWalletData(); }
+      else if (hash.startsWith('#/profile')) { activateView('view-profile', 'nav-profile'); loadProfileData(hash.split('/')[2]); }
+      else if (hash.startsWith('#/dm-list')) { activateView('view-dm-list', 'nav-dm'); loadDMList(); connectSocket(); }
+      else if (hash.startsWith('#/dm/')) { activateView('view-dm-chat', 'nav-dm'); activeChatUser = hash.split('/')[2]; loadChat(activeChatUser); connectSocket(); }
+      else if (hash.startsWith('#/deposit')) { activateView('view-deposit', 'nav-wallet'); }
+      else if (hash.startsWith('#/withdraw')) { activateView('view-withdraw', 'nav-wallet'); }
+      else if (hash.startsWith('#/auth')) { activateView('view-auth', ''); }
+      else if (hash.startsWith('#/forgot')) { activateView('view-forgot', ''); }
+      else if (hash.startsWith('#/reset')) { activateView('view-reset', ''); }
+      else if (hash.startsWith('#/novel/')) { activateView('view-novel', ''); loadReader('NOVEL', hash.split('/')[2]); }
+      else if (hash.startsWith('#/story/')) { activateView('view-story', ''); loadReader('STORY', hash.split('/')[2]); }
+    }
 
-    if(!isOwner) checkFollowState(post.userId, post.id);
+    function connectSocket(){
+      if(socket) return;
+      const token = localStorage.getItem('token');
+      if(!token) return;
+      socket = io(API_BASE, { auth: { token } });
 
-    let viewTriggered = false;
-    const videoEl = card.querySelector('video');
-    if(videoEl){
-      videoEl.addEventListener('play', () => {
-        if (!viewTriggered) {
-          setTimeout(() => {
-            if (!videoEl.paused) {
-              viewTriggered = true;
-              fetch(`${API_BASE}/api/view`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ postId: post.id, userId: post.userId })
-              });
-            }
-          }, 3000);
+      socket.on('connect', () => console.log('[WS Connected]'));
+      socket.on('receive_message', (msg) => {
+        if(activeChatUser && (msg.senderId === activeChatUser || msg.receiverId === activeChatUser)){
+          appendMessage(msg);
         }
+        loadDMList();
       });
-      card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
+      socket.on('error_msg', (e) => alert(e.error));
     }
-    if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}?author=${post.userId}`);
-    if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
-  }
-}
 
-async function checkFollowState(targetId, postId){
-  const btn = document.getElementById(`btn-follow-${postId}`);
-  if(!btn) return;
-  try {
-    const d = await fetch(`${API_BASE}/api/user/${targetId}`, {headers:getAuthHeaders()}).then(r=>r.json());
-    if(d.isFollowing){
-      btn.innerText = 'Following';
-      btn.disabled = true;
-      btn.className = 'btn';
-    } else {
-      btn.innerText = 'Follow';
-      btn.className = 'btn secondary';
+    function sendSocketMessage(){
+      const text = document.getElementById('chat-input').value.trim();
+      if(!text || !activeChatUser) return;
+      socket.emit('send_message', { receiverId: activeChatUser, text });
+      document.getElementById('chat-input').value = '';
     }
-  } catch(e){ console.error(e); }
-}
 
-async function toggleFollowFromFeed(targetId, postId){
-  const btn = document.getElementById(`btn-follow-${postId}`);
-  const endpoint = btn.innerText === 'Follow'? '/api/follow' : '/api/unfollow';
-  const r = await fetch(`${API_BASE}${endpoint}`,{
-    method:'POST', headers:getAuthHeaders(), body:JSON.stringify({followingId: targetId})
-  });
-  if(r.ok){
-    if(btn.innerText === 'Follow'){
-      btn.innerText = 'Following';
-      btn.disabled = true;
-      btn.className = 'btn';
-    } else {
-      btn.innerText = 'Follow';
-      btn.disabled = false;
-      btn.className = 'btn secondary';
+    function appendMessage(msg){
+      const div = document.createElement('div');
+      const me = localStorage.getItem('userId');
+      const isMe = msg.senderId === me;
+      div.style.cssText = `max-width:75%; padding:10px 14px; border-radius:18px; margin-bottom:8px; ${isMe ? 'background:#0095f6; align-self:flex-end;' : 'background:var(--gray); align-self:flex-start;'}`;
+      div.innerText = msg.text;
+      const parent = document.getElementById('chat-messages');
+      parent.appendChild(div);
+      parent.scrollTop = parent.scrollHeight;
     }
-  } else { alert((await r.json()).error); }
-}
 
-function shareReel(postId) {
-  const baseUrl = window.location.origin + window.location.pathname;
-  const shareUrl = `${baseUrl}#/feed?post=${postId}`;
-  const text = `Watch this on GolViral`;
-  if (navigator.share) {
-    navigator.share({ title: 'GolViral', text: text, url: shareUrl, }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(shareUrl).then(() => { alert('Link copied ✅'); });
-  }
-}
+    async function loadChat(userId){
+      document.getElementById('chat-messages').innerHTML = 'Loading...';
+      const d = await fetch(`${API_BASE}/api/user/${userId}`, {headers:getAuthHeaders()}).then(r=>r.json());
+      document.getElementById('chat-username').innerText = '@' + d.username;
 
-function interactFeed(postId, action, creatorId) {
-  const cacheKey = action === 'like'? 'gv_likes' : 'gv_comments';
-  let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-  if(action==='like' && storageItems.includes(postId)) return;
-
-  const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
-  const targetedCount = document.getElementById(`count-${action}-${postId}`);
-
-  if(targetedBtn && targetedCount) {
-    targetedBtn.disabled = true;
-    targetedBtn.classList.add(action === 'like'? 'voted-like' : 'voted-comment');
-    targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
-  }
-  storageItems.push(postId);
-  localStorage.setItem(cacheKey, JSON.stringify(storageItems));
-
-  fetch(`${API_BASE}/api/${action}`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify({postId, creatorId})
-  }).then(r => { if(r.status === 202) console.log("Buffered"); });
-}
-
-async function openCommentModal(postId, creatorId){
-  activeCommentPost = postId; activeCommentCreator = creatorId;
-  document.getElementById('comment-modal').classList.add('active');
-  const list = document.getElementById('comment-list');
-  list.innerHTML = 'Loading...';
-  const d = await fetch(`${API_BASE}/api/comments/${postId}`).then(r=>r.json());
-  list.innerHTML = d.comments.map(c=>`<p style="margin-bottom:8px;"><b>@${c.user.username}</b>: ${c.text}</p>`).join('') || '<p style="color:var(--muted)">No comments yet</p>';
-}
-
-async function postCommentNow(){
-  const text = document.getElementById('comment-input').value.trim();
-  if(text.length<2) return;
-  await fetch(`${API_BASE}/api/comment`,{
-    method:'POST', headers:getAuthHeaders(), body:JSON.stringify({postId:activeCommentPost, creatorId:activeCommentCreator, text})
-  });
-  document.getElementById('comment-input').value='';
-  openCommentModal(activeCommentPost, activeCommentCreator);
-  const countEl = document.getElementById(`count-comment-${activeCommentPost}`);
-  if(countEl) countEl.innerText = parseInt(countEl.innerText || '0') + 1;
-}
-
-function switchPostType(type, e) {
-  activePostType = type;
-  document.querySelectorAll('#view-post.tab').forEach(t => t.classList.remove('active'));
-  e.target.classList.add('active');
-  document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
-  document.getElementById('text-fields-group').style.display = type!== 'reel'? 'block' : 'none';
-  document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
-}
-
-async function executePublish() {
-  const btn = document.querySelector('#view-post.btn.accent');
-  if(!btn) return alert('Button not found');
-  btn.disabled = true;
-  btn.innerText = "Uploading...";
-
-  try {
-    const body = { postType: activePostType };
-
-    if (activePostType === 'reel') {
-      const fileInput = document.getElementById('post-file')?.files?.[0];
-      if (!fileInput) throw new Error("Select video file");
-
-      if (fileInput.size > 1.5 * 1024 * 1024) {
-        throw new Error("Rejected: Max 1.5MB. Your file is " + (fileInput.size / 1024 / 1024).toFixed(2) + "MB");
+      if(!d.dmUnlocked){
+        if(confirm('Unlock DM for ₦3000 to chat?')){
+          const r = await fetch(`${API_BASE}/api/dm/init`, {method:'POST', headers:getAuthHeaders()});
+          const data = await r.json();
+          window.location.href = data.selarLink;
+          return;
+        }
       }
 
-      const video = document.createElement('video');
-      video.preload = 'metadata';
-      video.src = URL.createObjectURL(fileInput);
-      await new Promise(resolve => { video.onloadedmetadata = resolve; video.onerror = () => resolve(); });
-      const duration = video.duration;
-      URL.revokeObjectURL(video.src);
-
-      if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
-      if (duration < 3) throw new Error("Rejected: Min 3s required");
-
-      body.fileExtension = fileInput.name.split('.').pop().toLowerCase();
-      body.contentType = fileInput.type;
-
-      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(body)
-      }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error || 'Create intent failed') }); return r.json(); });
-
-      const putRes = await fetch(intentRes.uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': fileInput.type },
-        body: fileInput
-      });
-      if (!putRes.ok) throw new Error(`B2 Upload failed: ${putRes.status}`);
-
-      await fetch(`${API_BASE}/api/post/create`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
-      });
-
-      alert("Content submitted for system review ✅");
-      window.location.hash = '#/feed';
-
-    } else {
-      const title = document.getElementById('post-title').value.trim();
-      const content = document.getElementById('post-content').value.trim();
-      if (!title) throw new Error("Title required");
-      if (!content) throw new Error("Content required");
-
-      const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(body)
-      }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error) }); return r.json(); });
-
-      await fetch(`${API_BASE}/api/post/create`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey, title, content })
-      });
-      alert("Content submitted for admin approval");
-      window.location.hash = '#/feed';
+      const msgs = await fetch(`${API_BASE}/api/messages/${userId}`, {headers:getAuthHeaders()}).then(r=>r.json());
+      document.getElementById('chat-messages').innerHTML = '';
+      msgs.forEach(appendMessage);
     }
-  } catch (err) {
-    const fileInput = document.getElementById('post-file')?.files?.[0];
-    const size = fileInput? (fileInput.size/1024/1024).toFixed(2) + 'MB' : 'N/A';
-    alert('ERROR: ' + err.message + '\nSize: ' + size);
-    console.error('Publish Error:', err);
-  } finally {
-    btn.disabled = false;
-    btn.innerText = "Publish Content";
-  }
-}
 
-async function loadReader(type, id) {
-  const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
-  const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
-  const authorId = new URLSearchParams(window.location.hash.split('?')[1] || '').get('author') || 'unknown';
-  const seconds = type === 'NOVEL'? 120 : 180;
-  let elapsed = 0;
+    async function loadDMList(){
+      const list = document.getElementById('dm-list');
+      list.innerHTML = 'Loading...';
+      const myId = localStorage.getItem('userId');
+      list.innerHTML = `<div class="card" style="cursor:pointer;" onclick="window.location.hash='#/dm/${myId}'">DM is active. Click on a creator profile to start a chat session.</div>`;
+    }
 
-  const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok? r.json() : null);
-  if (!post || post.type.toUpperCase()!== type) return contentEl.innerHTML = 'Post not found';
+    function activateView(viewId, navId) {
+      document.getElementById(viewId).classList.add('active');
+      if(navId) document.getElementById(navId).classList.add('active');
+    }
 
-  contentEl.innerHTML = `<h3>${post.title || ''}</h3><br>${post.content || 'No content'}`;
-  timerEl.style.width = '0%';
-  readTimer = setInterval(() => {
-    elapsed++;
-    timerEl.style.width = `${(elapsed / seconds) * 100}%`;
-    if (elapsed >= seconds) {
-      clearInterval(readTimer);
-      fetch(`${API_BASE}/api/read-session`, {
+    function getAuthHeaders() {
+      const token = localStorage.getItem('token');
+      if (!token) { window.location.hash = '#/auth'; throw new Error("Login required"); }
+      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    }
+
+    async function signMedia(key, shard) {
+      const token = localStorage.getItem('token');
+      if(!token) return '';
+      try {
+        const r = await fetch(`${API_BASE}/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`,{headers:{Authorization:`Bearer ${token}`}});
+        const d = await r.json();
+        return d.url || '';
+      } catch { return ''; }
+    }
+
+    function triggerBotChallenge(callback) {
+      currentBotCallback = callback;
+      fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+          currentBotToken = data.token;
+          document.getElementById('bot-question').innerText = data.question;
+          document.getElementById('bot-overlay-modal').classList.add('active');
+        });
+    }
+
+    function submitBotVerification() {
+      const answer = document.getElementById('bot-answer').value;
+      fetch(`${API_BASE}/api/bot-verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: currentBotToken, answer })
+      }).then(r => {
+        if(!r.ok) throw new Error("Incorrect answer");
+        return r.json();
+      }).then(data => {
+        document.getElementById('bot-overlay-modal').classList.remove('active');
+        document.getElementById('bot-answer').value = "";
+        if (currentBotCallback) currentBotCallback(data.passToken);
+      }).catch(err => alert(err.message));
+    }
+
+    function switchAuthTab(tab, e) {
+      activeAuthTab = tab;
+      document.querySelectorAll('#view-auth .tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
+      document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
+    }
+
+    function submitAuth(passToken) {
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-pass').value;
+      const username = document.getElementById('auth-user').value;
+      const referralCode = localStorage.getItem('ref') || document.getElementById('auth-ref').value;
+      const endpoint = activeAuthTab === 'login'? '/api/auth/login' : '/api/auth/signup';
+      const body = activeAuthTab === 'login'? { email, password, passToken } : { username, email, password, passToken, referralCode };
+      fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }).then(r => r.json()).then(data => {
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('userId', data.userId);
+          localStorage.removeItem('ref');
+          window.location.hash = '#/feed';
+        } else {
+          alert(data.error || "Auth failed");
+        }
+      });
+    }
+
+    async function sendForgotOtp(passToken){
+      const email = document.getElementById('forgot-email').value;
+      if(!email) return alert('Enter email');
+      const r = await fetch(`${API_BASE}/api/auth/forgot-password`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email, passToken})
+      });
+      if(r.ok){
+        document.getElementById('reset-email').value = email;
+        window.location.hash='#/reset';
+      } else { alert((await r.json()).error); }
+    }
+
+    async function submitResetPassword(){
+      const email = document.getElementById('reset-email').value;
+      const otp = document.getElementById('reset-otp').value;
+      const newPassword = document.getElementById('reset-pass').value;
+      if(!otp || !newPassword) return alert('Fill all fields');
+      const r = await fetch(`${API_BASE}/api/auth/reset-password`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email, otp, newPassword})
+      });
+      const d = await r.json();
+      alert(d.message || 'Password updated');
+      if(r.ok) window.location.hash='#/auth';
+    }
+
+    async function loadFeedEngine() {
+      const viewport = document.getElementById('reel-viewport');
+      viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
+      const token = localStorage.getItem('token');
+      const myId = localStorage.getItem('userId');
+      if(!token) return window.location.hash='#/auth';
+
+      const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
+      viewport.innerHTML = "";
+      if(posts.length === 0) return viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
+
+      const userLikes = JSON.parse(localStorage.getItem('gv_likes') || '[]');
+      const userComments = JSON.parse(localStorage.getItem('gv_comments') || '[]');
+
+      for(const post of posts){
+        const card = document.createElement('div');
+        card.className = 'reel-card';
+
+        let mediaHtml = '';
+        if(post.type === 'reel' && post.mediaUrl){
+          const url = await signMedia(post.mediaUrl, post.b2Shard);
+          const thumb = post.thumbnailUrl? await signMedia(post.thumbnailUrl, post.b2Shard) : '';
+          mediaHtml = url? `
+            <video
+              src="${url}"
+              poster="${thumb}"
+              loop muted autoplay playsinline
+              preload="metadata"
+              style="background-color:#000;width:100%;height:100%;display:block;"
+            ></video>`
+          : `<p style="color:red">Video unavailable</p>`;
+        } else {
+          mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
+        }
+
+        const hasLiked = userLikes.includes(post.id);
+        const hasCommented = userComments.includes(post.id);
+        const isOwner = post.userId === myId;
+
+        card.innerHTML = `
+          ${mediaHtml}
+          <div class="reel-overlay">
+            <h4>
+              <a href="#/profile/${post.userId}" style="color:#fff; text-decoration:none;">@${post.userId}</a>
+              ${!isOwner? `<button id="btn-follow-${post.id}" class="btn secondary" style="width:auto; padding:4px 10px; font-size:12px; margin-left:8px;" onclick="toggleFollowFromFeed('${post.userId}', '${post.id}')">Follow</button>` : ''}
+            </h4>
+            <p>${post.title || post.type}</p>
+          </div>
+          <div class="reel-actions">
+            <button class="action-bubble ${hasLiked? 'voted-like' : ''}" ${hasLiked? 'disabled' : ''} id="btn-like-${post.id}" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
+              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <span id="count-like-${post.id}">${post.likes}</span>
+            </button>
+            <button class="action-bubble ${hasCommented? 'voted-comment' : ''}" id="btn-comment-${post.id}" onclick="openCommentModal('${post.id}', '${post.userId}')">
+              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+              <span id="count-comment-${post.id}">${post.comments}</span>
+            </button>
+            <button class="action-bubble" onclick="shareReel('${post.id}')">
+              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0.24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+              <span>Share</span>
+            </button>
+          </div>
+        `;
+        viewport.appendChild(card);
+
+        if(!isOwner) checkFollowState(post.userId, post.id);
+
+        let viewTriggered = false;
+        const videoEl = card.querySelector('video');
+        if(videoEl){
+          videoEl.addEventListener('play', () => {
+            if (!viewTriggered) {
+              setTimeout(() => {
+                if (!videoEl.paused) {
+                  viewTriggered = true;
+                  fetch(`${API_BASE}/api/view`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ postId: post.id, userId: post.userId })
+                  });
+                }
+              }, 3000);
+            }
+          });
+          card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
+        }
+        if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}?author=${post.userId}`);
+        if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
+      }
+    }
+
+    async function checkFollowState(targetId, postId){
+      const btn = document.getElementById(`btn-follow-${postId}`);
+      if(!btn) return;
+      try {
+        const d = await fetch(`${API_BASE}/api/user/${targetId}`, {headers:getAuthHeaders()}).then(r=>r.json());
+        if(d.isFollowing){
+          btn.innerText = 'Following';
+          btn.disabled = true;
+          btn.className = 'btn';
+        } else {
+          btn.innerText = 'Follow';
+          btn.className = 'btn secondary';
+        }
+      } catch(e){ console.error(e); }
+    }
+
+    async function toggleFollowFromFeed(targetId, postId){
+      const btn = document.getElementById(`btn-follow-${postId}`);
+      const endpoint = btn.innerText === 'Follow'? '/api/follow' : '/api/unfollow';
+      const r = await fetch(`${API_BASE}${endpoint}`,{
+        method:'POST', headers:getAuthHeaders(), body:JSON.stringify({followingId: targetId})
+      });
+      if(r.ok){
+        if(btn.innerText === 'Follow'){
+          btn.innerText = 'Following';
+          btn.disabled = true;
+          btn.className = 'btn';
+        } else {
+          btn.innerText = 'Follow';
+          btn.disabled = false;
+          btn.className = 'btn secondary';
+        }
+      } else { alert((await r.json()).error); }
+    }
+
+    function shareReel(postId) {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const shareUrl = `${baseUrl}#/feed?post=${postId}`;
+      const text = `Watch this on GolViral`;
+      if (navigator.share) {
+        navigator.share({ title: 'GolViral', text: text, url: shareUrl, }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareUrl).then(() => { alert('Link copied ✅'); });
+      }
+    }
+
+    function interactFeed(postId, action, creatorId) {
+      const cacheKey = action === 'like'? 'gv_likes' : 'gv_comments';
+      let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+      if(action==='like' && storageItems.includes(postId)) return;
+
+      const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
+      const targetedCount = document.getElementById(`count-${action}-${postId}`);
+
+      if(targetedBtn && targetedCount) {
+        targetedBtn.disabled = true;
+        targetedBtn.classList.add(action === 'like'? 'voted-like' : 'voted-comment');
+        targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
+      }
+      storageItems.push(postId);
+      localStorage.setItem(cacheKey, JSON.stringify(storageItems));
+
+      fetch(`${API_BASE}/api/${action}`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
-      });
-      alert(`+10pts credited`);
+        body: JSON.stringify({postId, creatorId})
+      }).then(r => { if(r.status === 202) console.log("Buffered"); });
     }
-  }, 1000);
-}
 
-function loadWalletData() {
-  fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
-   .then(r => r.json())
-   .then(d => {
-      document.getElementById('w-free').innerText = d.freeCredits;
-      document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
-      document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
-      document.getElementById('w-flag').innerText = d.monetized? "True" : "False";
-      document.getElementById('w-requirements').innerText = `Days: ${d.daysProgress} | Followers: ${d.followersProgress}`; // FIXED
-    });
-}
+    async function openCommentModal(postId, creatorId){
+      activeCommentPost = postId; activeCommentCreator = creatorId;
+      document.getElementById('comment-modal').classList.add('active');
+      const list = document.getElementById('comment-list');
+      list.innerHTML = 'Loading...';
+      const d = await fetch(`${API_BASE}/api/comments/${postId}`).then(r=>r.json());
+      list.innerHTML = d.comments.map(c=>`<p style="margin-bottom:8px;"><b>@${c.user.username}</b>: ${c.text}</p>`).join('') || '<p style="color:var(--muted)">No comments yet</p>';
+    }
 
-// FIX: Backend only allows 1500 and 7000
-function executeDepositVerification(passToken) {
-  const tierAmount = parseInt(document.getElementById('dep-tier').value);
-  fetch(`${API_BASE}/api/deposit/init`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ tierAmount, passToken })
-  }).then(r => r.json()).then(d => {
-    if (d.sel arLink) { window.location.href = d.sel arLink; } // redirect to selar
-    else { alert(d.error); }
-  });
-}
+    async function postCommentNow(){
+      const text = document.getElementById('comment-input').value.trim();
+      if(text.length < 2) return;
+      await fetch(`${API_BASE}/api/comment`,{
+        method:'POST', headers:getAuthHeaders(), body:JSON.stringify({postId:activeCommentPost, creatorId:activeCommentCreator, text})
+      });
+      document.getElementById('comment-input').value='';
+      openCommentModal(activeCommentPost, activeCommentCreator);
+      const countEl = document.getElementById(`count-comment-${activeCommentPost}`);
+      if(countEl) countEl.innerText = parseInt(countEl.innerText || '0') + 1;
+    }
 
-function submitWithdrawalInit() {
-  const amountPoints = parseInt(document.getElementById('wd-amount').value);
-  const routingTarget = document.getElementById('wd-target').value;
-  const targetDetails = document.getElementById('wd-details').value;
-  fetch(`${API_BASE}/api/wallet/withdraw`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ amountPoints, routingTarget, targetDetails })
-  }).then(r => r.json()).then(d => {
-    if (d.authChallenge) {
-      document.getElementById('wd-otp-group').style.display = 'block';
-      alert("OTP sent to email");
-    } else { alert(d.error); }
-  });
-}
+    function switchPostType(type, e) {
+      activePostType = type;
+      document.querySelectorAll('#view-post .tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
+      document.getElementById('text-fields-group').style.display = type!== 'reel'? 'block' : 'none';
+      document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
+    }
 
-function confirmWithdrawal() {
-  const otp = document.getElementById('wd-otp').value;
-  fetch(`${API_BASE}/api/wallet/withdraw/confirm`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ otp })
-  }).then(r => r.json()).then(d => {
-    if (d.transactionAcknowledged) { alert("Payout requested"); window.location.hash = '#/wallet'; }
-    else { alert(d.error); }
-  });
-}
+    async function executePublish() {
+      const btn = document.querySelector('#view-post .btn.accent');
+      if(!btn) return alert('Button not found');
+      btn.disabled = true;
+      btn.innerText = "Uploading...";
 
-async function loadProfileData(uidParam) {
-  const myId = localStorage.getItem('userId');
-  const uid = uidParam || myId;
-  if (!uid) { window.location.hash = '#/auth'; return; }
-  currentProfileId = uid;
+      try {
+        const body = { postType: activePostType };
 
-  const d = await fetch(`${API_BASE}/api/user/${uid}`, {headers:getAuthHeaders()}).then(r => r.json());
-  document.getElementById('p-username').innerText = `@${d.username}`;
-  document.getElementById('p-views').innerText = d.totalViews;
-  document.getElementById('p-likes').innerText = d.totalLikes;
-  document.getElementById('p-posts').innerText = d.totalPosts;
-  document.getElementById('p-followers').innerText = d.followers;
-  document.getElementById('p-following').innerText = d.following;
-  const baseUrl = window.location.origin + window.location.pathname;
-  document.getElementById('p-link').value = `${baseUrl}#/auth?ref=${d.userId}`; // FIXED ref link
+        if (activePostType === 'reel') {
+          const fileInput = document.getElementById('post-file')?.files?.[0];
+          if (!fileInput) throw new Error("Select video file");
 
-  const btn = document.getElementById('btn-follow');
-  if (uid === myId) { btn.style.display = 'none'; return; }
-  btn.style.display = 'block';
+          if (fileInput.size > 1.5 * 1024 * 1024) {
+            throw new Error("Rejected: Max 1.5MB. Your file is " + (fileInput.size / 1024 / 1024).toFixed(2) + "MB");
+          }
 
-  if(d.isFollowing){
-    btn.innerText = 'Following';
-    btn.disabled = true;
-    btn.className = 'btn';
-  } else {
-    btn.innerText = 'Follow';
-    btn.disabled = false;
-    btn.className = 'btn secondary';
-  }
-}
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+          video.src = URL.createObjectURL(fileInput);
+          await new Promise(resolve => { video.onloadedmetadata = resolve; video.onerror = () => resolve(); });
+          const duration = video.duration;
+          URL.revokeObjectURL(video.src);
 
-async function toggleFollow() {
-  if (!currentProfileId) return;
-  const btn = document.getElementById('btn-follow');
-  const endpoint = btn.innerText === 'Follow'? '/api/follow' : '/api/unfollow';
-  const r = await fetch(`${API_BASE}${endpoint}`, {
-    method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ followingId: currentProfileId })
-  });
-  if (r.ok) {
-    loadProfileData(currentProfileId);
-  } else {
-    alert((await r.json()).error);
-  }
-}
+          if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
+          if (duration < 3) throw new Error("Rejected: Min 3s required");
 
-function initializeServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
-  }
-}
-</script>
+          body.fileExtension = fileInput.name.split('.').pop().toLowerCase();
+          body.contentType = fileInput.type;
+
+          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body)
+          }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error || 'Create intent failed') }); return r.json(); });
+
+          const putRes = await fetch(intentRes.uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': fileInput.type },
+            body: fileInput
+          });
+          if (!putRes.ok) throw new Error(`B2 Upload failed: ${putRes.status}`);
+
+          await fetch(`${API_BASE}/api/post/create`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
+          });
+
+          alert("Content submitted for system review ✅");
+          window.location.hash = '#/feed';
+
+        } else {
+          const title = document.getElementById('post-title').value.trim();
+          const content = document.getElementById('post-content').value.trim();
+          if (!title) throw new Error("Title required");
+          if (!content) throw new Error("Content required");
+
+          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body)
+          }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error) }); return r.json(); });
+
+          await fetch(`${API_BASE}/api/post/create`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey, title, content })
+          });
+          alert("Content submitted for admin approval");
+          window.location.hash = '#/feed';
+        }
+      } catch (err) {
+        const fileInput = document.getElementById('post-file')?.files?.[0];
+        const size = fileInput? (fileInput.size/1024/1024).toFixed(2) + 'MB' : 'N/A';
+        alert('ERROR: ' + err.message + '\nSize: ' + size);
+        console.error('Publish Error:', err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Publish Content";
+      }
+    }
+
+    async function loadReader(type, id) {
+      const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
+      const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
+      const authorId = new URLSearchParams(window.location.hash.split('?')[1] || '').get('author') || 'unknown';
+      const seconds = type === 'NOVEL'? 120 : 180;
+      let elapsed = 0;
+
+      const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok? r.json() : null);
+      if (!post || post.type.toUpperCase()!== type) return contentEl.innerHTML = 'Post not found';
+
+      contentEl.innerHTML = `<h3>${post.title || ''}</h3><br>${post.content || 'No content'}`;
+      timerEl.style.width = '0%';
+      readTimer = setInterval(() => {
+        elapsed++;
+        timerEl.style.width = `${(elapsed / seconds) * 100}%`;
+        if (elapsed >= seconds) {
+          clearInterval(readTimer);
+          fetch(`${API_BASE}/api/read-session`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
+          });
+          alert(`+10pts credited`);
+        }
+      }, 1000);
+    }
+
+    function loadWalletData() {
+      fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
+       .then(r => r.json())
+       .then(d => {
+          document.getElementById('w-free').innerText = d.freeCredits;
+          document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
+          document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
+          document.getElementById('w-flag').innerText = d.monetized? "True" : "False";
+          document.getElementById('w-requirements').innerText = `Days: ${d.daysProgress} | Followers: ${d.followersProgress}`;
+        });
+    }
+
+    function executeDepositVerification(passToken) {
+      const tierAmount = parseInt(document.getElementById('dep-tier').value);
+      fetch(`${API_BASE}/api/deposit/init`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ tierAmount, passToken })
+      }).then(r => r.json()).then(d => {
+        if (d.selarLink) { window.location.href = d.selarLink; }
+        else { alert(d.error); }
+      });
+    }
+
+    function submitWithdrawalInit() {
+      const amountPoints = parseInt(document.getElementById('wd-amount').value);
+      const routingTarget = document.getElementById('wd-target').value;
+      const targetDetails = document.getElementById('wd-details').value;
+      fetch(`${API_BASE}/api/wallet/withdraw`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ amountPoints, routingTarget, targetDetails })
+      }).then(r => r.json()).then(d => {
+        if (d.authChallenge) {
+          document.getElementById('wd-otp-group').style.display = 'block';
+          alert("OTP sent to email");
+        } else { alert(d.error); }
+      });
+    }
+
+    function confirmWithdrawal() {
+      const otp = document.getElementById('wd-otp').value;
+      fetch(`${API_BASE}/api/wallet/withdraw/confirm`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ otp })
+      }).then(r => r.json()).then(d => {
+        if (d.transactionAcknowledged) { alert("Payout requested"); window.location.hash = '#/wallet'; }
+        else { alert(d.error); }
+      });
+    }
+
+    async function loadProfileData(uidParam) {
+      const myId = localStorage.getItem('userId');
+      const uid = uidParam || myId;
+      if (!uid) { window.location.hash = '#/auth'; return; }
+      currentProfileId = uid;
+
+      const d = await fetch(`${API_BASE}/api/user/${uid}`, {headers:getAuthHeaders()}).then(r => r.json());
+      document.getElementById('p-username').innerText = `@${d.username}`;
+      document.getElementById('p-views').innerText = d.totalViews;
+      document.getElementById('p-likes').innerText = d.totalLikes;
+      document.getElementById('p-posts').innerText = d.totalPosts;
+      document.getElementById('p-followers').innerText = d.followers;
+      document.getElementById('p-following').innerText = d.following;
+      const baseUrl = window.location.origin + window.location.pathname;
+      document.getElementById('p-link').value = `${baseUrl}#/auth?ref=${d.userId}`;
+
+      const btn = document.getElementById('btn-follow');
+      const parent = btn.parentNode;
+      const oldMsgBtn = document.getElementById('btn-message');
+      if(oldMsgBtn) oldMsgBtn.remove();
+
+      if (uid === myId) { btn.style.display = 'none'; return; }
+      btn.style.display = 'inline-block';
+
+      const msgBtn = document.createElement('button');
+      msgBtn.id = 'btn-message';
+      msgBtn.innerText = 'Message';
+      msgBtn.className = 'btn accent';
+      msgBtn.style.cssText = 'width:auto; padding:8px 16px; margin-left:8px; display:inline-block;';
+      msgBtn.onclick = () => window.location.hash = `#/dm/${uid}`;
+      parent.appendChild(msgBtn);
+
+      if(d.isFollowing){
+        btn.innerText = 'Following';
+        btn.disabled = true;
+        btn.className = 'btn';
+      } else {
+        btn.innerText = 'Follow';
+        btn.disabled = false;
+        btn.className = 'btn secondary';
+      }
+    }
+
+    async function toggleFollow() {
+      if (!currentProfileId) return;
+      const btn = document.getElementById('btn-follow');
+      const endpoint = btn.innerText === 'Follow'? '/api/follow' : '/api/unfollow';
+      const r = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ followingId: currentProfileId })
+      });
+      if (r.ok) {
+        loadProfileData(currentProfileId);
+      } else {
+        alert((await r.json()).error);
+      }
+    }
+
+    function initializeServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
+      }
+    }
+  </script>
 </body>
 </html>
