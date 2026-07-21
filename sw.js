@@ -1,14 +1,18 @@
-const CACHE_NAME = 'golviral-v2.1';
+const CACHE_NAME = 'golviral-v2';
 const APP_BASE_URL = 'https://selimzy535-ai.github.io/golviral-frontend';
+const API_URL = 'https://golviral-api.onrender.com';
 
 const PRECACHE_URLS = [
   `${APP_BASE_URL}/`,
   `${APP_BASE_URL}/index.html`,
-  `${APP_BASE_URL}/admin.html`,
+  `${APP_BASE_URL}/auth.html`,
+  `${APP_BASE_URL}/post.html`,
+  `${APP_BASE_URL}/messages.html`,
+  `${APP_BASE_URL}/profile.html`,
   `${APP_BASE_URL}/manifest.json`
 ];
 
-// INSTALL: Precache shell
+// INSTALL: Precache app shell
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_URLS))
@@ -26,37 +30,43 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// FETCH: NetworkFirst for API, CacheFirst for assets
+// FETCH: NetworkFirst for API, CacheFirst for media, StaleWhileRevalidate for shell
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // 1. API Calls: Network First with fallback
-  if (url.origin === 'https://golviral-api.onrender.com') {
+  // 1. API Calls: Network First
+  if (url.origin === API_URL) {
     event.respondWith(
-      fetch(event.request).catch(() => 
-        caches.match(event.request)
-      )
+      fetch(event.request)
+        .then(res => {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // 2. B2 Media: Cache First for 15min
-  if (url.hostname.includes('backblazeb2.com')) {
+  // 2. Images & Videos: Cache First
+  if (event.request.destination === 'image' || event.request.destination === 'video') {
     event.respondWith(
-      caches.match(event.request).then(res => 
-        res || fetch(event.request).then(fetchRes => {
-          const cacheRes = fetchRes.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, cacheRes));
-          return fetchRes;
+      caches.match(event.request).then(cached => 
+        cached || fetch(event.request).then(res => {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+          return res;
         })
       )
     );
     return;
   }
 
-  // 3. App Shell: Cache First
+  // 3. App Shell: Stale While Revalidate
   event.respondWith(
-    caches.match(event.request).then(res => res || fetch(event.request))
+    caches.match(event.request).then(cached => 
+      cached || fetch(event.request)
+    )
   );
 });
 
@@ -65,10 +75,10 @@ self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
   const title = data.title || 'GolViral';
   const options = {
-    body: data.body || 'New notification',
+    body: data.body || 'You have a new notification',
     icon: `${APP_BASE_URL}/icon-192.png`,
     badge: `${APP_BASE_URL}/icon-192.png`,
-    data: data.data || {},
+    data: data.data || { url: '/index.html#feed' },
     vibrate: [200, 100, 200],
     tag: data.type || 'general'
   };
@@ -78,7 +88,7 @@ self.addEventListener('push', event => {
 // NOTIFICATION CLICK: Open app
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const urlToOpen = event.notification.data.url || `${APP_BASE_URL}/index.html#feed`;
+  const urlToOpen = APP_BASE_URL + (event.notification.data.url || '/index.html#feed');
   
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
