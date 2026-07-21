@@ -4,332 +4,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral - Profile</title>
-
   <link rel="manifest" href="manifest.json">
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW sync failed:', err));
-    }
-  </script>
-
+  <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js') } </script>
   <style>
-    :root {
-      --bg: #000000;
-      --card: #181818;
-      --accent: #00ff88;
-      --text: #ffffff;
-      --text-muted: #888888;
-      --border: #262626;
-      --bottom-nav-height: 60px;
-    }
-
+    :root { --bg: #000; --card: #181818; --accent: #00ff88; --text: #fff; --text-muted: #888; --border: #262626; --bottom-nav-height: 60px; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
-      max-width: 500px;
-      margin: 0 auto;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      padding-bottom: calc(var(--bottom-nav-height) + 10px);
-    }
-
-    /* Top Bar */
-    .top-bar {
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      z-index: 10;
-      padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .header-username {
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-
-    /* Profile Header Layout */
-    .profile-header {
-      padding: 20px 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .profile-top-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-    }
-
-    .avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: var(--card);
-      border: 2px solid var(--accent);
-      flex-shrink: 0;
-    }
-
-    .stats-container {
-      display: flex;
-      flex: 1;
-      justify-content: space-around;
-      text-align: center;
-    }
-
-    .stat-box {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .stat-value {
-      font-size: 1.1rem;
-      font-weight: bold;
-    }
-
-    .stat-label {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .profile-info {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .full-name { font-weight: bold; font-size: 1rem; }
-    .bio { font-size: 0.9rem; color: #ddd; white-space: pre-line; }
-
-    .action-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 5px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 0.9rem;
-      text-align: center;
-    }
-
-    .btn-accent { background: var(--accent); color: #000; }
-    .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
-    .btn-danger { background: #ff4444; color: #fff; }
-
-    /* Tabs */
-    .tabs-nav {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      border-top: 1px solid var(--border);
-      background: var(--bg);
-      position: sticky;
-      top: 51px;
-      z-index: 9;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 12px 0;
-      text-align: center;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-    }
-
-    .tab-content {
-      display: none;
-      padding: 15px;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    /* Tab: Posts Grid */
-    .posts-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 3px;
-      padding: 0;
-    }
-
-    .grid-item {
-      aspect-ratio: 1;
-      background: var(--card);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .grid-item img, .grid-item video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* Tab: Wallet & General Cards */
-    .card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .card-title {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .balance-amount {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: var(--accent);
-    }
-
-    .progress-bar-bg {
-      background: #262626;
-      height: 8px;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 5px;
-    }
-
-    .progress-bar-fill {
-      background: var(--accent);
-      height: 100%;
-      width: 0%;
-      transition: width 0.3s;
-    }
-
-    /* Tab: Gifts */
-    .gifts-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .gift-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid var(--border);
-    }
-
-    .gift-info h4 { font-size: 1.1rem; color: var(--text); }
-    .gift-info p { font-size: 0.9rem; color: var(--accent); font-weight: bold; margin-top: 4px; }
-
-    /* Form Styles */
-    input, select, textarea {
-      width: 100%;
-      background: #000;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px;
-      border-radius: 8px;
-      outline: none;
-      font-family: inherit;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--accent);
-    }
-
-    /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 200;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .modal-body {
-      background: var(--card);
-      width: 100%;
-      max-width: 400px;
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    /* Bottom Nav */
-    .bottom-nav {
-      height: var(--bottom-nav-height);
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      max-width: 500px;
-      margin: 0 auto;
-      z-index: 100;
-    }
-
-    .nav-item { color: var(--text-muted); font-size: 1.5rem; text-decoration: none; }
-    .nav-item.active { color: var(--text); }
-
-    .toast {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--accent);
-      color: #000;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-weight: bold;
-      z-index: 999;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-    }
+    body { background: var(--bg); color: var(--text); font-family: system-ui; max-width: 500px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; padding-bottom: calc(var(--bottom-nav-height) + 10px); }
+   .top-bar { position: sticky; top: 0; background: var(--bg); z-index: 10; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+   .header-username { font-weight: bold; font-size: 1.2rem; }
+   .profile-header { padding: 20px 15px; display: flex; flex-direction: column; gap: 15px; }
+   .profile-top-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+   .avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: var(--card); border: 2px solid var(--accent); flex-shrink: 0; }
+   .stats-container { display: flex; flex: 1; justify-content: space-around; text-align: center; }
+   .stat-box { display: flex; flex-direction: column; }
+   .stat-value { font-size: 1.1rem; font-weight: bold; }
+   .stat-label { font-size: 0.8rem; color: var(--text-muted); }
+   .profile-info { display: flex; flex-direction: column; gap: 5px; }
+   .full-name { font-weight: bold; font-size: 1rem; }
+   .bio { font-size: 0.9rem; color: #ddd; white-space: pre-line; }
+   .action-buttons { display: flex; gap: 10px; margin-top: 5px; }
+   .btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 0.9rem; text-align: center; }
+   .btn-accent { background: var(--accent); color: #000; }
+   .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+   .tabs-nav { display: flex; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); background: var(--bg); position: sticky; top: 51px; z-index: 9; }
+   .tab-btn { flex: 1; padding: 12px 0; text-align: center; background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid transparent; }
+   .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+   .tab-content { display: none; padding: 15px; }
+   .tab-content.active { display: block; }
+   .posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+   .grid-item { aspect-ratio: 1; background: var(--card); position: relative; overflow: hidden; }
+   .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
+   .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px; }
+   .card-title { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; }
+   .balance-amount { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+   .progress-bar-bg { background: #262626; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 5px; }
+   .progress-bar-fill { background: var(--accent); height: 100%; width: 0%; transition: width 0.3s; }
+   .gifts-grid { display: flex; flex-direction: column; gap: 15px; }
+   .gift-card { background: var(--card); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+   input, select, textarea { width: 100%; background: #000; border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 8px; outline: none; }
+   .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 200; justify-content: center; align-items: center; padding: 20px; }
+   .modal-body { background: var(--card); width: 100%; max-width: 400px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+   .bottom-nav { height: var(--bottom-nav-height); background: var(--bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; position: fixed; bottom: 0; left: 0; right: 0; max-width: 500px; margin: 0 auto; z-index: 100; }
+   .nav-item { color: var(--text-muted); font-size: 1.5rem; text-decoration: none; }
+   .nav-item.active { color: var(--text); }
+   .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 999; opacity: 0; transition: opacity 0.3s; }
   </style>
 </head>
 <body>
-
   <div id="toast" class="toast"></div>
 
   <div class="top-bar">
@@ -341,423 +62,138 @@
     <div class="profile-top-row">
       <img src="https://via.placeholder.com/80" id="user-avatar" class="avatar" alt="Avatar">
       <div class="stats-container">
-        <div class="stat-box">
-          <span class="stat-value" id="stat-posts">0</span>
-          <span class="stat-label">Posts</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-value" id="stat-followers">0</span>
-          <span class="stat-label">Followers</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-value" id="stat-following">0</span>
-          <span class="stat-label">Following</span>
-        </div>
+        <div class="stat-box"><span class="stat-value" id="stat-posts">0</span><span class="stat-label">Posts</span></div>
+        <div class="stat-box"><span class="stat-value" id="stat-followers">0</span><span class="stat-label">Followers</span></div>
+        <div class="stat-box"><span class="stat-value" id="stat-likes">0</span><span class="stat-label">Likes</span></div> <!-- ADDED -->
+        <div class="stat-box"><span class="stat-value" id="stat-following">0</span><span class="stat-label">Following</span></div>
       </div>
     </div>
-
     <div class="profile-info">
       <div class="full-name" id="user-fullname">User</div>
       <div class="bio" id="user-bio">...</div>
     </div>
-
-    <div class="action-buttons" id="profile-actions">
-      </div>
+    <div class="action-buttons" id="profile-actions"></div>
   </section>
 
   <nav class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab('posts')">Posts</button>
-    <button class="tab-btn" onclick="switchTab('wallet')">Wallet</button>
-    <button class="tab-btn" onclick="switchTab('gifts')">Gifts</button>
-    <button class="tab-btn" onclick="switchTab('support')">Support</button>
-    <button class="tab-btn" id="admin-tab-btn" style="display: none;" onclick="switchTab('admin')">Admin</button>
+    <button class="tab-btn active" onclick="switchTab('posts', event)">Posts</button>
+    <button class="tab-btn" onclick="switchTab('wallet', event)">Wallet</button>
+    <button class="tab-btn" onclick="switchTab('gifts', event)">Gifts</button>
+    <button class="tab-btn" onclick="switchTab('support', event)">Support</button>
+    <button class="tab-btn" id="admin-tab-btn" style="display: none;" onclick="switchTab('admin', event)">Admin</button>
   </nav>
 
-  <div id="tab-posts" class="tab-content active">
-    <div class="posts-grid" id="posts-grid"></div>
-  </div>
-
+  <div id="tab-posts" class="tab-content active"><div class="posts-grid" id="posts-grid"></div></div>
   <div id="tab-wallet" class="tab-content">
-    <div class="card">
-      <span class="card-title">Free Credits</span>
-      <div class="balance-amount" id="val-free-credits">₦0</div>
-    </div>
-
-    <div class="card">
-      <span class="card-title">Cash Balance</span>
-      <div class="balance-amount" id="val-cash-balance">₦0</div>
-    </div>
-
+    <div class="card"><span class="card-title">Free Credits</span><div class="balance-amount" id="val-free-credits">₦0</div></div>
+    <div class="card"><span class="card-title">Cash Balance</span><div class="balance-amount" id="val-cash-balance">₦0</div></div>
     <div class="card">
       <span class="card-title">Monetization Progress</span>
-      <div>
-        <div style="display:flex; justify-shadow:space-between; font-size:0.85rem; margin-bottom: 4px;">
-          <span>Days Active</span>
-          <span id="label-days-monetize">0/7</span>
-        </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" id="fill-days-monetize"></div></div>
-      </div>
-      <div style="margin-top: 10px;">
-        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom: 4px;">
-          <span>Followers Required</span>
-          <span id="label-followers-monetize">0/10</span>
-        </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" id="fill-followers-monetize"></div></div>
-      </div>
+      <div><div style="display:flex; justify-content:space-between; font-size:0.85rem;"><span>Days Active</span><span id="label-days-monetize">0/7</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" id="fill-days-monetize"></div></div></div>
+      <div style="margin-top: 10px;"><div style="display:flex; justify-content:space-between; font-size:0.85rem;"><span>Followers Required</span><span id="label-followers-monetize">0/10</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" id="fill-followers-monetize"></div></div></div>
     </div>
-
-    <div class="card">
-      <span class="card-title">Deposit Funds</span>
-      <div style="display: flex; gap: 10px;">
-        <button class="btn btn-accent" onclick="initDeposit(1500)">Deposit ₦1,500</button>
-        <button class="btn btn-accent" onclick="initDeposit(7000)">Deposit ₦7,000</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <span class="card-title">Unlock DM Feature</span>
-      <p style="font-size:0.85rem; color:var(--text-muted);">One-time fee to unlock direct messaging earnings.</p>
-      <button class="btn btn-secondary" onclick="initDMUnlock()">Unlock DM (₦3,000)</button>
-    </div>
-
+    <div class="card"><span class="card-title">Deposit Funds</span><div style="display: flex; gap: 10px;"><button class="btn btn-accent" onclick="initDeposit(1500)">Deposit ₦1,500</button><button class="btn btn-accent" onclick="initDeposit(7000)">Deposit ₦7,000</button></div></div>
+    <div class="card"><span class="card-title">Unlock DM Feature</span><p style="font-size:0.85rem; color:var(--text-muted);">One-time fee to unlock direct messaging.</p><button class="btn btn-secondary" onclick="initDMUnlock()">Unlock DM (₦3,000)</button></div>
     <div class="card">
       <span class="card-title">Withdraw Cash (Min ₦50,000)</span>
       <form onsubmit="handleWithdrawSubmit(event)" style="display:flex; flex-direction:column; gap:10px;">
-        <select id="withdraw-type" required>
-          <option value="BANK">Bank Transfer</option>
-          <option value="USDT">USDT Wallet</option>
-        </select>
-        <input type="number" id="withdraw-amount" min="50000" placeholder="Amount (₦)" required>
-        <input type="text" id="withdraw-destination" placeholder="Account Number or USDT Address" required>
+        <select id="withdraw-method" required><option value="BANK">Bank Transfer</option><option value="USDT">USDT TRC20</option></select>
+        <input type="number" id="withdraw-amount" min="50000" placeholder="Amount in Points" required>
+        <textarea id="withdraw-details" placeholder='BANK: {"bankName":"GTB","accountNumber":"123","accountName":"John"}  OR  USDT: TxxxAddress' required></textarea>
         <button type="submit" class="btn btn-accent">Request Withdrawal</button>
       </form>
     </div>
   </div>
-
   <div id="tab-gifts" class="tab-content">
     <div class="gifts-grid">
-      <div class="gift-card">
-        <div class="gift-info">
-          <h4>💎 RUBY</h4>
-          <p>₦5,000</p>
-        </div>
-        <button class="btn btn-accent" style="width: auto; padding: 8px 16px;" onclick="buyGift('RUBY')">Buy</button>
-      </div>
-
-      <div class="gift-card">
-        <div class="gift-info">
-          <h4>👑 GOLD</h4>
-          <p>₦10,000</p>
-        </div>
-        <button class="btn btn-accent" style="width: auto; padding: 8px 16px;" onclick="buyGift('GOLD')">Buy</button>
-      </div>
-
-      <div class="gift-card">
-        <div class="gift-info">
-          <h4>✨ DIAMOND</h4>
-          <p>₦15,000</p>
-        </div>
-        <button class="btn btn-accent" style="width: auto; padding: 8px 16px;" onclick="buyGift('DIAMOND')">Buy</button>
-      </div>
+      <div class="gift-card"><div class="gift-info"><h4>💎 RUBY</h4><p>₦5,000</p></div><button class="btn btn-accent" style="width: auto; padding: 8px 16px;" onclick="buyGift('RUBY')">Buy</button></div>
+      <div class="gift-card"><div class="gift-info"><h4>👑 GOLD</h4><p>₦10,000</p></div><button class="btn btn-accent" style="width: auto; padding: 8px 16px;" onclick="buyGift('GOLD')">Buy</button></div>
+      <div class="gift-card"><div class="gift-info"><h4>✨ DIAMOND</h4><p>₦15,000</p></div><button class="btn btn-accent" style="width: auto; padding: 8px 16px;" onclick="buyGift('DIAMOND')">Buy</button></div>
     </div>
   </div>
-
   <div id="tab-support" class="tab-content">
-    <div class="card">
-      <span class="card-title">New Support Ticket</span>
-      <form onsubmit="handleSupportSubmit(event)" style="display:flex; flex-direction:column; gap:10px;">
-        <input type="text" id="support-subject" placeholder="Subject" required>
-        <textarea id="support-message" rows="4" placeholder="How can we help?" required></textarea>
-        <button type="submit" class="btn btn-accent">Submit Ticket</button>
-      </form>
-    </div>
-
-    <div class="card">
-      <span class="card-title">My Tickets</span>
-      <div id="support-tickets-list" style="display:flex; flex-direction:column; gap:10px; font-size:0.9rem;">
-        Loading tickets...
-      </div>
-    </div>
+    <div class="card"><span class="card-title">New Support Ticket</span><form onsubmit="handleSupportSubmit(event)" style="display:flex; flex-direction:column; gap:10px;"><input type="text" id="support-subject" placeholder="Subject" required><textarea id="support-message" rows="4" placeholder="How can we help?" required></textarea><button type="submit" class="btn btn-accent">Submit Ticket</button></form></div>
+    <div class="card"><span class="card-title">My Tickets</span><div id="support-tickets-list" style="display:flex; flex-direction:column; gap:10px; font-size:0.9rem;">Loading...</div></div>
   </div>
-
-  <div id="tab-admin" class="tab-content">
-    <div class="card">
-      <span class="card-title">Admin Controls</span>
-      <p style="font-size:0.85rem; color:var(--text-muted);">Administrative dashboard and moderation controls.</p>
-    </div>
-  </div>
-
-  <div id="otp-modal" class="modal">
-    <div class="modal-body">
-      <h3>Enter Verification OTP</h3>
-      <p style="font-size:0.85rem; color:var(--text-muted);">Check your email/SMS for the withdrawal authorization code.</p>
-      <input type="text" id="withdraw-otp" placeholder="6-Digit OTP">
-      <button class="btn btn-accent" onclick="confirmWithdrawal()">Confirm Withdrawal</button>
-    </div>
-  </div>
+  <div id="tab-admin" class="tab-content"><div class="card"><span class="card-title">Admin Controls</span></div></div>
+  <div id="otp-modal" class="modal"><div class="modal-body"><h3>Enter Verification OTP</h3><input type="text" id="withdraw-otp" placeholder="6-Digit OTP"><button class="btn btn-accent" onclick="confirmWithdrawal()">Confirm Withdrawal</button></div></div>
 
   <nav class="bottom-nav">
-    <a href="index.html" class="nav-item">🏠</a>
-    <a href="index.html" class="nav-item">🔍</a>
-    <a href="post.html" class="nav-item">➕</a>
-    <a href="dm.html" class="nav-item">💬</a>
-    <a href="profile.html" class="nav-item active">👤</a>
+    <a href="index.html" class="nav-item">🏠</a><a href="index.html" class="nav-item">🔍</a><a href="post.html" class="nav-item">➕</a><a href="messages.html" class="nav-item">💬</a><a href="profile.html" class="nav-item active">👤</a>
   </nav>
 
   <script>
-    // --- AUTH & INITIAL SETUP ---
-    const TOKEN = localStorage.getItem('token');
-    if (!TOKEN) window.location.href = 'auth.html';
-
+    const TOKEN = localStorage.getItem('token'); if (!TOKEN) window.location.href = 'auth.html';
     const API_BASE = 'https://golviral-api.onrender.com';
     const urlParams = new URLSearchParams(window.location.search);
-    const paramUserId = urlParams.get('id');
-    const loggedInUserId = localStorage.getItem('userId');
-    const targetUserId = paramUserId || loggedInUserId;
-    const isSelf = !paramUserId || paramUserId === loggedInUserId;
+    const targetUserId = urlParams.get('id') || localStorage.getItem('userId');
+    const isSelf = !urlParams.get('id') || urlParams.get('id') === localStorage.getItem('userId');
+    let currentWithdrawData = null;
 
-    let currentWithdrawId = null;
-
-    // --- UTILS ---
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.style.opacity = '1';
-      setTimeout(() => toast.style.opacity = '0', 3000);
-    }
-
+    function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 3000); }
     async function fetchAPI(endpoint, options = {}) {
       try {
-        const res = await fetch(`${API_BASE}${endpoint}`, {
-          ...options,
-          headers: {
-            'Authorization': `Bearer ${TOKEN}`,
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-          }
-        });
-
-        if (res.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = 'auth.html';
-          return null;
-        }
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || `Error: ${res.status}`);
-        return data;
-      } catch (err) {
-        showToast(err.message);
-        return null;
-      }
+        const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...(options.headers || {}) } });
+        if (res.status === 401) { localStorage.removeItem('token'); window.location.href = 'auth.html'; return null; }
+        const data = await res.json(); if (!res.ok) throw new Error(data.error || `Error: ${res.status}`); return data;
+      } catch (err) { showToast(err.message); return null; }
     }
+    function switchTab(tabId, e) { document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active')); e.target.classList.add('active'); document.getElementById(`tab-${tabId}`).classList.add('active'); if (tabId === 'wallet') loadWallet(); if (tabId === 'support') loadSupport(); if (tabId === 'gifts') checkGiftFlow(); }
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-      event.target.classList.add('active');
-      const targetContent = document.getElementById(`tab-${tabId}`);
-      if (targetContent) targetContent.classList.add('active');
-
-      if (tabId === 'wallet') loadWallet();
-      if (tabId === 'support') loadSupport();
-    }
-
-    // --- PROFILE LOADING ---
     async function loadProfile() {
-      const user = await fetchAPI(`/api/user/${targetUserId}`);
-      if (!user) return;
+      const user = await fetchAPI(`/api/user/${targetUserId}`); if (!user) return;
+      document.getElementById('header-username').innerText = user.username;
+      document.getElementById('user-fullname').innerText = user.username;
+      document.getElementById('user-bio').innerText = user.isVerified ? 'Verified Creator ✓' : 'User';
+      document.getElementById('stat-posts').innerText = user.totalPosts || 0; // FIXED
+      document.getElementById('stat-followers').innerText = user.followers || 0; // FIXED
+      document.getElementById('stat-following').innerText = user.following || 0; // FIXED
+      document.getElementById('stat-likes').innerText = user.totalLikes || 0; // FIXED
 
-      document.getElementById('header-username').innerText = user.username || 'Profile';
-      document.getElementById('user-fullname').innerText = user.fullName || user.username;
-      document.getElementById('user-bio').innerText = user.bio || 'No bio yet.';
-      if (user.avatarUrl) document.getElementById('user-avatar').src = user.avatarUrl;
+      if (user.role === 'admin') document.getElementById('admin-tab-btn').style.display = 'block';
 
-      document.getElementById('stat-posts').innerText = user.postsCount || 0;
-      document.getElementById('stat-followers').innerText = user.followersCount || 0;
-      document.getElementById('stat-following').innerText = user.followingCount || 0;
-
-      // Show Admin tab if role === 'admin'
-      if (user.role === 'admin') {
-        document.getElementById('admin-tab-btn').style.display = 'block';
-      }
-
-      // Render Action Buttons
       const actionsDiv = document.getElementById('profile-actions');
       if (isSelf) {
-        actionsDiv.innerHTML = `<button class="btn btn-secondary" onclick="showToast('Edit Profile clicked')">Edit Profile</button>`;
+        actionsDiv.innerHTML = `<button class="btn btn-secondary" onclick="showToast('Edit coming soon')">Edit Profile</button>`;
       } else {
-        const isFollowing = user.isFollowing;
-        actionsDiv.innerHTML = `
-          ${isFollowing 
-            ? `<button class="btn btn-secondary" onclick="unfollowUser('${targetUserId}')">Unfollow</button>` 
-            : `<button class="btn btn-accent" onclick="followUser('${targetUserId}')">Follow</button>`
-          }
-          <button class="btn btn-secondary" onclick="location.href='messages.html?to=${targetUserId}'">Message</button>
-        `;
+        actionsDiv.innerHTML = `${user.isFollowing ? `<button class="btn btn-secondary" onclick="unfollowUser('${targetUserId}')">Unfollow</button>` : `<button class="btn btn-accent" onclick="followUser('${targetUserId}')">Follow</button>`}<button class="btn btn-secondary" onclick="location.href='messages.html?to=${targetUserId}'">Message</button>`;
       }
-
       loadPosts();
     }
-
-    async function loadPosts() {
-      const posts = await fetchAPI(`/api/user/${targetUserId}/posts`);
-      const grid = document.getElementById('posts-grid');
-      grid.innerHTML = '';
-
-      if (posts && posts.length > 0) {
-        posts.forEach(post => {
-          const item = document.createElement('div');
-          item.className = 'grid-item';
-          item.innerHTML = post.coverImage 
-            ? `<img src="${post.coverImage}" alt="post">` 
-            : `<div style="padding:10px; font-size:0.7rem;">${post.caption || 'Post'}</div>`;
-          grid.appendChild(item);
-        });
-      } else {
-        grid.innerHTML = `<div style="grid-column: span 3; text-align: center; color: var(--text-muted); padding: 40px 0;">No posts yet</div>`;
-      }
-    }
-
-    // --- FOLLOW / UNFOLLOW ---
-    async function followUser(id) {
-      const res = await fetchAPI('/api/follow', { method: 'POST', body: JSON.stringify({ userId: id }) });
-      if (res) { showToast('Followed'); loadProfile(); }
-    }
-
-    async function unfollowUser(id) {
-      const res = await fetchAPI('/api/unfollow', { method: 'POST', body: JSON.stringify({ userId: id }) });
-      if (res) { showToast('Unfollowed'); loadProfile(); }
-    }
-
-    // --- TAB: WALLET LOGIC ---
+    async function loadPosts() { const posts = await fetchAPI(`/api/user/${targetUserId}/posts`); const grid = document.getElementById('posts-grid'); grid.innerHTML = ''; if (posts && posts.length > 0) { posts.forEach(post => { const item = document.createElement('div'); item.className = 'grid-item'; item.innerHTML = `<div style="padding:10px; font-size:0.7rem;">${post.type}</div>`; grid.appendChild(item); }); } else { grid.innerHTML = `<div style="grid-column: span 3; text-align: center; color: var(--text-muted); padding: 40px 0;">No posts yet</div>`; } }
+    async function followUser(id) { await fetchAPI('/api/follow', { method: 'POST', body: JSON.stringify({ followingId: id }) }); showToast('Followed'); loadProfile(); } // FIXED: followingId
+    async function unfollowUser(id) { await fetchAPI('/api/unfollow', { method: 'POST', body: JSON.stringify({ followingId: id }) }); showToast('Unfollowed'); loadProfile(); } // FIXED: followingId
     async function loadWallet() {
-      const data = await fetchAPI('/api/wallet');
-      if (!data) return;
-
+      const data = await fetchAPI('/api/wallet'); if (!data) return;
       document.getElementById('val-free-credits').innerText = `₦${(data.freeCredits || 0).toLocaleString()}`;
       document.getElementById('val-cash-balance').innerText = `₦${(data.cashBalance || 0).toLocaleString()}`;
-
-      const days = data.daysToMonetize || 0;
-      const followers = data.followersCount || 0;
-
-      document.getElementById('label-days-monetize').innerText = `${days}/7`;
-      document.getElementById('fill-days-monetize').style.width = `${Math.min((days / 7) * 100, 100)}%`;
-
-      document.getElementById('label-followers-monetize').innerText = `${followers}/10`;
-      document.getElementById('fill-followers-monetize').style.width = `${Math.min((followers / 10) * 100, 100)}%`;
+      const [days, daysTotal] = (data.daysProgress || '0/7').split('/');
+      const [followers, followersTotal] = (data.followersProgress || '0/10').split('/');
+      document.getElementById('label-days-monetize').innerText = data.daysProgress;
+      document.getElementById('fill-days-monetize').style.width = `${(days / daysTotal) * 100}%`;
+      document.getElementById('label-followers-monetize').innerText = data.followersProgress;
+      document.getElementById('fill-followers-monetize').style.width = `${(followers / followersTotal) * 100}%`;
     }
-
-    async function initDeposit(amount) {
-      const res = await fetchAPI('/api/deposit/init', {
-        method: 'POST',
-        body: JSON.stringify({ amount })
-      });
-      if (res && res.selarLink) {
-        window.open(res.selarLink, '_blank');
-      }
-    }
-
-    async function initDMUnlock() {
-      const res = await fetchAPI('/api/dm/init', { method: 'POST' });
-      if (res) showToast('DM Earnings Feature Unlocked!');
-    }
-
+    async function initDeposit(amount) { const res = await fetchAPI('/api/deposit/init', { method: 'POST', body: JSON.stringify({ tierAmount: amount }) }); if (res && res.selarLink) { window.open(res.selarLink, '_blank'); } } // FIXED: tierAmount
+    async function initDMUnlock() { const res = await fetchAPI('/api/dm/init', { method: 'POST' }); if (res && res.selarLink) { window.open(res.selarLink, '_blank'); } }
     async function handleWithdrawSubmit(e) {
       e.preventDefault();
-      const type = document.getElementById('withdraw-type').value;
-      const amount = document.getElementById('withdraw-amount').value;
-      const destination = document.getElementById('withdraw-destination').value;
-
-      const res = await fetchAPI('/api/wallet/withdraw', {
-        method: 'POST',
-        body: JSON.stringify({ type, amount, destination })
-      });
-
-      if (res && res.withdrawId) {
-        currentWithdrawId = res.withdrawId;
-        document.getElementById('otp-modal').style.display = 'flex';
-      }
+      const method = document.getElementById('withdraw-method').value;
+      const amountPoints = document.getElementById('withdraw-amount').value;
+      const targetDetails = document.getElementById('withdraw-details').value;
+      const res = await fetchAPI('/api/wallet/withdraw', { method: 'POST', body: JSON.stringify({ amountPoints, method, targetDetails }) }); // FIXED: payload
+      if (res && res.authChallenge) { currentWithdrawData = { amountPoints, method, targetDetails }; document.getElementById('otp-modal').style.display = 'flex'; }
     }
-
     async function confirmWithdrawal() {
-      const otp = document.getElementById('withdraw-otp').value.trim();
-      if (!otp) return showToast('Please enter OTP');
-
-      const res = await fetchAPI('/api/wallet/withdraw/confirm', {
-        method: 'POST',
-        body: JSON.stringify({ withdrawId: currentWithdrawId, otp })
-      });
-
-      if (res) {
-        showToast('Withdrawal successful!');
-        document.getElementById('otp-modal').style.display = 'none';
-        loadWallet();
-      }
+      const otp = document.getElementById('withdraw-otp').value.trim(); if (!otp) return showToast('Please enter OTP');
+      const res = await fetchAPI('/api/wallet/withdraw/confirm', { method: 'POST', body: JSON.stringify({ otp, ...currentWithdrawData }) }); // FIXED: payload
+      if (res) { showToast('Withdrawal submitted!'); document.getElementById('otp-modal').style.display = 'none'; loadWallet(); }
     }
-
-    // --- TAB: GIFTS LOGIC ---
-    async function buyGift(giftType) {
-      const res = await fetchAPI('/api/gift/init', {
-        method: 'POST',
-        body: JSON.stringify({ giftType })
-      });
-      if (res) showToast(`Purchased ${giftType} gift!`);
-    }
-
-    // Global gift-sending function requested by core logic specs
-    window.sendGift = async (userId) => {
-      const giftType = prompt("Enter Gift Type (RUBY, GOLD, DIAMOND):", "RUBY");
-      if (!giftType) return;
-      
-      const res = await fetchAPI('/api/gift/send', {
-        method: 'POST',
-        body: JSON.stringify({ userId, giftType: giftType.toUpperCase() })
-      });
-
-      if (res) showToast('Gift sent successfully!');
-    };
-
-    // --- TAB: SUPPORT LOGIC ---
-    async function handleSupportSubmit(e) {
-      e.preventDefault();
-      const subject = document.getElementById('support-subject').value;
-      const message = document.getElementById('support-message').value;
-
-      const res = await fetchAPI('/api/support/send', {
-        method: 'POST',
-        body: JSON.stringify({ subject, message })
-      });
-
-      if (res) {
-        showToast('Support ticket sent');
-        document.getElementById('support-subject').value = '';
-        document.getElementById('support-message').value = '';
-        loadSupport();
-      }
-    }
-
-    async function loadSupport() {
-      const tickets = await fetchAPI('/api/support/my');
-      const container = document.getElementById('support-tickets-list');
-      
-      if (tickets && tickets.length > 0) {
-        container.innerHTML = tickets.map(t => `
-          <div style="border-bottom:1px solid var(--border); padding-bottom:8px;">
-            <div style="display:flex; justify-shadow:space-between; font-weight:bold;">
-              <span>${t.subject}</span>
-              <span style="color:var(--accent);">${t.status || 'Open'}</span>
-            </div>
-            <div style="color:var(--text-muted); font-size:0.8rem; margin-top:2px;">${t.message}</div>
-          </div>
-        `).join('');
-      } else {
-        container.innerHTML = '<span style="color:var(--text-muted)">No support tickets found.</span>';
-      }
-    }
-
-    // --- INITIALIZATION ---
+    async function buyGift(giftType) { const res = await fetchAPI('/api/gift/init', { method: 'POST', body: JSON.stringify({ giftType }) }); if (res && res.selarLink) { window.open(res.selarLink, '_blank'); } }
+    function checkGiftFlow() { const giftTo = localStorage.getItem('giftTo'); if (giftTo) { const giftType = prompt("Send Gift to user. Type: RUBY, GOLD, DIAMOND", "RUBY"); if (giftType) { fetchAPI('/api/gift/send', { method: 'POST', body: JSON.stringify({ receiverId: giftTo, giftType: giftType.toUpperCase() }) }).then(() => showToast('Gift Sent!')); } localStorage.removeItem('giftTo'); } }
+    window.sendGift = async (userId) => { localStorage.setItem('giftTo', userId); location.href = 'profile.html#gifts'; }
+    async function handleSupportSubmit(e) { e.preventDefault(); const subject = document.getElementById('support-subject').value; const message = document.getElementById('support-message').value; const res = await fetchAPI('/api/support/send', { method: 'POST', body: JSON.stringify({ subject, message }) }); if (res) { showToast('Ticket sent'); loadSupport(); } }
+    async function loadSupport() { const tickets = await fetchAPI('/api/support/my'); const container = document.getElementById('support-tickets-list'); if (tickets && tickets.length > 0) { container.innerHTML = tickets.map(t => `<div style="border-bottom:1px solid var(--border); padding-bottom:8px;"><div style="display:flex; justify-content:space-between; font-weight:bold;"><span>${t.subject}</span><span style="color:var(--accent);">${t.status}</span></div><div style="color:var(--text-muted); font-size:0.8rem;">${t.message}</div></div>`).join(''); } else { container.innerHTML = '<span style="color:var(--text-muted)">No tickets.</span>'; } }
     window.onload = loadProfile;
   </script>
 </body>
