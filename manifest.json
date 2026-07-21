@@ -1,11 +1,15 @@
 {
-  "name": "GolViral - Earn While You Scroll",
+  "name": "GolViral - Earn by Creating",
   "short_name": "GolViral",
-  "start_url": "/index.html",
+  "description": "The creator monetization platform. Reels, Novels, Stories.",
+  "start_url": "/golviral-frontend/index.html#feed",
+  "scope": "/golviral-frontend/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "background_color": "#000000",
   "theme_color": "#00ff88",
   "orientation": "portrait",
+  "categories": ["social", "entertainment", "finance"],
   "icons": [
     {
       "src": "icon-192.png",
@@ -19,6 +23,29 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Upload Post",
+      "short_name": "Upload",
+      "description": "Create a new Reel, Novel or Story",
+      "url": "/golviral-frontend/index.html#post",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Wallet",
+      "short_name": "Wallet", 
+      "description": "Check earnings and withdraw",
+      "url": "/golviral-frontend/index.html#profile",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }
-
