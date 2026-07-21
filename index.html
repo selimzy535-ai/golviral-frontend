@@ -1,512 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GolViral</title>
-  
-  <link rel="manifest" href="manifest.json">
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW sync failed:', err));
-    }
-  </script>
-
-  <style>
-    :root {
-      --bg: #000;
-      --surface: #181818;
-      --accent: #00ff88;
-      --text: #ffffff;
-      --text-muted: #888888;
-      --top-nav-height: 100px;
-      --bottom-nav-height: 60px;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
-      max-width: 500px;
-      margin: 0 auto;
-      height: 100dvh;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background: var(--bg);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      height: var(--top-nav-height);
-      display: flex;
-      flex-direction: column;
-      border-bottom: 1px solid var(--surface);
-    }
-
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px;
-    }
-
-    .logo { font-weight: 800; font-size: 1.2rem; color: var(--accent); }
-    .search-icon { font-size: 1.2rem; cursor: pointer; }
-
-    .tabs {
-      display: flex;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding: 0 15px 10px;
-      gap: 20px;
-    }
-    .tabs::-webkit-scrollbar { display: none; }
-    .tab {
-      color: var(--text-muted);
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: color 0.2s;
-    }
-    .tab.active { color: var(--text); border-bottom: 2px solid var(--accent); }
-
-    main {
-      flex: 1;
-      overflow-y: auto;
-      scrollbar-width: none;
-      position: relative;
-    }
-    main::-webkit-scrollbar { display: none; }
-    
-    main.reels-mode { scroll-snap-type: y mandatory; }
-    .reel-container {
-      height: calc(100dvh - var(--top-nav-height) - var(--bottom-nav-height));
-      scroll-snap-align: start;
-      position: relative;
-      background: var(--surface);
-    }
-    .reel-video { width: 100%; height: 100%; object-fit: cover; }
-    .reel-actions {
-      position: absolute;
-      right: 15px;
-      bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      align-items: center;
-    }
-    .action-btn {
-      background: rgba(0,0,0,0.5);
-      border: none;
-      color: var(--text);
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      font-size: 1.2rem;
-    }
-
-    .feed-card {
-      background: var(--surface);
-      border-radius: 12px;
-      margin: 15px;
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .card-cover { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; background: #333; }
-    .card-title { font-size: 1.1rem; font-weight: bold; }
-    .card-caption { font-size: 0.9rem; color: var(--text-muted); }
-    .btn-read {
-      background: var(--accent);
-      color: #000;
-      border: none;
-      padding: 10px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .bottom-nav {
-      height: var(--bottom-nav-height);
-      background: var(--bg);
-      border-top: 1px solid var(--surface);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      position: sticky;
-      bottom: 0;
-      z-index: 100;
-    }
-    .nav-item { color: var(--text-muted); font-size: 1.5rem; cursor: pointer; text-decoration: none; }
-    .nav-item.active { color: var(--text); }
-
-    .floating-add {
-      position: fixed;
-      bottom: calc(var(--bottom-nav-height) + 20px);
-      right: 20px;
-      background: var(--accent);
-      color: #000;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: none;
-      font-size: 2rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 4px 10px rgba(0,255,136,0.3);
-      cursor: pointer;
-      z-index: 90;
-    }
-
-    .toast {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--accent);
-      color: #000;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-weight: bold;
-      z-index: 999;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--bg);
-      z-index: 200;
-      flex-direction: column;
-    }
-    .modal-header { padding: 15px; border-bottom: 1px solid var(--surface); display: flex; justify-content: space-between; }
-    .close-btn { background: none; border: none; color: var(--text); font-size: 1.2rem; cursor: pointer; }
-    
-    .search-input {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid #333;
-      color: var(--text);
-      padding: 12px;
-      border-radius: 8px;
-      margin: 15px;
-      width: calc(100% - 30px);
-      outline: none;
-    }
-    .search-results { padding: 0 15px; flex: 1; overflow-y: auto; }
-    .user-row { padding: 10px 0; border-bottom: 1px solid var(--surface); cursor: pointer; }
-
-    .bottom-sheet {
-      position: fixed;
-      bottom: -100%;
-      left: 0; right: 0;
-      max-width: 500px;
-      margin: 0 auto;
-      height: 70vh;
-      background: var(--surface);
-      border-radius: 20px 20px 0 0;
-      z-index: 300;
-      transition: bottom 0.3s;
-      display: flex;
-      flex-direction: column;
-    }
-    .bottom-sheet.open { bottom: 0; }
-    .sheet-header { padding: 15px; text-align: center; font-weight: bold; border-bottom: 1px solid #333; }
-    .comment-list { flex: 1; overflow-y: auto; padding: 15px; }
-    .comment-input-area { padding: 15px; display: flex; gap: 10px; background: var(--surface); }
-    .comment-input { flex: 1; background: var(--bg); border: none; color: var(--text); padding: 10px; border-radius: 20px; outline: none; }
-    .send-btn { color: var(--accent); background: none; border: none; font-weight: bold; cursor: pointer; }
-    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 299; }
-    .overlay.open { display: block; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>GolViral</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--bg:#000;--card:#0a0a0a;--accent:#00ff88;--text:#fff;--muted:#888;--header-h:56px;--nav-h:64px;--max-w:500px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+body{background:var(--bg);color:var(--text);max-width:var(--max-w);margin:0 auto;overflow-x:hidden}
+header{position:sticky;top:0;z-index:1000;background:rgba(0,0,0,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(0,255,136,.1)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;color:var(--accent)}
+.tabs{position:sticky;top:var(--header-h);z-index:999;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;justify-content:space-around;border-bottom:1px solid #111}
+.tab{flex:1;padding:14px 0;text-align:center;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;position:relative;transition:.3s}
+.tab.active{color:var(--text)}
+.tab.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--accent);border-radius:2px;animation:slide .3s ease}
+@keyframes slide{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+#feed{height:calc(100dvh - var(--header-h) - 48px - var(--nav-h));overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
+.reel{height:calc(100dvh - var(--header-h) - var(--nav-h));scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center}
+.reel video{width:100%;height:100%;object-fit:cover}
+.reel-actions{position:absolute;right:12px;bottom:80px;display:flex;flex-direction:column;gap:20px;align-items:center}
+.action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font-size:12px;cursor:pointer}
+.action-btn svg{width:32px;height:32px;fill:#fff;filter:drop-shadow(0 0 4px rgba(0,0,0,.5))}
+.card{margin:12px;background:var(--card);border-radius:16px;padding:16px;border:1px solid #111}
+.card img{width:100%;height:200px;object-fit:cover;border-radius:12px}
+.card h3{margin:12px 0 8px;font-size:16px}
+.card p{color:var(--muted);font-size:14px;line-height:1.5}
+.btn-read{background:var(--accent);color:#000;border:none;padding:10px 16px;border-radius:10px;font-weight:700;margin-top:12px;cursor:pointer;width:100%}
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--max-w);height:var(--nav-h);background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;justify-content:space-around;align-items:center;border-top:1px solid #111;z-index:1000}
+.nav-btn{cursor:pointer;padding:8px}
+.nav-btn svg{width:26px;height:26px;fill:var(--muted)}
+.nav-btn.active svg{fill:var(--accent)}
+.fab{position:fixed;bottom:calc(var(--nav-h) + 16px);right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(0,255,136,.5);cursor:pointer;z-index:1001}
+.fab svg{width:28px;height:28px;fill:#000}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px}
+.modal.active{display:flex}
+.modal-box{background:var(--card);border:1px solid #222;border-radius:20px;width:100%;padding:20px}
+.modal-box input{width:100%;background:#111;border:1px solid #222;border-radius:12px;padding:12px;color:#fff;outline:none}
+#reader-tab{position:fixed;top:0;right:-100%;width:100%;max-width:var(--max-w);height:100dvh;background:var(--bg);z-index:3000;transition:right .4s ease;overflow-y:auto;padding:16px}
+#reader-tab.active{right:0}
+.reader-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.reader-header button{background:none;border:none;color:#fff;cursor:pointer}
+.reader-content{line-height:1.8;font-size:16px;white-space:pre-wrap}
+.comment-sheet{position:fixed;bottom:-100%;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;border:1px solid #222;max-height:70dvh;transition:bottom .3s ease;z-index:2500;padding:16px}
+.comment-sheet.active{bottom:0}
+.comment-list{overflow-y:auto;max-height:50dvh;margin:12px 0}
+.comment-input{display:flex;gap:8px}
+.comment-input input{flex:1;background:#111;border:1px solid #222;border-radius:12px;padding:10px;color:#fff}
+.comment-input button{background:var(--accent);color:#000;border:none;padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer}
+svg.icon{width:20px;height:20px;fill:currentColor}
+</style>
 </head>
 <body>
-
-  <div id="toast" class="toast"></div>
-
-  <header>
-    <div class="top-bar">
-      <div class="logo">GolViral</div>
-      <div class="search-icon" onclick="openSearch()">🔍</div>
-    </div>
-    <div class="tabs" id="tabs-container">
-      <div class="tab active" onclick="switchTab('ForYou', event)">ForYou</div>
-      <div class="tab" onclick="switchTab('Reels', event)">Reels</div>
-      <div class="tab" onclick="switchTab('Novels', event)">Novels</div>
-      <div class="tab" onclick="switchTab('Stories', event)">Stories</div>
-    </div>
-  </header>
-
-  <main id="feed-container"></main>
-
-  <button class="floating-add" onclick="location.href='post.html'">+</button>
-
-  <nav class="bottom-nav">
-    <a href="index.html" class="nav-item active">🏠</a>
-    <a href="#" class="nav-item" onclick="openSearch()">🔍</a>
-    <a href="post.html" class="nav-item">➕</a>
-    <a href="messages.html" class="nav-item">💬</a>
-    <a href="profile.html" class="nav-item">👤</a>
-  </nav>
-
-  <div id="search-modal" class="modal">
-    <div class="modal-header">
-      <h3>Search</h3>
-      <button class="close-btn" onclick="closeSearch()">✕</button>
-    </div>
-    <input type="text" class="search-input" id="search-input" placeholder="Search users...">
-    <div class="search-results" id="search-results"></div>
+<header>
+  <div class="logo">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    GolViral
   </div>
+  <svg id="searchBtn" class="icon" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/></svg>
+</header>
 
-  <div id="overlay" class="overlay" onclick="closeComments()"></div>
-  <div id="comment-sheet" class="bottom-sheet">
-    <div class="sheet-header">Comments</div>
-    <div class="comment-list" id="comment-list"></div>
-    <div class="comment-input-area">
-      <input type="text" id="comment-input" class="comment-input" placeholder="Add a comment...">
-      <button class="send-btn" onclick="postComment()">Send</button>
-    </div>
+<div class="tabs">
+  <div class="tab active" data-type="all">ForYou</div>
+  <div class="tab" data-type="reel">Reels</div>
+  <div class="tab" data-type="novel">Novels</div>
+  <div class="tab" data-type="story">Stories</div>
+</div>
+
+<div id="feed"></div>
+
+<div class="fab" onclick="location.href='post.html'">
+  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+</div>
+
+<nav>
+  <div class="nav-btn active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+  <div class="nav-btn" id="navSearch"><svg viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/></svg></div>
+  <div class="nav-btn" onclick="location.href='post.html'"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+  <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+  <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg></div>
+</nav>
+
+<div id="searchModal" class="modal">
+  <div class="modal-box">
+    <input type="text" id="searchInput" placeholder="Search users...">
+    <div id="searchResults" style="margin-top:16px"></div>
   </div>
+</div>
 
-  <script>
-    const TOKEN = localStorage.getItem('token');
-    if (!TOKEN) window.location.href = 'auth.html';
-    
-    const API_BASE = 'https://golviral-api.onrender.com';
-    let currentFeed = [];
-    let activePostIdForComment = null;
-    let activeCreatorIdForComment = null;
+<div id="reader-tab">
+  <div class="reader-header">
+    <button id="readerBack"><svg class="icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <h3 id="readerTitle"></h3>
+  </div>
+  <div id="readerContent" class="reader-content"></div>
+</div>
 
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.style.opacity = '1';
-      setTimeout(() => toast.style.opacity = '0', 3000);
-    }
+<div id="commentSheet" class="comment-sheet">
+  <h4>Comments</h4>
+  <div id="commentList" class="comment-list"></div>
+  <div class="comment-input">
+    <input type="text" id="commentText" placeholder="Add comment...">
+    <button id="sendComment">Send</button>
+  </div>
+</div>
 
-    async function fetchAPI(endpoint, options = {}) {
-      try {
-        const res = await fetch(`${API_BASE}${endpoint}`, {
-          ...options,
-          headers: {
-            'Authorization': `Bearer ${TOKEN}`,
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-          }
-        });
-        
-        if (res.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = 'auth.html';
-          return null;
-        }
-        
-        if (!res.ok) throw new Error(await res.text());
-        return await res.json();
-      } catch (err) {
-        showToast(err.message || 'Network Error');
-        return null;
-      }
-    }
+<script>
+const API = 'https://golviral-api.onrender.com';
+const TOKEN = localStorage.getItem('token');
+const USER = JSON.parse(localStorage.getItem('user') || '{}');
+let allPosts = [];
+let currentFilter = 'all';
+let currentCommentPost = null;
 
-    async function getSignedVideoUrl(key, shard) {
-      const data = await fetchAPI(`/api/media/sign?key=${key}&shard=${shard}`);
-      return data?.url || '';
-    }
+if(!TOKEN) location.href = 'auth.html';
 
-    async function loadFeed() {
-      const data = await fetchAPI('/api/feed');
-      if (data) {
-        currentFeed = data;
-        renderFeed('ForYou', event);
-      }
-    }
+async function apiFetch(url, opts={}){
+  const res = await fetch(API + url, {
+    ...opts,
+    headers:{'Authorization':'Bearer ' + TOKEN, 'Content-Type':'application/json', ...(opts.headers||{})}
+  });
+  if(res.status === 401) location.href = 'auth.html';
+  return res.json();
+}
 
-    function switchTab(type, e) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      e.target.classList.add('active');
-      renderFeed(type, e);
-    }
+async function loadFeed(){
+  allPosts = await apiFetch('/api/feed');
+  renderFeed();
+}
 
-    async function renderFeed(type) {
-      const container = document.getElementById('feed-container');
-      container.innerHTML = '';
-      
-      let filtered = type === 'ForYou' ? currentFeed : currentFeed.filter(item => item.type.toLowerCase() === type.toLowerCase());
-      
-      if (type === 'Reels') {
-        container.classList.add('reels-mode');
-        for (const post of filtered) {
-          container.appendChild(await createReelElement(post));
-        }
-        setupReelsObserver();
-      } else {
-        container.classList.remove('reels-mode');
-        filtered.forEach(post => container.appendChild(createCardElement(post)));
-      }
-    }
-
-    async function createReelElement(post) {
+function renderFeed(){
+  const feed = document.getElementById('feed');
+  feed.innerHTML = '';
+  const filtered = currentFilter === 'all' ? allPosts : allPosts.filter(p => p.type === currentFilter);
+  
+  filtered.forEach(post => {
+    if(post.type === 'reel'){
       const div = document.createElement('div');
-      div.className = 'reel-container';
-      
-      let videoSrc = await getSignedVideoUrl(post.mediaUrl, post.b2Shard);
-
+      div.className = 'reel';
+      div.dataset.postid = post.id;
+      div.dataset.userid = post.userId;
       div.innerHTML = `
-        <video class="reel-video" data-id="${post.id}" data-creator="${post.userId}" loop playsinline src="${videoSrc}"></video>
+        <video muted playsinline data-key="${post.mediaUrl}" data-shard="${post.b2Shard}"></video>
         <div class="reel-actions">
-          <button class="action-btn" onclick="likePost('${post.id}', '${post.userId}')">❤️</button>
-          <button class="action-btn" onclick="openComments('${post.id}', '${post.userId}')">💬</button>
-          <button class="action-btn" onclick="sendGiftModal('${post.userId}')">🎁</button>
-          <button class="action-btn" onclick="sharePost('${post.id}')">↗️</button>
-          <button class="action-btn" onclick="boostPost('${post.id}')">🚀</button>
+          <div class="action-btn" onclick="likePost('${post.id}','${post.userId}')"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span>${post.likes||0}</span></div>
+          <div class="action-btn" onclick="openComments('${post.id}','${post.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span>${post.comments||0}</span></div>
+          <div class="action-btn"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+          <div class="action-btn"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+          <div class="action-btn"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
         </div>
       `;
-      return div;
-    }
-
-    function createCardElement(post) {
+      feed.appendChild(div);
+    } else {
       const div = document.createElement('div');
-      div.className = 'feed-card';
+      div.className = 'card';
       div.innerHTML = `
-        <div class="card-title">${post.title || 'Untitled ' + post.type}</div>
-        <div class="card-caption">${post.caption || ''}</div>
-        <button class="btn-read" onclick='readSession(${JSON.stringify(post)})'>Read</button>
-        <div style="display:flex; gap:10px; margin-top:10px;">
-          <button class="action-btn" style="width:35px; height:35px;" onclick="likePost('${post.id}', '${post.userId}')">❤️</button>
-          <button class="action-btn" style="width:35px; height:35px;" onclick="openComments('${post.id}', '${post.userId}')">💬</button>
-        </div>
+        <img src="${post.mediaUrl}" alt="">
+        <h3>${post.title||post.caption}</h3>
+        <p>${post.caption}</p>
+        <p style="color:var(--accent);margin-top:8px">Earnings: $${post.earnings||0}</p>
+        <button class="btn-read" onclick="openReader('${post.id}','${post.userId}','${post.type}','${post.title}','${post.content}')">Read</button>
       `;
-      return div;
+      feed.appendChild(div);
     }
+  });
+  initReelObserver();
+}
 
-    let reelsObserver = null;
-    function setupReelsObserver() {
-      if (reelsObserver) reelsObserver.disconnect();
-      
-      reelsObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          const video = entry.target;
-          if (entry.intersectionRatio >= 0.7) {
-            video.play().catch(e => console.log('Autoplay blocked', e));
-            fetchAPI('/api/view', {
-              method: 'POST',
-              body: JSON.stringify({ postId: video.dataset.id, userId: video.dataset.creator })
-            });
-          } else {
-            video.pause();
-          }
-        });
-      }, { threshold: 0.7 });
-
-      document.querySelectorAll('.reel-video').forEach(vid => reelsObserver.observe(vid));
-    }
-
-    async function likePost(postId, creatorId) {
-      const res = await fetchAPI('/api/like', { method: 'POST', body: JSON.stringify({ postId, creatorId }) });
-      if (res) showToast('Liked!');
-    }
-
-    async function readSession(post) {
-      await fetchAPI('/api/read-session', { 
-        method: 'POST', 
-        body: JSON.stringify({ contentId: post.id, authorId: post.userId, contentType: post.type }) 
-      });
-      showToast('Reading session started +10pts');
-    }
-
-    function sendGiftModal(userId) {
-      localStorage.setItem('giftTo', userId);
-      location.href = 'profile.html#gifts';
-    }
-
-    function sharePost(id) { 
-      navigator.clipboard.writeText(`${APP_BASE_URL}/post/${id}`);
-      showToast('Link Copied!'); 
-    }
-
-    function boostPost(id) { 
-      location.href = `post.html?boost=${id}` 
-    }
-
-    async function openComments(postId, creatorId) {
-      activePostIdForComment = postId;
-      activeCreatorIdForComment = creatorId;
-      document.getElementById('comment-sheet').classList.add('open');
-      document.getElementById('overlay').classList.add('open');
-      
-      const list = document.getElementById('comment-list');
-      list.innerHTML = 'Loading...';
-      
-      const data = await fetchAPI(`/api/comments/${postId}`);
-      list.innerHTML = '';
-      if(data && data.comments.length) {
-        data.comments.forEach(c => {
-          list.innerHTML += `<div style="margin-bottom:10px;"><b>${c.user.username}</b>: ${c.text}</div>`;
-        });
-      } else {
-        list.innerHTML = '<div style="color:var(--text-muted)">No comments yet.</div>';
-      }
-    }
-
-    function closeComments() {
-      document.getElementById('comment-sheet').classList.remove('open');
-      document.getElementById('overlay').classList.remove('open');
-      activePostIdForComment = null;
-      activeCreatorIdForComment = null;
-    }
-
-    async function postComment() {
-      const input = document.getElementById('comment-input');
-      const text = input.value.trim();
-      if(!text || !activePostIdForComment) return;
-      
-      const res = await fetchAPI('/api/comment', {
-        method: 'POST',
-        body: JSON.stringify({ postId: activePostIdForComment, creatorId: activeCreatorIdForComment, text })
-      });
-      
-      if(res) {
-        input.value = '';
-        openComments(activePostIdForComment, activeCreatorIdForComment);
-      }
-    }
-
-    function openSearch() { document.getElementById('search-modal').style.display = 'flex'; }
-    function closeSearch() { document.getElementById('search-modal').style.display = 'none'; }
-    
-    let searchTimeout;
-    document.getElementById('search-input').addEventListener('input', (e) => {
-      clearTimeout(searchTimeout);
-      const q = e.target.value.trim();
-      const resultsDiv = document.getElementById('search-results');
-      
-      if(!q) { resultsDiv.innerHTML = ''; return; }
-      
-      searchTimeout = setTimeout(async () => {
-        const users = await fetchAPI(`/api/search/users?q=${encodeURIComponent(q)}`);
-        if(users) {
-          resultsDiv.innerHTML = users.map(u => `<div class="user-row" onclick="location.href='profile.html?id=${u.id}'">${u.username} ${u.isVerified ? '✓' : ''}</div>`).join('');
+function initReelObserver(){
+  const obs = new IntersectionObserver(async entries => {
+    for(const entry of entries){
+      const video = entry.target.querySelector('video');
+      if(entry.intersectionRatio > 0.7){
+        if(!video.src){
+          const key = video.dataset.key;
+          const shard = video.dataset.shard;
+          const {url} = await apiFetch(`/api/media/sign?key=${key}&shard=${shard}`);
+          video.src = url;
         }
-      }, 300);
-    });
+        video.play();
+        apiFetch('/api/view', {method:'POST', body:JSON.stringify({postId:entry.target.dataset.postid, userId:USER.userId})});
+      } else {
+        video.pause();
+      }
+    }
+  }, {threshold:0.7});
+  document.querySelectorAll('.reel').forEach(r => obs.observe(r));
+}
 
-    window.onload = loadFeed;
-  </script>
+async function likePost(postId, creatorId){
+  await apiFetch('/api/like', {method:'POST', body:JSON.stringify({postId, creatorId})});
+}
+
+async function openComments(postId, creatorId){
+  currentCommentPost = {postId, creatorId};
+  const comments = await apiFetch(`/api/comments/${postId}`);
+  document.getElementById('commentList').innerHTML = comments.map(c => `<p><b>${c.username}:</b> ${c.text}</p>`).join('');
+  document.getElementById('commentSheet').classList.add('active');
+}
+
+document.getElementById('sendComment').onclick = async () => {
+  const text = document.getElementById('commentText').value;
+  if(!text) return;
+  await apiFetch('/api/comment', {method:'POST', body:JSON.stringify({...currentCommentPost, text})});
+  document.getElementById('commentText').value = '';
+  openComments(currentCommentPost.postId, currentCommentPost.creatorId);
+}
+
+document.getElementById('commentSheet').onclick = e => {if(e.target.id==='commentSheet') e.target.classList.remove('active')}
+
+function openReader(id, authorId, type, title, content){
+  document.getElementById('readerTitle').innerText = title;
+  document.getElementById('readerContent').innerText = content;
+  document.getElementById('reader-tab').classList.add('active');
+  apiFetch('/api/read-session', {method:'POST', body:JSON.stringify({contentId:id, authorId, contentType:type})});
+}
+
+document.getElementById('readerBack').onclick = () => document.getElementById('reader-tab').classList.remove('active');
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  currentFilter = t.dataset.type;
+  renderFeed();
+});
+
+let searchTimer;
+function openSearch(){
+  document.getElementById('searchModal').classList.add('active');
+}
+document.getElementById('searchBtn').onclick = openSearch;
+document.getElementById('navSearch').onclick = openSearch;
+document.getElementById('searchModal').onclick = e => {if(e.target.id==='searchModal') e.target.classList.remove('active')}
+document.getElementById('searchInput').oninput = e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    const q = e.target.value;
+    if(q.length<2) return;
+    const res = await apiFetch(`/api/search/users?q=${q}`);
+    document.getElementById('searchResults').innerHTML = res.map(u=>`<p>${u.username}</p>`).join('');
+  },300);
+}
+
+loadFeed();
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+</script>
 </body>
 </html>
