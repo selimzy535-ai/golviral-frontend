@@ -1,51 +1,23 @@
 {
-  "name": "GolViral - Earn by Creating",
+  "name": "GolViral",
   "short_name": "GolViral",
-  "description": "The creator monetization platform. Reels, Novels, Stories.",
-  "start_url": "/golviral-frontend/index.html#feed",
-  "scope": "/golviral-frontend/",
+  "start_url": "/index.html",
   "display": "standalone",
-  "display_override": ["standalone", "fullscreen"],
   "background_color": "#000000",
   "theme_color": "#00ff88",
   "orientation": "portrait",
-  "categories": ["social", "entertainment", "finance"],
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot1.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Upload Post",
-      "short_name": "Upload",
-      "description": "Create a new Reel, Novel or Story",
-      "url": "/golviral-frontend/index.html#post",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Wallet",
-      "short_name": "Wallet", 
-      "description": "Check earnings and withdraw",
-      "url": "/golviral-frontend/index.html#profile",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "purpose": "maskable"
     }
   ]
 }
