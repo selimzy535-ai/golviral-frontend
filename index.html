@@ -14,7 +14,7 @@
 
   <style>
     :root {
-      --bg: #000000;
+      --bg: #000;
       --surface: #181818;
       --accent: #00ff88;
       --text: #ffffff;
@@ -38,7 +38,6 @@
       flex-direction: column;
     }
 
-    /* Layout */
     header {
       background: var(--bg);
       position: sticky;
@@ -85,7 +84,6 @@
     }
     main::-webkit-scrollbar { display: none; }
     
-    /* Reels Mode */
     main.reels-mode { scroll-snap-type: y mandatory; }
     .reel-container {
       height: calc(100dvh - var(--top-nav-height) - var(--bottom-nav-height));
@@ -117,7 +115,6 @@
       font-size: 1.2rem;
     }
 
-    /* Feed Cards (Novels/Stories) */
     .feed-card {
       background: var(--surface);
       border-radius: 12px;
@@ -140,7 +137,6 @@
       cursor: pointer;
     }
 
-    /* Navigation */
     .bottom-nav {
       height: var(--bottom-nav-height);
       background: var(--bg);
@@ -174,7 +170,6 @@
       z-index: 90;
     }
 
-    /* Modals & Components */
     .toast {
       position: fixed;
       top: 20px;
@@ -214,9 +209,8 @@
       outline: none;
     }
     .search-results { padding: 0 15px; flex: 1; overflow-y: auto; }
-    .user-row { padding: 10px 0; border-bottom: 1px solid var(--surface); }
+    .user-row { padding: 10px 0; border-bottom: 1px solid var(--surface); cursor: pointer; }
 
-    /* Bottom Sheet */
     .bottom-sheet {
       position: fixed;
       bottom: -100%;
@@ -251,10 +245,10 @@
       <div class="search-icon" onclick="openSearch()">🔍</div>
     </div>
     <div class="tabs" id="tabs-container">
-      <div class="tab active" onclick="switchTab('ForYou')">ForYou</div>
-      <div class="tab" onclick="switchTab('Reels')">Reels</div>
-      <div class="tab" onclick="switchTab('Novels')">Novels</div>
-      <div class="tab" onclick="switchTab('Stories')">Stories</div>
+      <div class="tab active" onclick="switchTab('ForYou', event)">ForYou</div>
+      <div class="tab" onclick="switchTab('Reels', event)">Reels</div>
+      <div class="tab" onclick="switchTab('Novels', event)">Novels</div>
+      <div class="tab" onclick="switchTab('Stories', event)">Stories</div>
     </div>
   </header>
 
@@ -266,7 +260,7 @@
     <a href="index.html" class="nav-item active">🏠</a>
     <a href="#" class="nav-item" onclick="openSearch()">🔍</a>
     <a href="post.html" class="nav-item">➕</a>
-    <a href="dm.html" class="nav-item">💬</a>
+    <a href="messages.html" class="nav-item">💬</a>
     <a href="profile.html" class="nav-item">👤</a>
   </nav>
 
@@ -290,15 +284,14 @@
   </div>
 
   <script>
-    // --- AUTH & GLOBALS ---
     const TOKEN = localStorage.getItem('token');
     if (!TOKEN) window.location.href = 'auth.html';
     
     const API_BASE = 'https://golviral-api.onrender.com';
     let currentFeed = [];
     let activePostIdForComment = null;
+    let activeCreatorIdForComment = null;
 
-    // --- UTILS ---
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
@@ -323,40 +316,38 @@
           return null;
         }
         
-        if (!res.ok) throw new Error(`Error: ${res.status}`);
+        if (!res.ok) throw new Error(await res.text());
         return await res.json();
       } catch (err) {
-        showToast(err.message);
+        showToast(err.message || 'Network Error');
         return null;
       }
     }
 
-    // --- MEDIA SIGNING ---
-    async function getSignedVideoUrl(key, shard = '') {
+    async function getSignedVideoUrl(key, shard) {
       const data = await fetchAPI(`/api/media/sign?key=${key}&shard=${shard}`);
-      return data?.url || null;
+      return data?.url || '';
     }
 
-    // --- FEED LOGIC ---
     async function loadFeed() {
       const data = await fetchAPI('/api/feed');
       if (data) {
         currentFeed = data;
-        renderFeed('ForYou');
+        renderFeed('ForYou', event);
       }
     }
 
-    function switchTab(type) {
+    function switchTab(type, e) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
-      renderFeed(type);
+      e.target.classList.add('active');
+      renderFeed(type, e);
     }
 
     async function renderFeed(type) {
       const container = document.getElementById('feed-container');
       container.innerHTML = '';
       
-      let filtered = type === 'ForYou' ? currentFeed : currentFeed.filter(item => item.type === type);
+      let filtered = type === 'ForYou' ? currentFeed : currentFeed.filter(item => item.type.toLowerCase() === type.toLowerCase());
       
       if (type === 'Reels') {
         container.classList.add('reels-mode');
@@ -370,22 +361,17 @@
       }
     }
 
-    // --- UI BUILDERS ---
     async function createReelElement(post) {
       const div = document.createElement('div');
       div.className = 'reel-container';
       
-      let videoSrc = post.mediaUrl;
-      // If it looks like a B2 key instead of full URL
-      if (!videoSrc.startsWith('http')) {
-        videoSrc = await getSignedVideoUrl(post.mediaKey, post.shard);
-      }
+      let videoSrc = await getSignedVideoUrl(post.mediaUrl, post.b2Shard);
 
       div.innerHTML = `
-        <video class="reel-video" data-id="${post.id}" loop playsinline src="${videoSrc}"></video>
+        <video class="reel-video" data-id="${post.id}" data-creator="${post.userId}" loop playsinline src="${videoSrc}"></video>
         <div class="reel-actions">
-          <button class="action-btn" onclick="likePost('${post.id}')">❤️</button>
-          <button class="action-btn" onclick="openComments('${post.id}')">💬</button>
+          <button class="action-btn" onclick="likePost('${post.id}', '${post.userId}')">❤️</button>
+          <button class="action-btn" onclick="openComments('${post.id}', '${post.userId}')">💬</button>
           <button class="action-btn" onclick="sendGiftModal('${post.userId}')">🎁</button>
           <button class="action-btn" onclick="sharePost('${post.id}')">↗️</button>
           <button class="action-btn" onclick="boostPost('${post.id}')">🚀</button>
@@ -398,20 +384,17 @@
       const div = document.createElement('div');
       div.className = 'feed-card';
       div.innerHTML = `
-        ${post.coverImage ? `<img src="${post.coverImage}" class="card-cover">` : ''}
-        <div class="card-title">${post.title || 'Untitled'}</div>
+        <div class="card-title">${post.title || 'Untitled ' + post.type}</div>
         <div class="card-caption">${post.caption || ''}</div>
-        <div style="color: var(--accent); font-weight: bold; margin-top: 5px;">Earned: ₦${post.earnings || 0}</div>
-        <button class="btn-read" onclick="readSession('${post.id}')">Read</button>
+        <button class="btn-read" onclick='readSession(${JSON.stringify(post)})'>Read</button>
         <div style="display:flex; gap:10px; margin-top:10px;">
-          <button class="action-btn" style="width:35px; height:35px;" onclick="likePost('${post.id}')">❤️</button>
-          <button class="action-btn" style="width:35px; height:35px;" onclick="openComments('${post.id}')">💬</button>
+          <button class="action-btn" style="width:35px; height:35px;" onclick="likePost('${post.id}', '${post.userId}')">❤️</button>
+          <button class="action-btn" style="width:35px; height:35px;" onclick="openComments('${post.id}', '${post.userId}')">💬</button>
         </div>
       `;
       return div;
     }
 
-    // --- REELS INTERSECTION OBSERVER ---
     let reelsObserver = null;
     function setupReelsObserver() {
       if (reelsObserver) reelsObserver.disconnect();
@@ -423,7 +406,7 @@
             video.play().catch(e => console.log('Autoplay blocked', e));
             fetchAPI('/api/view', {
               method: 'POST',
-              body: JSON.stringify({ postId: video.dataset.id })
+              body: JSON.stringify({ postId: video.dataset.id, userId: video.dataset.creator })
             });
           } else {
             video.pause();
@@ -434,39 +417,47 @@
       document.querySelectorAll('.reel-video').forEach(vid => reelsObserver.observe(vid));
     }
 
-    // --- ACTIONS ---
-    async function likePost(postId) {
-      const res = await fetchAPI('/api/like', { method: 'POST', body: JSON.stringify({ postId }) });
+    async function likePost(postId, creatorId) {
+      const res = await fetchAPI('/api/like', { method: 'POST', body: JSON.stringify({ postId, creatorId }) });
       if (res) showToast('Liked!');
     }
 
-    async function readSession(postId) {
-      const res = await fetchAPI('/api/read-session', { method: 'POST', body: JSON.stringify({ postId }) });
-      if (res) showToast('Session started');
+    async function readSession(post) {
+      await fetchAPI('/api/read-session', { 
+        method: 'POST', 
+        body: JSON.stringify({ contentId: post.id, authorId: post.userId, contentType: post.type }) 
+      });
+      showToast('Reading session started +10pts');
     }
 
     function sendGiftModal(userId) {
-      if(window.sendGift) window.sendGift(userId);
-      else showToast('Gift UI loads from profile module.');
+      localStorage.setItem('giftTo', userId);
+      location.href = 'profile.html#gifts';
     }
 
-    function sharePost(id) { showToast('Copied link!'); }
-    function boostPost(id) { showToast('Boost initiated'); }
+    function sharePost(id) { 
+      navigator.clipboard.writeText(`${APP_BASE_URL}/post/${id}`);
+      showToast('Link Copied!'); 
+    }
 
-    // --- COMMENTS ---
-    async function openComments(postId) {
+    function boostPost(id) { 
+      location.href = `post.html?boost=${id}` 
+    }
+
+    async function openComments(postId, creatorId) {
       activePostIdForComment = postId;
+      activeCreatorIdForComment = creatorId;
       document.getElementById('comment-sheet').classList.add('open');
       document.getElementById('overlay').classList.add('open');
       
       const list = document.getElementById('comment-list');
       list.innerHTML = 'Loading...';
       
-      const comments = await fetchAPI(`/api/comments/${postId}`);
+      const data = await fetchAPI(`/api/comments/${postId}`);
       list.innerHTML = '';
-      if(comments && comments.length) {
-        comments.forEach(c => {
-          list.innerHTML += `<div style="margin-bottom:10px;"><b>${c.username}</b>: ${c.text}</div>`;
+      if(data && data.comments.length) {
+        data.comments.forEach(c => {
+          list.innerHTML += `<div style="margin-bottom:10px;"><b>${c.user.username}</b>: ${c.text}</div>`;
         });
       } else {
         list.innerHTML = '<div style="color:var(--text-muted)">No comments yet.</div>';
@@ -477,6 +468,7 @@
       document.getElementById('comment-sheet').classList.remove('open');
       document.getElementById('overlay').classList.remove('open');
       activePostIdForComment = null;
+      activeCreatorIdForComment = null;
     }
 
     async function postComment() {
@@ -486,16 +478,15 @@
       
       const res = await fetchAPI('/api/comment', {
         method: 'POST',
-        body: JSON.stringify({ postId: activePostIdForComment, text })
+        body: JSON.stringify({ postId: activePostIdForComment, creatorId: activeCreatorIdForComment, text })
       });
       
       if(res) {
         input.value = '';
-        openComments(activePostIdForComment); // reload
+        openComments(activePostIdForComment, activeCreatorIdForComment);
       }
     }
 
-    // --- SEARCH ---
     function openSearch() { document.getElementById('search-modal').style.display = 'flex'; }
     function closeSearch() { document.getElementById('search-modal').style.display = 'none'; }
     
@@ -510,12 +501,11 @@
       searchTimeout = setTimeout(async () => {
         const users = await fetchAPI(`/api/search/users?q=${encodeURIComponent(q)}`);
         if(users) {
-          resultsDiv.innerHTML = users.map(u => `<div class="user-row">${u.username}</div>`).join('');
+          resultsDiv.innerHTML = users.map(u => `<div class="user-row" onclick="location.href='profile.html?id=${u.id}'">${u.username} ${u.isVerified ? '✓' : ''}</div>`).join('');
         }
       }, 300);
     });
 
-    // --- INIT ---
     window.onload = loadFeed;
   </script>
 </body>
