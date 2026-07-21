@@ -4,22 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral - Auth</title>
-  
+
   <link rel="manifest" href="manifest.json">
 
   <style>
     :root {
-      --bg: #000000;
+      --bg: #000;
       --card: #000000;
       --input-bg: #181818;
-      --border: #333333;
+      --border: #333;
       --accent: #00ff88;
       --text: #ffffff;
-      --text-muted: #888888;
+      --text-muted: #888;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       background-color: var(--bg);
       color: var(--text);
@@ -30,8 +28,7 @@
       min-height: 100dvh;
       position: relative;
     }
-
-    .auth-container {
+   .auth-container {
       width: 100%;
       max-width: 400px;
       background: var(--card);
@@ -41,23 +38,20 @@
       flex-direction: column;
       gap: 20px;
     }
-
-    .logo {
+   .logo {
       text-align: center;
       font-size: 2rem;
       font-weight: 900;
       color: var(--accent);
       margin-bottom: 10px;
     }
-
-    .tabs {
+   .tabs {
       display: flex;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
       margin-bottom: 20px;
     }
-
-    .tab {
+   .tab {
       flex: 1;
       text-align: center;
       padding: 10px;
@@ -66,22 +60,18 @@
       font-weight: bold;
       transition: 0.3s;
     }
-
-    .tab.active {
+   .tab.active {
       color: var(--text);
       border-bottom: 2px solid var(--accent);
     }
-
-    .form-group {
+   .form-group {
       display: none;
       flex-direction: column;
       gap: 15px;
     }
-
-    .form-group.active {
+   .form-group.active {
       display: flex;
     }
-
     input, select {
       width: 100%;
       background: var(--input-bg);
@@ -92,11 +82,9 @@
       font-size: 1rem;
       outline: none;
     }
-
     input:focus, select:focus {
       border-color: var(--accent);
     }
-
     button.primary {
       width: 100%;
       background: var(--accent);
@@ -109,9 +97,7 @@
       cursor: pointer;
       margin-top: 10px;
     }
-
-    /* Modals */
-    .modal-overlay {
+   .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
@@ -121,8 +107,7 @@
       align-items: center;
       padding: 20px;
     }
-
-    .modal-content {
+   .modal-content {
       background: #181818;
       width: 100%;
       max-width: 400px;
@@ -133,41 +118,34 @@
       flex-direction: column;
       gap: 15px;
     }
-
-    .modal-title { font-size: 1.2rem; font-weight: bold; text-align: center; }
-
-    .checkbox-grid {
+   .modal-title { font-size: 1.2rem; font-weight: bold; text-align: center; }
+   .checkbox-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-
-    .checkbox-label {
+   .checkbox-label {
       display: flex;
       align-items: center;
       gap: 8px;
       font-size: 0.9rem;
     }
-
-    .intent-toggle {
+   .intent-toggle {
       display: flex;
       background: var(--bg);
       border-radius: 8px;
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
-    .intent-toggle label {
+   .intent-toggle label {
       flex: 1;
       text-align: center;
       padding: 10px;
       cursor: pointer;
     }
-
-    .intent-toggle input[type="radio"] { display: none; }
-    .intent-toggle input[type="radio"]:checked + span { color: var(--accent); font-weight: bold; }
-
-    .toast {
+   .intent-toggle input[type="radio"] { display: none; }
+   .intent-toggle input[type="radio"]:checked + span { color: var(--accent); font-weight: bold; }
+   .toast {
       position: fixed;
       top: 20px;
       left: 50%;
@@ -190,11 +168,11 @@
 
   <div class="auth-container">
     <div class="logo">GolViral</div>
-    
+
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('login')">Login</div>
-      <div class="tab" onclick="switchTab('signup')">Signup</div>
-      <div class="tab" onclick="switchTab('forgot')">Forgot</div>
+      <div class="tab active" onclick="switchTab('login', event)">Login</div>
+      <div class="tab" onclick="switchTab('signup', event)">Signup</div>
+      <div class="tab" onclick="switchTab('forgot', event)">Forgot</div>
     </div>
 
     <form id="form-login" class="form-group active" onsubmit="handleLogin(event)">
@@ -236,7 +214,7 @@
   <div id="onboarding-modal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-title">Welcome to GolViral</div>
-      
+
       <p style="font-size: 0.9rem; color: var(--accent);">Pick up to 3 Categories:</p>
       <div class="checkbox-grid" id="category-list">
         <label class="checkbox-label"><input type="checkbox" value="Comedy"> Comedy</label>
@@ -274,10 +252,10 @@
 
   <script>
     const API_BASE = 'https://golviral-api.onrender.com';
+    const VAPID_PUBLIC_KEY = 'BEl0YourPublicKeyHere'; // MUST MATCH YOUR.env VAPID_PUBLIC_KEY
     let currentChallengeId = null;
     let pendingBotResolve = null;
 
-    // --- UTILS ---
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
@@ -290,14 +268,14 @@
         const token = localStorage.getItem('token');
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        
+
         const res = await fetch(`${API_BASE}${endpoint}`, {
-          ...options,
-          headers: { ...headers, ...(options.headers || {}) }
+         ...options,
+          headers: {...headers,...(options.headers || {}) }
         });
-        
+
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || `Error: ${res.status}`);
+        if (!res.ok) throw new Error(data.error || `Error: ${res.status}`);
         return data;
       } catch (err) {
         showToast(err.message);
@@ -305,22 +283,20 @@
       }
     }
 
-    function switchTab(tab) {
+    function switchTab(tab, e) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.form-group').forEach(f => f.classList.remove('active'));
-      
-      event.target.classList.add('active');
+      e.target.classList.add('active');
       document.getElementById(`form-${tab}`).classList.add('active');
     }
 
-    // --- BOT CHALLENGE FLOW ---
     async function runBotFlow() {
       return new Promise(async (resolve) => {
         const challenge = await fetchAPI('/api/bot-challenge', { method: 'POST' });
         if (!challenge) return resolve(null);
 
-        currentChallengeId = challenge.id;
-        document.getElementById('bot-question').innerText = challenge.question || 'Solve this challenge';
+        currentChallengeId = challenge.token; // FIX 1: backend returns 'token'
+        document.getElementById('bot-question').innerText = challenge.question;
         document.getElementById('bot-answer').value = '';
         document.getElementById('bot-modal').style.display = 'flex';
         pendingBotResolve = resolve;
@@ -333,7 +309,7 @@
 
       const res = await fetchAPI('/api/bot-verify', {
         method: 'POST',
-        body: JSON.stringify({ challengeId: currentChallengeId, answer })
+        body: JSON.stringify({ token: currentChallengeId, answer }) // FIX 2: send 'token' not 'challengeId'
       });
 
       if (res && res.passToken) {
@@ -342,7 +318,6 @@
       }
     }
 
-    // --- AUTH ACTIONS ---
     async function handleLogin(e) {
       e.preventDefault();
       const passToken = await runBotFlow();
@@ -353,7 +328,7 @@
 
       const res = await fetchAPI('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ identifier, password, passToken })
+        body: JSON.stringify({ email: identifier, password, passToken }) // FIX 3: send 'email'
       });
 
       if (res && res.token) {
@@ -417,17 +392,12 @@
         showToast('Password reset successful! Please login.');
         document.getElementById('forgot-step-1').style.display = 'block';
         document.getElementById('forgot-step-2').style.display = 'none';
-        switchTab('login');
-        // Hack to make the login tab active programmatically
-        document.querySelectorAll('.tab')[0].click(); 
+        switchTab('login', {target: document.querySelectorAll('.tab')[0]});
       }
     }
 
-    // --- ONBOARDING & PUSH ---
     function triggerOnboarding() {
       document.getElementById('onboarding-modal').style.display = 'flex';
-      
-      // Limit to 3 categories
       const checkboxes = document.querySelectorAll('#category-list input[type="checkbox"]');
       checkboxes.forEach(cb => {
         cb.addEventListener('change', () => {
@@ -449,30 +419,31 @@
 
       localStorage.setItem('onboarding_data', JSON.stringify({ categories, intent, country }));
       document.getElementById('onboarding-modal').style.display = 'none';
-      
+
       await setupPushNotifications();
       window.location.href = 'index.html';
     }
 
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+    }
+
     async function setupPushNotifications() {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if (!('serviceWorker' in navigator) ||!('PushManager' in window)) return;
 
       try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
           const registration = await navigator.serviceWorker.ready;
-          
-          // Note: A real implementation requires applicationServerKey (VAPID key).
-          // We attempt subscription. If it fails due to missing key, we bypass gracefully.
-          let subscription;
-          try {
-             subscription = await registration.pushManager.subscribe({ userVisibleOnly: true });
-          } catch(e) {
-             console.warn("Push subscription failed (likely missing VAPID key in frontend mockup):", e);
-             // Create a dummy subscription payload for the API if standard subscribe fails
-             subscription = { endpoint: "dummy_endpoint", keys: { p256dh: "dummy", auth: "dummy" } };
-          }
-          
+
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) // FIX 4: Add VAPID key
+          });
+
           await fetchAPI('/api/push/subscribe', {
             method: 'POST',
             body: JSON.stringify({ subscription })
