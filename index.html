@@ -10,46 +10,64 @@
 :root{--bg:#000;--card:#0a0a0a;--accent:#00ff88;--text:#fff;--muted:#888;--header-h:56px;--nav-h:64px;--max-w:500px}
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 body{background:var(--bg);color:var(--text);max-width:var(--max-w);margin:0 auto;overflow-x:hidden}
+
+/* Global SVG Styling */
+svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle}
+svg.icon{width:22px;height:22px;cursor:pointer}
+
 header{position:sticky;top:0;z-index:1000;background:rgba(0,0,0,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(0,255,136,.1)}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;color:var(--accent)}
+.logo svg{stroke:var(--accent)}
+
 .tabs{position:sticky;top:var(--header-h);z-index:999;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;justify-content:space-around;border-bottom:1px solid #111}
 .tab{flex:1;padding:14px 0;text-align:center;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;position:relative;transition:.3s}
 .tab.active{color:var(--text)}
 .tab.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--accent);border-radius:2px;animation:slide .3s ease}
 @keyframes slide{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-#feed{height:calc(100dvh - var(--header-h) - 48px - var(--nav-h));overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
+
+#feed{height:calc(100dvh - var(--header-h) - 48px - var(--nav-h));overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
 .reel{height:calc(100dvh - var(--header-h) - var(--nav-h));scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center}
 .reel video{width:100%;height:100%;object-fit:cover}
-.reel-actions{position:absolute;right:12px;bottom:80px;display:flex;flex-direction:column;gap:20px;align-items:center}
+.reel-actions{position:absolute;right:12px;bottom:80px;display:flex;flex-direction:column;gap:20px;align-items:center;z-index:10}
 .action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font-size:12px;cursor:pointer}
-.action-btn svg{width:32px;height:32px;fill:#fff;filter:drop-shadow(0 0 4px rgba(0,0,0,.5))}
+.action-btn svg{width:32px;height:32px;color:#fff;filter:drop-shadow(0 0 4px rgba(0,0,0,.5))}
+
 .card{margin:12px;background:var(--card);border-radius:16px;padding:16px;border:1px solid #111}
-.card img{width:100%;height:200px;object-fit:cover;border-radius:12px}
+.card img{width:100%;height:200px;object-fit:cover;border-radius:12px;background:#111}
 .card h3{margin:12px 0 8px;font-size:16px}
 .card p{color:var(--muted);font-size:14px;line-height:1.5}
-.btn-read{background:var(--accent);color:#000;border:none;padding:10px 16px;border-radius:10px;font-weight:700;margin-top:12px;cursor:pointer;width:100%}
+.btn-read{background:var(--accent);color:#000;border:none;padding:10px 16px;border-radius:10px;font-weight:700;margin-top:12px;cursor:pointer;width:100%;transition:opacity .2s}
+.btn-read:active{opacity:0.8}
+
 nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--max-w);height:var(--nav-h);background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;justify-content:space-around;align-items:center;border-top:1px solid #111;z-index:1000}
-.nav-btn{cursor:pointer;padding:8px}
-.nav-btn svg{width:26px;height:26px;fill:var(--muted)}
-.nav-btn.active svg{fill:var(--accent)}
-.fab{position:fixed;bottom:calc(var(--nav-h) + 16px);right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(0,255,136,.5);cursor:pointer;z-index:1001}
-.fab svg{width:28px;height:28px;fill:#000}
+.nav-btn{cursor:pointer;padding:8px;color:var(--muted);transition:color .2s}
+.nav-btn svg{width:26px;height:26px;stroke:currentColor}
+.nav-btn.active{color:var(--accent)}
+
+.fab{position:fixed;bottom:calc(var(--nav-h) + 16px);right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(0,255,136,.5);cursor:pointer;z-index:1001;color:#000}
+.fab svg{width:28px;height:28px;stroke:#000;stroke-width:2.5}
+
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px}
 .modal.active{display:flex}
 .modal-box{background:var(--card);border:1px solid #222;border-radius:20px;width:100%;padding:20px}
 .modal-box input{width:100%;background:#111;border:1px solid #222;border-radius:12px;padding:12px;color:#fff;outline:none}
+
 #reader-tab{position:fixed;top:0;right:-100%;width:100%;max-width:var(--max-w);height:100dvh;background:var(--bg);z-index:3000;transition:right .4s ease;overflow-y:auto;padding:16px}
 #reader-tab.active{right:0}
 .reader-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
-.reader-header button{background:none;border:none;color:#fff;cursor:pointer}
+.reader-header button{background:none;border:none;color:#fff;cursor:pointer;display:flex;align-items:center}
 .reader-content{line-height:1.8;font-size:16px;white-space:pre-wrap}
+
 .comment-sheet{position:fixed;bottom:-100%;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;border:1px solid #222;max-height:70dvh;transition:bottom .3s ease;z-index:2500;padding:16px}
 .comment-sheet.active{bottom:0}
+.comment-sheet-header{display:flex;justify-space-between:space-between;align-items:center;margin-bottom:12px}
+.comment-sheet-header h4{margin:0;font-size:16px}
+.comment-sheet-header button{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1}
 .comment-list{overflow-y:auto;max-height:50dvh;margin:12px 0}
+.comment-list p{margin-bottom:8px;font-size:14px;line-height:1.4}
 .comment-input{display:flex;gap:8px}
-.comment-input input{flex:1;background:#111;border:1px solid #222;border-radius:12px;padding:10px;color:#fff}
+.comment-input input{flex:1;background:#111;border:1px solid #222;border-radius:12px;padding:10px;color:#fff;outline:none}
 .comment-input button{background:var(--accent);color:#000;border:none;padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer}
-svg.icon{width:20px;height:20px;fill:currentColor}
 </style>
 </head>
 <body>
@@ -98,7 +116,10 @@ svg.icon{width:20px;height:20px;fill:currentColor}
 </div>
 
 <div id="commentSheet" class="comment-sheet">
-  <h4>Comments</h4>
+  <div class="comment-sheet-header">
+    <h4>Comments</h4>
+    <button id="closeComments">&times;</button>
+  </div>
   <div id="commentList" class="comment-list"></div>
   <div class="comment-input">
     <input type="text" id="commentText" placeholder="Add comment...">
@@ -117,16 +138,22 @@ let currentCommentPost = null;
 if(!TOKEN) location.href = 'auth.html';
 
 async function apiFetch(url, opts={}){
-  const res = await fetch(API + url, {
-    ...opts,
-    headers:{'Authorization':'Bearer ' + TOKEN, 'Content-Type':'application/json', ...(opts.headers||{})}
-  });
-  if(res.status === 401) location.href = 'auth.html';
-  return res.json();
+  try {
+    const res = await fetch(API + url, {
+      ...opts,
+      headers:{'Authorization':'Bearer ' + TOKEN, 'Content-Type':'application/json', ...(opts.headers||{})}
+    });
+    if(res.status === 401) location.href = 'auth.html';
+    return await res.json();
+  } catch(e) {
+    console.error('API Request failed:', e);
+    return [];
+  }
 }
 
 async function loadFeed(){
-  allPosts = await apiFetch('/api/feed');
+  const res = await apiFetch('/api/feed');
+  allPosts = Array.isArray(res) ? res : [];
   renderFeed();
 }
 
@@ -135,6 +162,11 @@ function renderFeed(){
   feed.innerHTML = '';
   const filtered = currentFilter === 'all' ? allPosts : allPosts.filter(p => p.type === currentFilter);
   
+  if(!filtered.length){
+    feed.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">No posts found in this category.</div>`;
+    return;
+  }
+
   filtered.forEach(post => {
     if(post.type === 'reel'){
       const div = document.createElement('div');
@@ -142,13 +174,25 @@ function renderFeed(){
       div.dataset.postid = post.id;
       div.dataset.userid = post.userId;
       div.innerHTML = `
-        <video muted playsinline data-key="${post.mediaUrl}" data-shard="${post.b2Shard}"></video>
+        <video muted playsinline data-key="${post.mediaUrl||''}" data-shard="${post.b2Shard||''}"></video>
         <div class="reel-actions">
-          <div class="action-btn" onclick="likePost('${post.id}','${post.userId}')"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span>${post.likes||0}</span></div>
-          <div class="action-btn" onclick="openComments('${post.id}','${post.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span>${post.comments||0}</span></div>
-          <div class="action-btn"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-          <div class="action-btn"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
-          <div class="action-btn"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+          <div class="action-btn" onclick="likePost('${post.id}','${post.userId}')">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            <span>${post.likes||0}</span>
+          </div>
+          <div class="action-btn" onclick="openComments('${post.id}','${post.userId}')">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <span>${post.comments||0}</span>
+          </div>
+          <div class="action-btn">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <div class="action-btn">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+          </div>
+          <div class="action-btn">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
         </div>
       `;
       feed.appendChild(div);
@@ -156,11 +200,11 @@ function renderFeed(){
       const div = document.createElement('div');
       div.className = 'card';
       div.innerHTML = `
-        <img src="${post.mediaUrl}" alt="">
-        <h3>${post.title||post.caption}</h3>
-        <p>${post.caption}</p>
+        <img src="${post.mediaUrl||'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 1 1%22><rect width=%221%22 height=%221%22 fill=%22%23111%22/></svg>'}" alt="">
+        <h3>${post.title||post.caption||'Untitled'}</h3>
+        <p>${post.caption||''}</p>
         <p style="color:var(--accent);margin-top:8px">Earnings: $${post.earnings||0}</p>
-        <button class="btn-read" onclick="openReader('${post.id}','${post.userId}','${post.type}','${post.title}','${post.content}')">Read</button>
+        <button class="btn-read" onclick="openReader('${post.id}','${post.userId}','${post.type}','${(post.title||'').replace(/'/g, "\\'")}','${(post.content||'').replace(/'/g, "\\'")}')">Read</button>
       `;
       feed.appendChild(div);
     }
@@ -173,16 +217,16 @@ function initReelObserver(){
     for(const entry of entries){
       const video = entry.target.querySelector('video');
       if(entry.intersectionRatio > 0.7){
-        if(!video.src){
+        if(!video.src && video.dataset.key){
           const key = video.dataset.key;
           const shard = video.dataset.shard;
-          const {url} = await apiFetch(`/api/media/sign?key=${key}&shard=${shard}`);
-          video.src = url;
+          const res = await apiFetch(`/api/media/sign?key=${key}&shard=${shard}`);
+          if(res && res.url) video.src = res.url;
         }
-        video.play();
+        if(video.src) video.play().catch(()=>{});
         apiFetch('/api/view', {method:'POST', body:JSON.stringify({postId:entry.target.dataset.postid, userId:USER.userId})});
       } else {
-        video.pause();
+        if(video.src) video.pause();
       }
     }
   }, {threshold:0.7});
@@ -196,19 +240,31 @@ async function likePost(postId, creatorId){
 async function openComments(postId, creatorId){
   currentCommentPost = {postId, creatorId};
   const comments = await apiFetch(`/api/comments/${postId}`);
-  document.getElementById('commentList').innerHTML = comments.map(c => `<p><b>${c.username}:</b> ${c.text}</p>`).join('');
+  const listEl = document.getElementById('commentList');
+  if(Array.isArray(comments) && comments.length) {
+    listEl.innerHTML = comments.map(c => `<p><b>${c.username||'User'}:</b> ${c.text||''}</p>`).join('');
+  } else {
+    listEl.innerHTML = `<p style="color:var(--muted)">No comments yet.</p>`;
+  }
   document.getElementById('commentSheet').classList.add('active');
 }
 
 document.getElementById('sendComment').onclick = async () => {
-  const text = document.getElementById('commentText').value;
-  if(!text) return;
+  const input = document.getElementById('commentText');
+  const text = input.value.trim();
+  if(!text || !currentCommentPost) return;
   await apiFetch('/api/comment', {method:'POST', body:JSON.stringify({...currentCommentPost, text})});
-  document.getElementById('commentText').value = '';
+  input.value = '';
   openComments(currentCommentPost.postId, currentCommentPost.creatorId);
 }
 
-document.getElementById('commentSheet').onclick = e => {if(e.target.id==='commentSheet') e.target.classList.remove('active')}
+document.getElementById('closeComments').onclick = () => {
+  document.getElementById('commentSheet').classList.remove('active');
+};
+
+document.getElementById('commentSheet').onclick = e => {
+  if(e.target.id === 'commentSheet') e.target.classList.remove('active');
+}
 
 function openReader(id, authorId, type, title, content){
   document.getElementById('readerTitle').innerText = title;
@@ -220,7 +276,7 @@ function openReader(id, authorId, type, title, content){
 document.getElementById('readerBack').onclick = () => document.getElementById('reader-tab').classList.remove('active');
 
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
   t.classList.add('active');
   currentFilter = t.dataset.type;
   renderFeed();
@@ -229,19 +285,39 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
 let searchTimer;
 function openSearch(){
   document.getElementById('searchModal').classList.add('active');
+  document.getElementById('searchInput').focus();
 }
 document.getElementById('searchBtn').onclick = openSearch;
 document.getElementById('navSearch').onclick = openSearch;
-document.getElementById('searchModal').onclick = e => {if(e.target.id==='searchModal') e.target.classList.remove('active')}
+document.getElementById('searchModal').onclick = e => {
+  if(e.target.id === 'searchModal') e.target.classList.remove('active');
+}
 document.getElementById('searchInput').oninput = e => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(async () => {
-    const q = e.target.value;
-    if(q.length<2) return;
+    const q = e.target.value.trim();
+    if(q.length < 2) return;
     const res = await apiFetch(`/api/search/users?q=${q}`);
-    document.getElementById('searchResults').innerHTML = res.map(u=>`<p>${u.username}</p>`).join('');
-  },300);
+    const resultsEl = document.getElementById('searchResults');
+    if(Array.isArray(res) && res.length) {
+      resultsEl.innerHTML = res.map(u => `<p style="padding:8px 0;border-bottom:1px solid #222">${u.username}</p>`).join('');
+    } else {
+      resultsEl.innerHTML = `<p style="color:var(--muted)">No users found.</p>`;
+    }
+  }, 300);
 }
+
+// Nav bar active selection logic
+document.querySelectorAll('nav .nav-btn').forEach((btn, idx) => {
+  btn.addEventListener('click', () => {
+    if (btn.id === 'navSearch' || btn.getAttribute('onclick')) return;
+    document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (idx === 0) {
+      document.getElementById('feed').scrollTop = 0;
+    }
+  });
+});
 
 loadFeed();
 
