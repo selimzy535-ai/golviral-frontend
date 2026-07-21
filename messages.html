@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GolViral - Messages</title>
+
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW sync failed:', err));
+    }
+  </script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #000000;
+      --card: #181818;
+      --accent: #00ff88;
+      --text: #ffffff;
+      --text-muted: #888888;
+      --border: #262626;
+      --bottom-nav-height: 60px;
+      --top-bar-height: 55px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 500px;
+      margin: 0 auto;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      height: var(--top-bar-height);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      z-index: 10;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
+
+    .header-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.3rem;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: var(--accent);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: bold;
+      border-radius: 50%;
+      width: 15px;
+      height: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Layout: Split for desktop/mobile handling */
+    .app-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Chat List Panel */
+    .chat-list-panel {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+    }
+
+    .chat-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      background: var(--bg);
+    }
+
+    .chat-item:hover, .chat-item.active {
+      background: var(--card);
+    }
+
+    .chat-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      object-fit: cover;
+    }
+
+    .chat-meta {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .chat-user {
+      font-weight: bold;
+      font-size: 0.95rem;
+      margin-bottom: 3px;
+    }
+
+    .chat-last-msg {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Direct Message Panel */
+    .chat-view-panel {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 5;
+    }
+
+    .chat-view-panel.active {
+      transform: translateX(0);
+    }
+
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message-bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .message-bubble.sent {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #000;
+      border-bottom-right-radius: 4px;
+      font-weight: 500;
+    }
+
+    .message-bubble.received {
+      align-self: flex-start;
+      background: var(--card);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .typing-indicator {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 0 15px 5px;
+      display: none;
+    }
+
+    /* Input Bar */
+    .input-bar {
+      padding: 10px 15px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 20px;
+      outline: none;
+      font-size: 0.9rem;
+    }
+
+    .chat-input:focus { border-color: var(--accent); }
+
+    .send-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* DM Lock Banner */
+    .dm-lock-banner {
+      display: none;
+      background: #2b1111;
+      border: 1px solid #ff4444;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 10px 15px;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    .dm-lock-banner button {
+      margin-top: 8px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* Desktop Responsive adjustment */
+    @media (min-width: 768px) {
+      body { max-width: 900px; }
+      .chat-list-panel { width: 350px; border-right: 1px solid var(--border); }
+      .chat-view-panel { position: relative; transform: none !important; flex: 1; }
+      .back-btn { display: none; }
+    }
+
+    /* Notifications Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: var(--card);
+      width: 100%;
+      max-width: 400px;
+      max-height: 70vh;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 15px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+    }
+
+    .notifications-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .notification-item {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notification-item.unread { background: #222; border-left: 3px solid var(--accent); }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      height: var(--bottom-nav-height);
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .nav-item { color: var(--text-muted); font-size: 1.5rem; text-decoration: none; }
+    .nav-item.active { color: var(--text); }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast" class="toast"></div>
+
+  <header class="top-bar">
+    <div class="top-left">
+      <button class="back-btn" id="back-btn" onclick="closeChatView()">←</button>
+      <div class="header-title" id="header-title">Direct Messages</div>
+    </div>
+    <button class="icon-btn" onclick="openNotifications()">
+      🔔
+      <span class="badge" id="notif-badge" style="display:none;">0</span>
+    </button>
+  </header>
+
+  <div class="app-container">
+    <div class="chat-list-panel" id="chat-list-panel">
+      <div id="chat-list-container">
+        </div>
+    </div>
+
+    <div class="chat-view-panel" id="chat-view-panel">
+      <div id="dm-lock-banner" class="dm-lock-banner">
+        <div>Messaging with this user requires DM feature unlock.</div>
+        <button onclick="location.href='profile.html'">Unlock DM in Wallet</button>
+      </div>
+
+      <div class="messages-area" id="messages-area">
+        <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 20px;">
+          Select a chat to start messaging
+        </div>
+      </div>
+
+      <div class="typing-indicator" id="typing-indicator">User is typing...</div>
+
+      <form class="input-bar" onsubmit="handleSend(event)">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Message..." oninput="emitTyping()">
+        <button type="submit" class="send-btn">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="notifications-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>Notifications</span>
+        <button class="icon-btn" onclick="closeNotifications()">✕</button>
+      </div>
+      <div class="notifications-list" id="notifications-list">
+        Loading notifications...
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item">🏠</a>
+    <a href="index.html" class="nav-item">🔍</a>
+    <a href="post.html" class="nav-item">➕</a>
+    <a href="dm.html" class="nav-item active">💬</a>
+    <a href="profile.html" class="nav-item">👤</a>
+  </nav>
+
+  <script>
+    // --- AUTH & SETUP ---
+    const TOKEN = localStorage.getItem('token');
+    if (!TOKEN) window.location.href = 'auth.html';
+
+    const API_BASE = 'https://golviral-api.onrender.com';
+    let socket = null;
+    let activeRecipientId = null;
+    let recentChats = [];
+    let typingTimeout = null;
+
+    // --- UTILS ---
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => toast.style.opacity = '0', 3000);
+    }
+
+    async function fetchAPI(endpoint, options = {}) {
+      try {
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+          ...options,
+          headers: {
+            'Authorization': `Bearer ${TOKEN}`,
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          }
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'auth.html';
+          return null;
+        }
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || `Error: ${res.status}`);
+        return data;
+      } catch (err) {
+        showToast(err.message);
+        return null;
+      }
+    }
+
+    // --- SOCKET INITIALIZATION ---
+    function initSocket() {
+      try {
+        socket = io(API_BASE, {
+          auth: { token: TOKEN },
+          transports: ['websocket', 'polling']
+        });
+
+        socket.on('connect', () => {
+          console.log('Connected to socket server');
+        });
+
+        socket.on('receive_message', (msg) => {
+          if (msg.senderId === activeRecipientId || msg.recipientId === activeRecipientId) {
+            appendMessage(msg);
+          }
+          updateRecentChatsCache(msg);
+        });
+
+        socket.on('user_typing', (data) => {
+          if (data.userId === activeRecipientId) {
+            const indicator = document.getElementById('typing-indicator');
+            indicator.style.display = 'block';
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+              indicator.style.display = 'none';
+            }, 2000);
+          }
+        });
+
+        socket.on('error_msg', (data) => {
+          const message = typeof data === 'string' ? data : data.message;
+          showToast(message);
+          
+          if (message && message.toLowerCase().includes('unlock dm')) {
+            document.getElementById('dm-lock-banner').style.display = 'block';
+          }
+        });
+
+      } catch (err) {
+        console.warn('Socket connection failed, using HTTP fallback', err);
+      }
+    }
+
+    // --- CHAT LIST & CACHE ---
+    function loadRecentChats() {
+      const cached = localStorage.getItem('gv_recent_chats');
+      if (cached) {
+        recentChats = JSON.parse(cached);
+        renderChatList();
+      }
+    }
+
+    function updateRecentChatsCache(msg) {
+      const otherId = msg.senderId === localStorage.getItem('userId') ? msg.recipientId : msg.senderId;
+      const idx = recentChats.findIndex(c => c.userId === otherId);
+
+      const chatObj = {
+        userId: otherId,
+        username: msg.username || otherId,
+        lastMessage: msg.text,
+        timestamp: new Date().toISOString()
+      };
+
+      if (idx > -1) recentChats.splice(idx, 1);
+      recentChats.unshift(chatObj);
+
+      localStorage.setItem('gv_recent_chats', JSON.stringify(recentChats));
+      renderChatList();
+    }
+
+    function renderChatList() {
+      const container = document.getElementById('chat-list-container');
+      container.innerHTML = '';
+
+      if (recentChats.length === 0) {
+        container.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-muted);">No messages yet</div>`;
+        return;
+      }
+
+      recentChats.forEach(chat => {
+        const item = document.createElement('div');
+        item.className = `chat-item ${chat.userId === activeRecipientId ? 'active' : ''}`;
+        item.onclick = () => openChat(chat.userId, chat.username);
+        item.innerHTML = `
+          <img src="https://via.placeholder.com/50" class="chat-avatar" alt="Avatar">
+          <div class="chat-meta">
+            <div class="chat-user">${chat.username}</div>
+            <div class="chat-last-msg">${chat.lastMessage}</div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // --- OPEN & RENDER CHAT ---
+    async function openChat(userId, username = 'Chat') {
+      activeRecipientId = userId;
+      document.getElementById('header-title').innerText = username;
+      document.getElementById('chat-view-panel').classList.add('active');
+      document.getElementById('dm-lock-banner').style.display = 'none';
+
+      // Update URL query without page refresh
+      history.pushState(null, '', `dm.html?to=${userId}`);
+
+      renderChatList();
+
+      // Load History
+      const messages = await fetchAPI(`/api/messages/${userId}`);
+      const area = document.getElementById('messages-area');
+      area.innerHTML = '';
+
+      if (messages && messages.length > 0) {
+        messages.forEach(msg => appendMessage(msg));
+      } else {
+        area.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin-top:20px;">Say hello!</div>`;
+      }
+
+      // Join socket room if available
+      if (socket && socket.connected) {
+        socket.emit('join_room', { recipientId: userId });
+      }
+    }
+
+    function closeChatView() {
+      document.getElementById('chat-view-panel').classList.remove('active');
+      document.getElementById('header-title').innerText = 'Direct Messages';
+      activeRecipientId = null;
+      history.pushState(null, '', 'dm.html');
+      renderChatList();
+    }
+
+    function appendMessage(msg) {
+      const area = document.getElementById('messages-area');
+      const isSelf = msg.senderId === localStorage.getItem('userId');
+      
+      const bubble = document.createElement('div');
+      bubble.className = `message-bubble ${isSelf ? 'sent' : 'received'}`;
+      bubble.innerText = msg.text;
+
+      area.appendChild(bubble);
+      area.scrollTop = area.scrollHeight;
+    }
+
+    // --- SEND MESSAGE ---
+    async function handleSend(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+
+      if (!text || !activeRecipientId) return;
+
+      const payload = {
+        recipientId: activeRecipientId,
+        text: text,
+        senderId: localStorage.getItem('userId')
+      };
+
+      input.value = '';
+
+      // Socket attempt
+      if (socket && socket.connected) {
+        socket.emit('send_message', payload);
+        appendMessage(payload);
+        updateRecentChatsCache(payload);
+      } else {
+        // HTTP Fallback
+        const res = await fetchAPI('/api/message/send', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        if (res) {
+          appendMessage(payload);
+          updateRecentChatsCache(payload);
+        }
+      }
+    }
+
+    function emitTyping() {
+      if (socket && socket.connected && activeRecipientId) {
+        socket.emit('user_typing', { recipientId: activeRecipientId });
+      }
+    }
+
+    // --- NOTIFICATIONS LOGIC ---
+    async function openNotifications() {
+      document.getElementById('notifications-modal').style.display = 'flex';
+      const list = document.getElementById('notifications-list');
+      list.innerHTML = 'Loading...';
+
+      const data = await fetchAPI('/api/notifications');
+      list.innerHTML = '';
+
+      if (data && data.length > 0) {
+        data.forEach(n => {
+          const item = document.createElement('div');
+          item.className = `notification-item ${n.read ? '' : 'unread'}`;
+          item.onclick = () => markNotificationRead(n.id, item);
+          item.innerHTML = `
+            <div>${n.message}</div>
+            <div style="font-size:0.7rem; color:var(--text-muted);">${new Date(n.createdAt).toLocaleDateString()}</div>
+          `;
+          list.appendChild(item);
+        });
+      } else {
+        list.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted);">No notifications</div>';
+      }
+    }
+
+    function closeNotifications() {
+      document.getElementById('notifications-modal').style.display = 'none';
+    }
+
+    async function markNotificationRead(id, element) {
+      const res = await fetchAPI(`/api/notifications/read/${id}`, { method: 'POST' });
+      if (res) {
+        element.classList.remove('unread');
+      }
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = () => {
+      initSocket();
+      loadRecentChats();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const toUser = urlParams.get('to');
+      if (toUser) {
+        openChat(toUser);
+      }
+    };
+  </script>
+</body>
+</html>
