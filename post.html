@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GolViral - Create Post</title>
+
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    :root {
+      --bg: #000000;
+      --card: #181818;
+      --border: #333333;
+      --accent: #00ff88;
+      --text: #ffffff;
+      --text-muted: #888888;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px 10px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 25px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Top Navigation Header */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 15px;
+    }
+
+    .header-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .progress-track {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 1;
+      transform: translateY(-50%);
+    }
+
+    .progress-fill {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: var(--accent);
+      z-index: 2;
+      transform: translateY(-50%);
+      transition: width 0.3s ease;
+    }
+
+    .step-node {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 2px solid var(--border);
+      color: var(--text-muted);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+      z-index: 3;
+      transition: 0.3s;
+    }
+
+    .step-node.active {
+      border-color: var(--accent);
+      color: #000;
+      background: var(--accent);
+    }
+
+    /* Step Sections */
+    .step-content {
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .step-content.active {
+      display: flex;
+    }
+
+    /* Form Inputs */
+    label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: -5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .file-input-wrapper {
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .file-input-wrapper:hover {
+      border-color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      margin-top: -5px;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Boost Cards */
+    .boost-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .boost-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .boost-card:hover {
+      border-color: var(--accent);
+    }
+
+    .boost-info h4 {
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .boost-info p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .boost-price {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast" class="toast"></div>
+
+  <div class="container">
+    <div class="header-bar">
+      <button class="back-btn" onclick="location.href='index.html'">←</button>
+      <div class="header-title" id="header-title">Create New Post</div>
+      <div style="width: 20px;"></div>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-track"></div>
+      <div class="progress-fill" id="progress-fill"></div>
+      <div class="step-node active" id="node-1">1</div>
+      <div class="step-node" id="node-2">2</div>
+    </div>
+
+    <form id="step-1" class="step-content active" onsubmit="handleUploadSubmit(event)">
+      <div>
+        <label for="post-type">Post Type</label>
+        <select id="post-type" onchange="handleTypeChange()" style="margin-top: 5px;">
+          <option value="Reel">Reel (Short Video)</option>
+          <option value="Novel">Novel / Article</option>
+          <option value="Story">Story</option>
+          <option value="Store">Store Item</option>
+        </select>
+      </div>
+
+      <div id="file-field-container">
+        <label id="file-label">Select Media File</label>
+        <div class="file-input-wrapper" onclick="document.getElementById('file-input').click()" style="margin-top: 5px;">
+          <span id="file-placeholder" style="font-size: 0.9rem; color: var(--text-muted);">
+            Click to upload video (.mp4, .mov)
+          </span>
+          <input type="file" id="file-input" style="display: none;" onchange="handleFileSelected(event)">
+        </div>
+      </div>
+
+      <div>
+        <label for="post-title">Title</label>
+        <input type="text" id="post-title" placeholder="Give your post a title" required style="margin-top: 5px;">
+      </div>
+
+      <div>
+        <label for="post-caption" id="caption-label">Caption</label>
+        <textarea id="post-caption" rows="4" placeholder="Write a caption..." required style="margin-top: 5px;"></textarea>
+      </div>
+
+      <div id="external-link-container" style="display: none;">
+        <label for="external-link">External Link / Store URL</label>
+        <input type="url" id="external-link" placeholder="https://..." style="margin-top: 5px;">
+      </div>
+
+      <button type="submit" class="btn" id="submit-btn">Next Step →</button>
+    </form>
+
+    <div id="step-2" class="step-content">
+      <div style="text-align: center; margin-bottom: 5px;">
+        <h3 style="font-size: 1.2rem;">Boost Your Reach</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+          Get up to 10x more views and engagement with a sponsored boost.
+        </p>
+      </div>
+
+      <div class="boost-options">
+        <div class="boost-card" onclick="initiateBoost(1, 3500)">
+          <div class="boost-info">
+            <h4>1 Day Boost</h4>
+            <p>Starter reach boost</p>
+          </div>
+          <div class="boost-price" id="price-1day">₦3,500</div>
+        </div>
+
+        <div class="boost-card" onclick="initiateBoost(3, 7500)">
+          <div class="boost-info">
+            <h4>3 Days Boost</h4>
+            <p>Trending priority placement</p>
+          </div>
+          <div class="boost-price" id="price-3day">₦7,500</div>
+        </div>
+
+        <div class="boost-card" onclick="initiateBoost(7, 17000)">
+          <div class="boost-info">
+            <h4>7 Days Boost</h4>
+            <p>Maximum viral exposure</p>
+          </div>
+          <div class="boost-price" id="price-7day">₦17,000</div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" onclick="finishPostFlow()">Skip & View Posts</button>
+    </div>
+  </div>
+
+  <script>
+    // --- AUTH & SETUP ---
+    const TOKEN = localStorage.getItem('token');
+    if (!TOKEN) window.location.href = 'auth.html';
+
+    const API_BASE = 'https://golviral-api.onrender.com';
+    let currentPostId = null;
+    let selectedFile = null;
+    let isNigeria = true;
+
+    // Determine user currency base from onboarding data
+    try {
+      const onboardingData = JSON.parse(localStorage.getItem('onboarding_data') || '{}');
+      if (onboardingData.country && onboardingData.country !== 'NG') {
+        isNigeria = false;
+      }
+    } catch (e) {
+      isNigeria = true;
+    }
+
+    // --- UTILS ---
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => toast.style.opacity = '0', 3000);
+    }
+
+    async function fetchAPI(endpoint, options = {}) {
+      try {
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+          ...options,
+          headers: {
+            'Authorization': `Bearer ${TOKEN}`,
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          }
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'auth.html';
+          return null;
+        }
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || `Error: ${res.status}`);
+        return data;
+      } catch (err) {
+        showToast(err.message);
+        return null;
+      }
+    }
+
+    function formatCurrency(nairaAmount) {
+      if (isNigeria) {
+        return `₦${nairaAmount.toLocaleString()}`;
+      } else {
+        const usd = (nairaAmount / 1000).toFixed(2);
+        return `$${usd}`;
+      }
+    }
+
+    function renderCurrencyPrices() {
+      document.getElementById('price-1day').innerText = formatCurrency(3500);
+      document.getElementById('price-3day').innerText = formatCurrency(7500);
+      document.getElementById('price-7day').innerText = formatCurrency(17000);
+    }
+
+    // --- UI/FORM CONTROLS ---
+    function handleTypeChange() {
+      const type = document.getElementById('post-type').value;
+      const filePlaceholder = document.getElementById('file-placeholder');
+      const fileInput = document.getElementById('file-input');
+      const extLinkContainer = document.getElementById('external-link-container');
+      const captionLabel = document.getElementById('caption-label');
+
+      extLinkContainer.style.display = 'none';
+      fileInput.value = '';
+      selectedFile = null;
+      filePlaceholder.innerText = 'Click to select file';
+
+      if (type === 'Reel') {
+        fileInput.accept = 'video/mp4,video/quicktime,video/mov';
+        filePlaceholder.innerText = 'Upload Reel Video (.mp4, .mov - Max 2MB, <60s)';
+        captionLabel.innerText = 'Caption';
+      } else if (type === 'Novel') {
+        fileInput.accept = 'image/*,.pdf';
+        filePlaceholder.innerText = 'Upload Cover Image or PDF';
+        captionLabel.innerText = 'Content / Chapters Summary';
+      } else if (type === 'Story') {
+        fileInput.accept = 'image/*,video/*';
+        filePlaceholder.innerText = 'Upload Photo or Short Video';
+        captionLabel.innerText = 'Caption';
+      } else if (type === 'Store') {
+        fileInput.accept = 'image/*';
+        filePlaceholder.innerText = 'Upload Product Image';
+        captionLabel.innerText = 'Product Description';
+        extLinkContainer.style.display = 'block';
+      }
+    }
+
+    function handleFileSelected(e) {
+      const file = e.target.files[0];
+      if (file) {
+        selectedFile = file;
+        document.getElementById('file-placeholder').innerText = `Selected: ${file.name} (${(file.size / (1024*1024)).toFixed(2)} MB)`;
+      }
+    }
+
+    function getVideoDuration(file) {
+      return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = () => {
+          window.URL.revokeObjectURL(video.src);
+          resolve(video.duration);
+        };
+        video.onerror = () => resolve(0);
+        video.src = URL.createObjectURL(file);
+      });
+    }
+
+    // --- STEP 1: VALIDATION & POST CREATION ---
+    async function handleUploadSubmit(e) {
+      e.preventDefault();
+      const type = document.getElementById('post-type').value;
+
+      if (!selectedFile) {
+        return showToast('Please select a media file to upload.');
+      }
+
+      // Reel File Validation: <2MB, <60s, .mp4 .mov .quicktime
+      if (type === 'Reel') {
+        const maxSizeBytes = 2 * 1024 * 1024; // 2MB
+        if (selectedFile.size > maxSizeBytes) {
+          return showToast('Reel video size must be less than 2MB.');
+        }
+
+        const validTypes = ['video/mp4', 'video/quicktime', 'video/mov'];
+        const fileName = selectedFile.name.toLowerCase();
+        const isValidExt = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.quicktime');
+
+        if (!validTypes.includes(selectedFile.type) && !isValidExt) {
+          return showToast('Invalid format! Only .mp4 and .mov allowed for Reels.');
+        }
+
+        const duration = await getVideoDuration(selectedFile);
+        if (duration > 60) {
+          return showToast('Reel video length must be less than 60 seconds.');
+        }
+      }
+
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Uploading...';
+
+      try {
+        const fileExtension = selectedFile.name.split('.').pop();
+        const contentType = selectedFile.type || 'application/octet-stream';
+
+        // 1. Get Presigned Upload Intent
+        const intent = await fetchAPI('/api/post/create-intent', {
+          method: 'POST',
+          body: JSON.stringify({ fileExtension, contentType, postType: type })
+        });
+
+        if (!intent || !intent.uploadUrl || !intent.objectKey) {
+          throw new Error('Failed to obtain upload authorization.');
+        }
+
+        // 2. Direct PUT to S3/Storage bucket
+        const uploadRes = await fetch(intent.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': contentType },
+          body: selectedFile
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error('File transfer failed. Please try again.');
+        }
+
+        // 3. Finalize Post Creation
+        const title = document.getElementById('post-title').value.trim();
+        const content = document.getElementById('post-caption').value.trim();
+        const externalLink = document.getElementById('external-link').value.trim();
+
+        const postRes = await fetchAPI('/api/post/create', {
+          method: 'POST',
+          body: JSON.stringify({
+            postId: intent.postId,
+            objectKey: intent.objectKey,
+            postType: type,
+            title,
+            content,
+            externalLink
+          })
+        });
+
+        if (postRes) {
+          currentPostId = postRes.postId || intent.postId;
+          showToast('Post uploaded successfully!');
+          goToStep2();
+        }
+      } catch (err) {
+        showToast(err.message || 'Upload failed.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Next Step →';
+      }
+    }
+
+    // --- STEP 2: BOOST LOGIC ---
+    function goToStep2() {
+      document.getElementById('step-1').classList.remove('active');
+      document.getElementById('step-2').classList.add('active');
+      
+      document.getElementById('node-1').classList.remove('active');
+      document.getElementById('node-2').classList.add('active');
+      document.getElementById('progress-fill').style.width = '100%';
+      document.getElementById('header-title').innerText = 'Boost Post';
+    }
+
+    async function initiateBoost(durationDays, nairaAmount) {
+      if (!currentPostId) return showToast('Invalid post reference.');
+
+      const amountToCharge = isNigeria ? nairaAmount : Number((nairaAmount / 1000).toFixed(2));
+
+      const res = await fetchAPI('/api/boost/init', {
+        method: 'POST',
+        body: JSON.stringify({
+          postId: currentPostId,
+          durationDays,
+          amount: amountToCharge,
+          currency: isNigeria ? 'NGN' : 'USD'
+        })
+      });
+
+      if (res && res.selarLink) {
+        window.open(res.selarLink, '_blank');
+        finishPostFlow();
+      }
+    }
+
+    function finishPostFlow() {
+      showToast('Posted!');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1000);
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = () => {
+      renderCurrencyPrices();
+      handleTypeChange();
+
+      // Check if URL direct-triggers boost step
+      const urlParams = new URLSearchParams(window.location.search);
+      const boostPostId = urlParams.get('boost');
+      if (boostPostId) {
+        currentPostId = boostPostId;
+        goToStep2();
+      }
+    };
+  </script>
+</body>
+</html>
