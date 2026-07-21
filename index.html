@@ -1,327 +1,988 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#000000">
-<title>GolViral</title>
+<title>GolViral v5.1</title>
 <link rel="manifest" href="manifest.json">
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <style>
-:root{--bg:#000;--card:#0a0a0a;--accent:#00ff88;--text:#fff;--muted:#888;--header-h:56px;--nav-h:64px;--max-w:500px}
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-body{background:var(--bg);color:var(--text);max-width:var(--max-w);margin:0 auto;overflow-x:hidden}
+:root {
+  --bg: #000000;
+  --card: rgba(10, 10, 10, 0.85);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --accent: #00ff88;
+  --accent-glow: rgba(0, 255, 136, 0.35);
+  --text: #ffffff;
+  --muted: #888888;
+  --danger: #ff4444;
+  --header-h: 56px;
+  --nav-h: 60px;
+  --max-w: 500px;
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; -webkit-tap-highlight-color:transparent; }
+body { background:var(--bg); color:var(--text); max-width:var(--max-w); margin:0 auto; min-height:100vh; overflow-x:hidden; position:relative; }
+svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
 
-/* Global SVG Styling */
-svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle}
-svg.icon{width:22px;height:22px;cursor:pointer}
+.glass { background:var(--card); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--card-border); }
+.btn { width:100%; padding:14px; background:var(--accent); color:#000; font-weight:700; border:none; border-radius:12px; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; box-shadow:0 0 15px var(--accent-glow); }
+.btn:active { transform:scale(0.98); }
+.btn-outline { background:transparent; color:var(--text); border:1px solid var(--card-border); box-shadow:none; }
+.btn-sm { padding:8px 14px; font-size:13px; width:auto; }
+.input-group { margin-bottom:14px; }
+.input-group label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+input, select, textarea { width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--card-border); border-radius:10px; color:#fff; font-size:14px; outline:none; transition:0.2s; }
+input:focus, select:focus, textarea:focus { border-color:var(--accent); box-shadow:0 0 8px var(--accent-glow); }
 
-header{position:sticky;top:0;z-index:1000;background:rgba(0,0,0,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(0,255,136,.1)}
-.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;color:var(--accent)}
-.logo svg{stroke:var(--accent)}
+header { position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:var(--max-w); height:var(--header-h); z-index:1000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; border-bottom:1px solid var(--card-border); }
+.logo { font-weight:800; font-size:20px; color:var(--accent); letter-spacing:-0.5px; display:flex; align-items:center; gap:8px; }
 
-.tabs{position:sticky;top:var(--header-h);z-index:999;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;justify-content:space-around;border-bottom:1px solid #111}
-.tab{flex:1;padding:14px 0;text-align:center;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;position:relative;transition:.3s}
-.tab.active{color:var(--text)}
-.tab.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--accent);border-radius:2px;animation:slide .3s ease}
-@keyframes slide{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:var(--max-w); height:var(--nav-h); z-index:1000; display:flex; justify-content:space-around; align-items:center; border-top:1px solid var(--card-border); }
+.nav-item { color:var(--muted); display:flex; flex-direction:column; align-items:center; text-decoration:none; font-size:10px; gap:4px; transition:0.2s; }
+.nav-item.active { color:var(--accent); }
 
-#feed{height:calc(100dvh - var(--header-h) - 48px - var(--nav-h));overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
-.reel{height:calc(100dvh - var(--header-h) - var(--nav-h));scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center}
-.reel video{width:100%;height:100%;object-fit:cover}
-.reel-actions{position:absolute;right:12px;bottom:80px;display:flex;flex-direction:column;gap:20px;align-items:center;z-index:10}
-.action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font-size:12px;cursor:pointer}
-.action-btn svg{width:32px;height:32px;color:#fff;filter:drop-shadow(0 0 4px rgba(0,0,0,.5))}
+.page { display:none; padding-top:var(--header-h); padding-bottom:calc(var(--nav-h) + 16px); min-height:100vh; }
+.page.active { display:block; }
 
-.card{margin:12px;background:var(--card);border-radius:16px;padding:16px;border:1px solid #111}
-.card img{width:100%;height:200px;object-fit:cover;border-radius:12px;background:#111}
-.card h3{margin:12px 0 8px;font-size:16px}
-.card p{color:var(--muted);font-size:14px;line-height:1.5}
-.btn-read{background:var(--accent);color:#000;border:none;padding:10px 16px;border-radius:10px;font-weight:700;margin-top:12px;cursor:pointer;width:100%;transition:opacity .2s}
-.btn-read:active{opacity:0.8}
+.sub-tabs { display:flex; border-bottom:1px solid var(--card-border); background:rgba(0,0,0,0.5); position:sticky; top:var(--header-h); z-index:900; }
+.tab-btn { flex:1; padding:12px; text-align:center; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; position:relative; border:none; background:none; }
+.tab-btn.active { color:var(--accent); }
+.tab-btn.active::after { content:''; position:absolute; bottom:0; left:25%; right:25%; height:2px; background:var(--accent); border-radius:2px; }
 
-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--max-w);height:var(--nav-h);background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;justify-content:space-around;align-items:center;border-top:1px solid #111;z-index:1000}
-.nav-btn{cursor:pointer;padding:8px;color:var(--muted);transition:color .2s}
-.nav-btn svg{width:26px;height:26px;stroke:currentColor}
-.nav-btn.active{color:var(--accent)}
+#toast-container { position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:9999; width:90%; max-width:400px; pointer-events:none; }
+.toast { background:rgba(15,15,15,0.95); color:#fff; padding:12px 16px; border-radius:10px; margin-bottom:8px; font-size:13px; border:1px solid var(--card-border); box-shadow:0 10px 30px rgba(0,0,0,0.8); display:flex; align-items:center; gap:10px; animation:slideDown 0.3s ease; }
+.toast.error { border-color:var(--danger); color:var(--danger); }
+@keyframes slideDown { from { transform:translateY(-20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
 
-.fab{position:fixed;bottom:calc(var(--nav-h) + 16px);right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(0,255,136,.5);cursor:pointer;z-index:1001;color:#000}
-.fab svg{width:28px;height:28px;stroke:#000;stroke-width:2.5}
+.modal { position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); display:none; align-items:center; justify-content:center; padding:20px; }
+.modal.active { display:flex; }
+.modal-content { width:100%; max-width:420px; border-radius:20px; padding:24px; position:relative; max-height:85vh; overflow-y:auto; }
 
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px}
-.modal.active{display:flex}
-.modal-box{background:var(--card);border:1px solid #222;border-radius:20px;width:100%;padding:20px}
-.modal-box input{width:100%;background:#111;border:1px solid #222;border-radius:12px;padding:12px;color:#fff;outline:none}
+.sheet { position:fixed; bottom:-100%; left:50%; transform:translateX(-50%); width:100%; max-width:var(--max-w); height:70vh; z-index:2500; border-radius:24px 24px 0 0; transition:bottom 0.3s ease; display:flex; flex-direction:column; padding:16px; }
+.sheet.active { bottom:0; }
 
-#reader-tab{position:fixed;top:0;right:-100%;width:100%;max-width:var(--max-w);height:100dvh;background:var(--bg);z-index:3000;transition:right .4s ease;overflow-y:auto;padding:16px}
-#reader-tab.active{right:0}
-.reader-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
-.reader-header button{background:none;border:none;color:#fff;cursor:pointer;display:flex;align-items:center}
-.reader-content{line-height:1.8;font-size:16px;white-space:pre-wrap}
+.reel-container { height:calc(100vh - var(--header-h) - var(--nav-h)); scroll-snap-type:y mandatory; overflow-y:scroll; }
+.reel-item { height:100%; scroll-snap-align:start; position:relative; background:#000; display:flex; align-items:center; justify-content:center; }
+.reel-item video { width:100%; height:100%; object-fit:cover; }
+.reel-overlay { position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%); pointer-events:none; }
+.reel-actions { position:absolute; right:12px; bottom:30px; display:flex; flex-direction:column; gap:18px; align-items:center; z-index:10; }
+.action-btn { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; color:#fff; cursor:pointer; background:none; border:none; }
+.reel-info { position:absolute; left:16px; bottom:20px; right:70px; z-index:10; }
 
-.comment-sheet{position:fixed;bottom:-100%;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;border:1px solid #222;max-height:70dvh;transition:bottom .3s ease;z-index:2500;padding:16px}
-.comment-sheet.active{bottom:0}
-.comment-sheet-header{display:flex;justify-space-between:space-between;align-items:center;margin-bottom:12px}
-.comment-sheet-header h4{margin:0;font-size:16px}
-.comment-sheet-header button{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1}
-.comment-list{overflow-y:auto;max-height:50dvh;margin:12px 0}
-.comment-list p{margin-bottom:8px;font-size:14px;line-height:1.4}
-.comment-input{display:flex;gap:8px}
-.comment-input input{flex:1;background:#111;border:1px solid #222;border-radius:12px;padding:10px;color:#fff;outline:none}
-.comment-input button{background:var(--accent);color:#000;border:none;padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer}
+.card { margin:14px; padding:16px; border-radius:16px; }
+.card img { width:100%; height:180px; object-fit:cover; border-radius:12px; margin-bottom:12px; }
+
+.badge { display:inline-block; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:700; background:rgba(0,255,136,0.15); color:var(--accent); border:1px solid rgba(0,255,136,0.3); }
 </style>
 </head>
 <body>
-<header>
+
+<div id="toast-container"></div>
+
+<header id="app-header" class="glass">
   <div class="logo">
-    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
     GolViral
   </div>
-  <svg id="searchBtn" class="icon" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/></svg>
+  <div style="display:flex; gap:12px; align-items:center;">
+    <a href="#search" style="color:#fff;"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></a>
+    <span id="admin-link-wrapper"></span>
+  </div>
 </header>
 
-<div class="tabs">
-  <div class="tab active" data-type="all">ForYou</div>
-  <div class="tab" data-type="reel">Reels</div>
-  <div class="tab" data-type="novel">Novels</div>
-  <div class="tab" data-type="story">Stories</div>
-</div>
+<main>
+  <section id="page-auth" class="page">
+    <div style="padding:20px;">
+      <div style="text-align:center; margin-bottom:24px;">
+        <h1 style="color:var(--accent); font-size:28px;">GolViral v5.1</h1>
+        <p style="color:var(--muted); font-size:13px; margin-top:4px;">Monetize & Go Viral in 2026</p>
+      </div>
+      
+      <div class="sub-tabs glass" style="border-radius:12px; margin-bottom:20px;">
+        <button class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+        <button class="tab-btn" onclick="switchAuthTab('signup')">Signup</button>
+        <button class="tab-btn" onclick="switchAuthTab('forgot')">Forgot</button>
+      </div>
 
-<div id="feed"></div>
+      <div id="auth-login-form" class="glass card">
+        <div class="input-group"><label>Email</label><input type="email" id="login-email" placeholder="user@domain.com"></div>
+        <div class="input-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
+        <button class="btn" onclick="handleLogin()">Login</button>
+      </div>
 
-<div class="fab" onclick="location.href='post.html'">
-  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-</div>
+      <div id="auth-signup-form" class="glass card" style="display:none;">
+        <div class="input-group"><label>Username</label><input type="text" id="signup-username" placeholder="viralcreator"></div>
+        <div class="input-group"><label>Email</label><input type="email" id="signup-email" placeholder="user@domain.com"></div>
+        <div class="input-group"><label>Password</label><input type="password" id="signup-password" placeholder="••••••••"></div>
+        <div class="input-group"><label>Referral Code (Optional)</label><input type="text" id="signup-ref" placeholder="REF123"></div>
+        <button class="btn" onclick="handleSignup()">Create Account</button>
+      </div>
 
-<nav>
-  <div class="nav-btn active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
-  <div class="nav-btn" id="navSearch"><svg viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/></svg></div>
-  <div class="nav-btn" onclick="location.href='post.html'"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
-  <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-  <div class="nav-btn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg></div>
+      <div id="auth-forgot-form" class="glass card" style="display:none;">
+        <div class="input-group"><label>Email</label><input type="email" id="forgot-email" placeholder="user@domain.com"></div>
+        <button class="btn" onclick="handleForgot()" style="margin-bottom:12px;">Send Reset OTP</button>
+        
+        <div style="border-top:1px solid var(--card-border); padding-top:12px; margin-top:12px;">
+          <div class="input-group"><label>Reset OTP</label><input type="text" id="reset-otp" placeholder="123456"></div>
+          <div class="input-group"><label>New Password</label><input type="password" id="reset-pass" placeholder="••••••••"></div>
+          <button class="btn btn-outline" onclick="handleResetPass()">Confirm Reset</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-feed" class="page">
+    <div class="sub-tabs">
+      <button class="tab-btn active" onclick="setFeedTab('all')">ForYou</button>
+      <button class="tab-btn" onclick="setFeedTab('reel')">Reels</button>
+      <button class="tab-btn" onclick="setFeedTab('novel')">Novels</button>
+      <button class="tab-btn" onclick="setFeedTab('story')">Stories</button>
+    </div>
+    <div id="feed-container"></div>
+  </section>
+
+  <section id="page-post" class="page">
+    <div class="glass card">
+      <h3 style="margin-bottom:16px;">Create Content</h3>
+      <div style="font-size:11px; color:var(--muted); margin-bottom:16px; background:rgba(255,255,255,0.03); padding:10px; border-radius:8px;">
+        • Daily Limit: Max 3 posts (1 Reel, 1 Novel, 1 Story)<br>
+        • Reel Fee: 25 Credits | Novel/Story Fee: 10 Credits
+      </div>
+      
+      <div class="input-group">
+        <label>Post Type</label>
+        <select id="post-type" onchange="togglePostFields()">
+          <option value="reel">Reel (Short Video)</option>
+          <option value="novel">Novel (Long Text)</option>
+          <option value="story">Story (Short Text)</option>
+        </select>
+      </div>
+      <div class="input-group"><label>Title</label><input type="text" id="post-title" placeholder="Catchy Headline"></div>
+      <div class="input-group"><label>Caption / Description</label><textarea id="post-caption" rows="2" placeholder="Tell viewers about this..."></textarea></div>
+      
+      <div id="field-text-content" class="input-group" style="display:none;">
+        <label>Story / Novel Content</label>
+        <textarea id="post-content" rows="6" placeholder="Write your narrative here..."></textarea>
+      </div>
+
+      <div id="field-file-upload" class="input-group">
+        <label>Media File (Reels / Thumbnails)</label>
+        <input type="file" id="post-file" accept="video/*,image/*">
+      </div>
+
+      <div class="input-group"><label>External Link (Optional)</label><input type="url" id="post-external" placeholder="https://"></div>
+
+      <button class="btn" onclick="handleCreatePost()">Publish Content</button>
+    </div>
+
+    <div id="boost-section" class="glass card" style="margin-top:20px; display:none;">
+      <h3 style="color:var(--accent); margin-bottom:8px;">Boost Content</h3>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Select a tier to amplify reach instantly.</p>
+      <div class="input-group">
+        <label>Boost Tier</label>
+        <select id="boost-tier">
+          <option value="3500">Tier 1: 3,500 NGN (1 Day Reach)</option>
+          <option value="7500">Tier 2: 7,500 NGN (3 Days Reach)</option>
+          <option value="17000">Tier 3: 17,000 NGN (7 Days Reach)</option>
+        </select>
+      </div>
+      <button class="btn" onclick="handleBoostInit()">Pay & Boost via Selar</button>
+    </div>
+  </section>
+
+  <section id="page-messages" class="page">
+    <div style="padding:14px;">
+      <div class="sub-tabs glass" style="border-radius:12px; margin-bottom:14px;">
+        <button class="tab-btn active">Direct Messages</button>
+      </div>
+      <div class="input-group" style="display:flex; gap:8px;">
+        <input type="text" id="dm-target-user" placeholder="Recipient User ID">
+        <button class="btn btn-sm" onclick="startDirectChat()">Chat</button>
+      </div>
+      <div id="chat-box" class="glass" style="height:50vh; border-radius:16px; padding:14px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; margin-bottom:12px;"></div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="chat-input" placeholder="Type message...">
+        <button class="btn btn-sm" onclick="sendChatMessage()">Send</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-profile" class="page">
+    <div class="glass card">
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+        <div style="width:64px; height:64px; border-radius:50%; background:var(--accent-glow); border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:bold; font-size:24px;" id="profile-avatar">U</div>
+        <div>
+          <h2 id="profile-username">User</h2>
+          <span class="badge" id="monetize-badge">Monetization: Checking...</span>
+        </div>
+      </div>
+      
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; text-align:center; background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; margin-bottom:16px;" id="profile-stats">
+        <div><div style="font-weight:700;" id="st-posts">0</div><div style="font-size:10px; color:var(--muted);">Posts</div></div>
+        <div><div style="font-weight:700;" id="st-followers">0</div><div style="font-size:10px; color:var(--muted);">Followers</div></div>
+        <div><div style="font-weight:700;" id="st-likes">0</div><div style="font-size:10px; color:var(--muted);">Likes</div></div>
+        <div><div style="font-weight:700;" id="st-views">0</div><div style="font-size:10px; color:var(--muted);">Views</div></div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button class="btn btn-sm btn-outline" style="flex:1" onclick="handleDMUnlock()">Unlock DMs</button>
+        <button class="btn btn-sm btn-outline" id="follow-btn" style="flex:1" onclick="toggleFollow()">Follow</button>
+      </div>
+    </div>
+
+    <div class="sub-tabs">
+      <button class="tab-btn active" onclick="setProfileTab('posts')">My Content</button>
+      <button class="tab-btn" onclick="setProfileTab('wallet')">Wallet & Earnings</button>
+      <button class="tab-btn" onclick="setProfileTab('support')">Support</button>
+      <button class="tab-btn" onclick="setProfileTab('notifs')">Notifs</button>
+    </div>
+
+    <div id="profile-tab-posts" class="p-tab">
+      <div id="user-posts-container"></div>
+    </div>
+
+    <div id="profile-tab-wallet" class="p-tab" style="display:none; padding:14px;">
+      <div class="glass card" style="margin:0 0 14px 0;">
+        <div style="font-size:12px; color:var(--muted);">Available Credits / Points</div>
+        <div style="font-size:28px; font-weight:800; color:var(--accent); margin:4px 0;" id="w-credits">0</div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:12px;">Daily Cap Progress: <span id="w-cap">0</span> / 10,000 Points</div>
+        
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm" style="flex:1" onclick="triggerDeposit(1500)">+ 1.5k Credits</button>
+          <button class="btn btn-sm" style="flex:1" onclick="triggerDeposit(7000)">+ 7k Credits</button>
+        </div>
+      </div>
+
+      <div class="glass card" style="margin:0;">
+        <h3>Withdraw Earnings</h3>
+        <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">Min 50,000 Points. USDT TRC20 min: 120,000</p>
+        <div class="input-group"><label>Points Amount</label><input type="number" id="w-draw-amount" placeholder="50000"></div>
+        <div class="input-group">
+          <label>Method</label>
+          <select id="w-draw-method">
+            <option value="bank">Local Bank Transfer</option>
+            <option value="usdt">USDT (TRC20)</option>
+          </select>
+        </div>
+        <div class="input-group"><label>Target Details (Bank/TRC20 Addr)</label><input type="text" id="w-draw-target" placeholder="Account or Wallet address"></div>
+        <button class="btn" onclick="handleWithdrawInit()">Request Withdrawal</button>
+      </div>
+
+      <div class="glass card" style="margin-top:14px;">
+        <h3>Buy Gifts</h3>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px;">
+          <button class="btn btn-outline btn-sm" onclick="buyGift('star')">Star ⭐</button>
+          <button class="btn btn-outline btn-sm" onclick="buyGift('fire')">Fire 🔥</button>
+          <button class="btn btn-outline btn-sm" onclick="buyGift('crown')">Crown 👑</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="profile-tab-support" class="p-tab" style="display:none; padding:14px;">
+      <div class="glass card" style="margin:0 0 14px 0;">
+        <h3>Contact Support</h3>
+        <div class="input-group" style="margin-top:10px;"><label>Subject</label><input type="text" id="sup-subject"></div>
+        <div class="input-group"><label>Message</label><textarea id="sup-msg" rows="3"></textarea></div>
+        <button class="btn" onclick="handleSendSupport()">Send Ticket</button>
+      </div>
+      <div id="support-tickets-list"></div>
+    </div>
+
+    <div id="profile-tab-notifs" class="p-tab" style="display:none; padding:14px;">
+      <div id="notifications-list"></div>
+    </div>
+  </section>
+
+  <section id="page-search" class="page">
+    <div style="padding:14px;">
+      <div class="input-group"><input type="text" id="search-input" placeholder="Search creators by username..." oninput="debouncedSearch()"></div>
+      <div id="search-results" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+  </section>
+
+  <section id="page-reader" class="page">
+    <div style="padding:16px;">
+      <button class="btn btn-outline btn-sm" onclick="window.location.hash='#feed'" style="margin-bottom:16px;">← Back to Feed</button>
+      <div class="glass card" style="margin:0;">
+        <h1 id="reader-title" style="font-size:22px; color:var(--accent); margin-bottom:12px;">Story Title</h1>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:16px;" id="reader-meta">By Creator</div>
+        <div id="reader-content" style="line-height:1.7; font-size:15px; white-space:pre-wrap;">Loading narrative...</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav id="app-nav" class="glass">
+  <a href="#feed" class="nav-item active" id="nav-feed"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+  <a href="#search" class="nav-item" id="nav-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Explore</a>
+  <a href="#post" class="nav-item" id="nav-post"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Create</a>
+  <a href="#messages" class="nav-item" id="nav-messages"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat</a>
+  <a href="#profile" class="nav-item" id="nav-profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
 </nav>
 
-<div id="searchModal" class="modal">
-  <div class="modal-box">
-    <input type="text" id="searchInput" placeholder="Search users...">
-    <div id="searchResults" style="margin-top:16px"></div>
+<div id="bot-modal" class="modal">
+  <div class="modal-content glass">
+    <h3 style="color:var(--accent); margin-bottom:10px;">Security Verification</h3>
+    <p id="bot-question" style="font-size:14px; margin-bottom:14px;">Loading challenge...</p>
+    <div class="input-group"><input type="text" id="bot-answer" placeholder="Your Answer"></div>
+    <button class="btn" id="bot-submit-btn">Verify</button>
   </div>
 </div>
 
-<div id="reader-tab">
-  <div class="reader-header">
-    <button id="readerBack"><svg class="icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-    <h3 id="readerTitle"></h3>
+<div id="onboarding-modal" class="modal">
+  <div class="modal-content glass">
+    <h3>Welcome to GolViral!</h3>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Setup your preferences to customize your feed.</p>
+    <div class="input-group">
+      <label>Categories (Pick 3)</label>
+      <select id="ob-categories" multiple style="height:80px;">
+        <option value="tech">Tech & AI</option>
+        <option value="entertainment">Entertainment</option>
+        <option value="lifestyle">Lifestyle</option>
+        <option value="fiction">Fiction & Novels</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label>Account Role</label>
+      <select id="ob-role"><option value="creator">Creator</option><option value="viewer">Viewer</option></select>
+    </div>
+    <div class="input-group"><label>Country</label><input type="text" id="ob-country" placeholder="Nigeria"></div>
+    <button class="btn" onclick="saveOnboarding()">Complete Setup</button>
   </div>
-  <div id="readerContent" class="reader-content"></div>
 </div>
 
-<div id="commentSheet" class="comment-sheet">
-  <div class="comment-sheet-header">
-    <h4>Comments</h4>
-    <button id="closeComments">&times;</button>
+<div id="comment-sheet" class="sheet glass">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <h3>Comments</h3>
+    <button onclick="closeComments()" style="background:none; border:none; color:#fff; font-size:20px;">✕</button>
   </div>
-  <div id="commentList" class="comment-list"></div>
-  <div class="comment-input">
-    <input type="text" id="commentText" placeholder="Add comment...">
-    <button id="sendComment">Send</button>
+  <div id="comments-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; margin-bottom:12px;"></div>
+  <div style="display:flex; gap:8px;">
+    <input type="text" id="comment-input" placeholder="Add a comment...">
+    <button class="btn btn-sm" onclick="submitComment()">Send</button>
+  </div>
+</div>
+
+<div id="otp-modal" class="modal">
+  <div class="modal-content glass">
+    <h3>Confirm Withdrawal</h3>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Enter the OTP sent to your registered authorization device.</p>
+    <div class="input-group"><input type="text" id="withdraw-otp" placeholder="Enter OTP"></div>
+    <button class="btn" onclick="confirmWithdrawal()">Confirm & Payout</button>
   </div>
 </div>
 
 <script>
-const API = 'https://golviral-api.onrender.com';
-const TOKEN = localStorage.getItem('token');
-const USER = JSON.parse(localStorage.getItem('user') || '{}');
-let allPosts = [];
-let currentFilter = 'all';
-let currentCommentPost = null;
+const API_BASE = 'https://golviral-api.onrender.com';
+const VAPID_KEY = 'BEl0YourPublicKeyHere';
+let socket = null;
+let currentFeedFilter = 'all';
+let activeCommentPostId = null;
+let activeCommentCreatorId = null;
+let currentProfileId = null;
+let activeChatUserId = null;
+let searchDebounceTimer = null;
 
-if(!TOKEN) location.href = 'auth.html';
-
-async function apiFetch(url, opts={}){
-  try {
-    const res = await fetch(API + url, {
-      ...opts,
-      headers:{'Authorization':'Bearer ' + TOKEN, 'Content-Type':'application/json', ...(opts.headers||{})}
-    });
-    if(res.status === 401) location.href = 'auth.html';
-    return await res.json();
-  } catch(e) {
-    console.error('API Request failed:', e);
-    return [];
-  }
+function showToast(msg, type='info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
 }
 
-async function loadFeed(){
-  const res = await apiFetch('/api/feed');
-  allPosts = Array.isArray(res) ? res : [];
-  renderFeed();
-}
-
-function renderFeed(){
-  const feed = document.getElementById('feed');
-  feed.innerHTML = '';
-  const filtered = currentFilter === 'all' ? allPosts : allPosts.filter(p => p.type === currentFilter);
+async function apiFetch(endpoint, method='GET', body=null, headers={}) {
+  const token = localStorage.getItem('token');
+  const h = { 'Content-Type': 'application/json', ...headers };
+  if(token) h['Authorization'] = 'Bearer ' + token;
+  const opts = { method, headers: h };
+  if(body) opts.body = JSON.stringify(body);
   
-  if(!filtered.length){
-    feed.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">No posts found in this category.</div>`;
-    return;
+  try {
+    const res = await fetch(API_BASE + endpoint, opts);
+    if(res.status === 401 && !endpoint.includes('/auth/')) {
+      localStorage.removeItem('token');
+      window.location.hash = '#auth';
+      showToast('Session expired. Please login.', 'error');
+      throw new Error('Unauthorized');
+    }
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.message || 'API Call failed');
+    return data;
+  } catch(err) {
+    showToast(err.message || 'Network error', 'error');
+    throw err;
   }
+}
 
-  filtered.forEach(post => {
-    if(post.type === 'reel'){
+async function runBotChallenge() {
+  const challenge = await apiFetch('/api/bot-challenge', 'POST');
+  return new Promise((resolve, reject) => {
+    document.getElementById('bot-question').innerText = challenge.question;
+    const modal = document.getElementById('bot-modal');
+    modal.classList.add('active');
+    document.getElementById('bot-submit-btn').onclick = async () => {
+      const answer = document.getElementById('bot-answer').value;
+      try {
+        const verify = await apiFetch('/api/bot-verify', 'POST', { token: challenge.token, answer });
+        modal.classList.remove('active');
+        document.getElementById('bot-answer').value = '';
+        resolve(verify.passToken);
+      } catch(e) {
+        reject(e);
+      }
+    };
+  });
+}
+
+function switchAuthTab(type) {
+  document.getElementById('auth-login-form').style.display = type==='login'?'block':'none';
+  document.getElementById('auth-signup-form').style.display = type==='signup'?'block':'none';
+  document.getElementById('auth-forgot-form').style.display = type==='forgot'?'block':'none';
+}
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  if(!email || !password) return showToast('Fill all fields', 'error');
+  try {
+    const passToken = await runBotChallenge();
+    const res = await apiFetch('/api/auth/login', 'POST', { email, password, passToken });
+    localStorage.setItem('token', res.token);
+    localStorage.setItem('userId', res.userId);
+    showToast('Login successful!');
+    checkOnboarding();
+    registerPush();
+    window.location.hash = '#feed';
+  } catch(e){}
+}
+
+async function handleSignup() {
+  const username = document.getElementById('signup-username').value;
+  const email = document.getElementById('signup-email').value;
+  const password = document.getElementById('signup-password').value;
+  const referralCode = document.getElementById('signup-ref').value;
+  if(!username || !email || !password) return showToast('Fill required fields', 'error');
+  try {
+    const passToken = await runBotChallenge();
+    await apiFetch('/api/auth/signup', 'POST', { username, email, password, referralCode, passToken });
+    showToast('Account created! Please login.');
+    switchAuthTab('login');
+  } catch(e){}
+}
+
+async function handleForgot() {
+  const email = document.getElementById('forgot-email').value;
+  if(!email) return showToast('Enter email', 'error');
+  try {
+    const passToken = await runBotChallenge();
+    await apiFetch('/api/auth/forgot-password', 'POST', { email, passToken });
+    showToast('OTP sent to email');
+  } catch(e){}
+}
+
+async function handleResetPass() {
+  const email = document.getElementById('forgot-email').value;
+  const otp = document.getElementById('reset-otp').value;
+  const newPassword = document.getElementById('reset-pass').value;
+  try {
+    await apiFetch('/api/auth/reset-password', 'POST', { email, otp, newPassword });
+    showToast('Password reset! Login now.');
+    switchAuthTab('login');
+  } catch(e){}
+}
+
+function checkOnboarding() {
+  if(!localStorage.getItem('onboarding_data')) {
+    document.getElementById('onboarding-modal').classList.add('active');
+  }
+}
+
+function saveOnboarding() {
+  const data = {
+    categories: Array.from(document.getElementById('ob-categories').selectedOptions).map(o=>o.value),
+    role: document.getElementById('ob-role').value,
+    country: document.getElementById('ob-country').value
+  };
+  localStorage.setItem('onboarding_data', JSON.stringify(data));
+  document.getElementById('onboarding-modal').classList.remove('active');
+  showToast('Preferences saved');
+}
+
+async function registerPush() {
+  if('serviceWorker' in navigator && 'PushManager' in window) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:VAPID_KEY });
+      await apiFetch('/api/push/subscribe', 'POST', { subscription: sub });
+    } catch(e){}
+  }
+}
+
+async function loadFeed() {
+  const container = document.getElementById('feed-container');
+  container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted);">Loading feed...</div>';
+  try {
+    const posts = await apiFetch('/api/feed');
+    renderFeedPosts(posts);
+  } catch(e) {
+    container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger);">Failed to load feed.</div>';
+  }
+}
+
+function setFeedTab(type) {
+  currentFeedFilter = type;
+  document.querySelectorAll('#page-feed .tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if(type === 'all') {
+    apiFetch('/api/explore').then(renderFeedPosts).catch(()=>{});
+  } else {
+    loadFeed();
+  }
+}
+
+function renderFeedPosts(posts) {
+  const container = document.getElementById('feed-container');
+  container.innerHTML = '';
+  const filtered = currentFeedFilter==='all' ? posts : posts.filter(p => p.type === currentFeedFilter);
+  
+  if(currentFeedFilter === 'reel') {
+    container.className = 'reel-container';
+    filtered.forEach(p => {
       const div = document.createElement('div');
-      div.className = 'reel';
-      div.dataset.postid = post.id;
-      div.dataset.userid = post.userId;
+      div.className = 'reel-item';
       div.innerHTML = `
-        <video muted playsinline data-key="${post.mediaUrl||''}" data-shard="${post.b2Shard||''}"></video>
+        <video playsinline loop data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video>
+        <div class="reel-overlay"></div>
+        <div class="reel-info">
+          <h4 style="color:var(--accent);">@${p.username || 'creator'}</h4>
+          <p style="font-size:13px; margin-top:4px;">${p.caption || ''}</p>
+        </div>
         <div class="reel-actions">
-          <div class="action-btn" onclick="likePost('${post.id}','${post.userId}')">
-            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-            <span>${post.likes||0}</span>
-          </div>
-          <div class="action-btn" onclick="openComments('${post.id}','${post.userId}')">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span>${post.comments||0}</span>
-          </div>
-          <div class="action-btn">
-            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-          </div>
-          <div class="action-btn">
-            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
-          </div>
-          <div class="action-btn">
-            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-          </div>
+          <button class="action-btn" onclick="likePost('${p.id}', '${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>${p.likes || 0}</button>
+          <button class="action-btn" onclick="openComments('${p.id}', '${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>${p.comments || 0}</button>
+          <button class="action-btn" onclick="sendGiftDirect('${p.userId}')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Gift</button>
+          <button class="action-btn" onclick="window.location.hash='#post?boost=${p.id}'"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Boost</button>
         </div>
       `;
-      feed.appendChild(div);
-    } else {
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.innerHTML = `
-        <img src="${post.mediaUrl||'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 1 1%22><rect width=%221%22 height=%221%22 fill=%22%23111%22/></svg>'}" alt="">
-        <h3>${post.title||post.caption||'Untitled'}</h3>
-        <p>${post.caption||''}</p>
-        <p style="color:var(--accent);margin-top:8px">Earnings: $${post.earnings||0}</p>
-        <button class="btn-read" onclick="openReader('${post.id}','${post.userId}','${post.type}','${(post.title||'').replace(/'/g, "\\'")}','${(post.content||'').replace(/'/g, "\\'")}')">Read</button>
+      container.appendChild(div);
+    });
+    initReelObserver();
+  } else {
+    container.className = '';
+    filtered.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'glass card';
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span class="badge">${p.type.toUpperCase()}</span>
+          <span style="font-size:11px; color:var(--muted);">By @${p.username || 'user'}</span>
+        </div>
+        ${p.mediaUrl ? `<img src="${p.mediaUrl}">` : ''}
+        <h3>${p.title || p.caption || 'Untitled'}</h3>
+        <p style="font-size:13px; color:var(--muted); margin:8px 0;">${p.caption || ''}</p>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn btn-sm" onclick="window.location.hash='#reader?id=${p.id}'">Read Story</button>
+          <button class="btn btn-sm btn-outline" onclick="likePost('${p.id}', '${p.userId}')">❤️ ${p.likes||0}</button>
+          <button class="btn btn-sm btn-outline" onclick="openComments('${p.id}', '${p.userId}')">💬</button>
+        </div>
       `;
-      feed.appendChild(div);
-    }
-  });
-  initReelObserver();
+      container.appendChild(card);
+    });
+  }
 }
 
-function initReelObserver(){
-  const obs = new IntersectionObserver(async entries => {
-    for(const entry of entries){
+function initReelObserver() {
+  const obs = new IntersectionObserver(async (entries) => {
+    for(let entry of entries) {
       const video = entry.target.querySelector('video');
-      if(entry.intersectionRatio > 0.7){
-        if(!video.src && video.dataset.key){
+      if(entry.intersectionRatio >= 0.7) {
+        if(!video.src) {
           const key = video.dataset.key;
           const shard = video.dataset.shard;
-          const res = await apiFetch(`/api/media/sign?key=${key}&shard=${shard}`);
-          if(res && res.url) video.src = res.url;
+          try {
+            const res = await apiFetch(`/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`);
+            video.src = res.url;
+          } catch(e){}
         }
-        if(video.src) video.play().catch(()=>{});
-        apiFetch('/api/view', {method:'POST', body:JSON.stringify({postId:entry.target.dataset.postid, userId:USER.userId})});
+        video.play().catch(()=>{});
+        apiFetch('/api/view', 'POST', { postId: entry.target.dataset.id, userId: localStorage.getItem('userId') });
       } else {
-        if(video.src) video.pause();
+        video.pause();
       }
     }
-  }, {threshold:0.7});
-  document.querySelectorAll('.reel').forEach(r => obs.observe(r));
+  }, { threshold:0.7 });
+  document.querySelectorAll('.reel-item').forEach(el => obs.observe(el));
 }
 
-async function likePost(postId, creatorId){
-  await apiFetch('/api/like', {method:'POST', body:JSON.stringify({postId, creatorId})});
+async function likePost(postId, creatorId) {
+  try {
+    await apiFetch('/api/like', 'POST', { postId, creatorId });
+    showToast('Liked post!');
+  } catch(e){}
 }
 
-async function openComments(postId, creatorId){
-  currentCommentPost = {postId, creatorId};
-  const comments = await apiFetch(`/api/comments/${postId}`);
-  const listEl = document.getElementById('commentList');
-  if(Array.isArray(comments) && comments.length) {
-    listEl.innerHTML = comments.map(c => `<p><b>${c.username||'User'}:</b> ${c.text||''}</p>`).join('');
-  } else {
-    listEl.innerHTML = `<p style="color:var(--muted)">No comments yet.</p>`;
-  }
-  document.getElementById('commentSheet').classList.add('active');
+async function openComments(postId, creatorId) {
+  activeCommentPostId = postId;
+  activeCommentCreatorId = creatorId;
+  document.getElementById('comment-sheet').classList.add('active');
+  const list = document.getElementById('comments-list');
+  list.innerHTML = 'Loading comments...';
+  try {
+    const comments = await apiFetch(`/api/comments/${postId}`);
+    list.innerHTML = comments.map(c => `
+      <div style="font-size:12px; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px;">
+        <strong style="color:var(--accent);">@${c.username}:</strong> ${c.text}
+      </div>
+    `).join('') || 'No comments yet.';
+  } catch(e){ list.innerHTML = 'Failed to load comments.'; }
 }
 
-document.getElementById('sendComment').onclick = async () => {
-  const input = document.getElementById('commentText');
-  const text = input.value.trim();
-  if(!text || !currentCommentPost) return;
-  await apiFetch('/api/comment', {method:'POST', body:JSON.stringify({...currentCommentPost, text})});
-  input.value = '';
-  openComments(currentCommentPost.postId, currentCommentPost.creatorId);
+function closeComments() {
+  document.getElementById('comment-sheet').classList.remove('active');
 }
 
-document.getElementById('closeComments').onclick = () => {
-  document.getElementById('commentSheet').classList.remove('active');
-};
-
-document.getElementById('commentSheet').onclick = e => {
-  if(e.target.id === 'commentSheet') e.target.classList.remove('active');
+async function submitComment() {
+  const text = document.getElementById('comment-input').value;
+  if(!text) return;
+  try {
+    await apiFetch('/api/comment', 'POST', { postId: activeCommentPostId, creatorId: activeCommentCreatorId, text });
+    document.getElementById('comment-input').value = '';
+    openComments(activeCommentPostId, activeCommentCreatorId);
+  } catch(e){}
 }
 
-function openReader(id, authorId, type, title, content){
-  document.getElementById('readerTitle').innerText = title;
-  document.getElementById('readerContent').innerText = content;
-  document.getElementById('reader-tab').classList.add('active');
-  apiFetch('/api/read-session', {method:'POST', body:JSON.stringify({contentId:id, authorId, contentType:type})});
+async function sendGiftDirect(receiverId) {
+  try {
+    await apiFetch('/api/gift/send', 'POST', { receiverId });
+    showToast('Gift sent successfully!');
+  } catch(e){}
 }
 
-document.getElementById('readerBack').onclick = () => document.getElementById('reader-tab').classList.remove('active');
-
-document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
-  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-  t.classList.add('active');
-  currentFilter = t.dataset.type;
-  renderFeed();
-});
-
-let searchTimer;
-function openSearch(){
-  document.getElementById('searchModal').classList.add('active');
-  document.getElementById('searchInput').focus();
+function togglePostFields() {
+  const type = document.getElementById('post-type').value;
+  document.getElementById('field-text-content').style.display = type === 'reel' ? 'none' : 'block';
+  document.getElementById('field-file-upload').style.display = type === 'reel' ? 'block' : 'block';
 }
-document.getElementById('searchBtn').onclick = openSearch;
-document.getElementById('navSearch').onclick = openSearch;
-document.getElementById('searchModal').onclick = e => {
-  if(e.target.id === 'searchModal') e.target.classList.remove('active');
-}
-document.getElementById('searchInput').oninput = e => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(async () => {
-    const q = e.target.value.trim();
-    if(q.length < 2) return;
-    const res = await apiFetch(`/api/search/users?q=${q}`);
-    const resultsEl = document.getElementById('searchResults');
-    if(Array.isArray(res) && res.length) {
-      resultsEl.innerHTML = res.map(u => `<p style="padding:8px 0;border-bottom:1px solid #222">${u.username}</p>`).join('');
-    } else {
-      resultsEl.innerHTML = `<p style="color:var(--muted)">No users found.</p>`;
+
+async function handleCreatePost() {
+  const postType = document.getElementById('post-type').value;
+  const title = document.getElementById('post-title').value;
+  const caption = document.getElementById('post-caption').value;
+  const content = document.getElementById('post-content').value;
+  const externalLink = document.getElementById('post-external').value;
+  const fileInput = document.getElementById('post-file');
+  const file = fileInput.files[0];
+
+  let ext = file ? file.name.split('.').pop() : 'jpg';
+  let mime = file ? file.type : 'image/jpeg';
+
+  try {
+    const intent = await apiFetch('/api/post/create-intent', 'POST', {
+      fileExtension: ext, contentType: mime, postType, caption, externalLink
+    });
+
+    if(file && intent.uploadUrl) {
+      await fetch(intent.uploadUrl, { method:'PUT', headers:{'Content-Type': mime}, body: file });
     }
+
+    await apiFetch('/api/post/create', 'POST', {
+      postId: intent.postId, objectKey: intent.objectKey, title, content
+    });
+
+    showToast('Post created successfully!');
+    window.location.hash = '#feed';
+  } catch(e){}
+}
+
+async function handleBoostInit() {
+  const hash = window.location.hash;
+  const postId = hash.includes('?boost=') ? hash.split('?boost=')[1] : null;
+  if(!postId) return showToast('No post selected to boost', 'error');
+  const tierAmount = document.getElementById('boost-tier').value;
+  
+  try {
+    const res = await apiFetch('/api/boost/init', 'POST', { postId, tierAmount });
+    if(res.selarLink) window.location.href = res.selarLink;
+  } catch(e){}
+}
+
+function initSocket() {
+  const token = localStorage.getItem('token');
+  if(!token || socket) return;
+  socket = io(API_BASE, { auth: { token } });
+  socket.on('receive_message', (msg) => {
+    appendChatMessage(msg);
+  });
+}
+
+async function startDirectChat() {
+  activeChatUserId = document.getElementById('dm-target-user').value;
+  if(!activeChatUserId) return showToast('Enter user ID', 'error');
+  loadChatMessages();
+}
+
+async function loadChatMessages() {
+  const box = document.getElementById('chat-box');
+  box.innerHTML = 'Loading chat...';
+  try {
+    const msgs = await apiFetch(`/api/messages/${activeChatUserId}`);
+    box.innerHTML = '';
+    msgs.forEach(appendChatMessage);
+  } catch(e) { box.innerHTML = 'Unlock DM or Monetize flag required to chat.'; }
+}
+
+function appendChatMessage(msg) {
+  const box = document.getElementById('chat-box');
+  const div = document.createElement('div');
+  const isMe = msg.senderId === localStorage.getItem('userId');
+  div.style.cssText = `align-self:${isMe?'flex-end':'flex-start'}; background:${isMe?'var(--accent)':'rgba(255,255,255,0.1)'}; color:${isMe?'#000':'#fff'}; padding:8px 12px; border-radius:12px; max-width:80%; font-size:13px;`;
+  div.innerText = msg.text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value;
+  if(!text || !activeChatUserId) return;
+  
+  if(socket && socket.connected) {
+    socket.emit('send_message', { receiverId: activeChatUserId, text });
+    appendChatMessage({ senderId: localStorage.getItem('userId'), text });
+    input.value = '';
+  } else {
+    try {
+      await apiFetch('/api/message/send', 'POST', { receiverId: activeChatUserId, text });
+      appendChatMessage({ senderId: localStorage.getItem('userId'), text });
+      input.value = '';
+    } catch(e){}
+  }
+}
+
+async function loadProfile(userId) {
+  currentProfileId = userId || localStorage.getItem('userId');
+  try {
+    const user = await apiFetch(`/api/user/${currentProfileId}`);
+    document.getElementById('profile-username').innerText = user.username;
+    document.getElementById('profile-avatar').innerText = user.username[0].toUpperCase();
+    document.getElementById('st-posts').innerText = user.totalPosts || 0;
+    document.getElementById('st-followers').innerText = user.followers || 0;
+    document.getElementById('st-likes').innerText = user.totalLikes || 0;
+    document.getElementById('st-views').innerText = user.totalViews || 0;
+    
+    document.getElementById('monetize-badge').innerText = user.monetized ? 'Monetized Creator' : 'Not Monetized (7 days + 10 followers needed)';
+    
+    if(user.role === 'admin') {
+      document.getElementById('admin-link-wrapper').innerHTML = `<a href="admin.html" class="badge">Admin</a>`;
+    }
+    loadUserPosts();
+    loadWallet();
+  } catch(e){}
+}
+
+function setProfileTab(tab) {
+  document.querySelectorAll('.p-tab').forEach(t => t.style.display = 'none');
+  document.getElementById(`profile-tab-${tab}`).style.display = 'block';
+  if(tab==='support') loadSupportTickets();
+  if(tab==='notifs') loadNotifications();
+}
+
+async function loadUserPosts() {
+  try {
+    const posts = await apiFetch(`/api/user/${currentProfileId}/posts`);
+    const container = document.getElementById('user-posts-container');
+    container.innerHTML = posts.map(p => `
+      <div class="glass card">
+        <h4>${p.title || p.caption}</h4>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">Type: ${p.type} | Likes: ${p.likes||0}</div>
+      </div>
+    `).join('') || '<div style="padding:20px; text-align:center; color:var(--muted);">No posts yet.</div>';
+  } catch(e){}
+}
+
+async function loadWallet() {
+  try {
+    const w = await apiFetch('/api/wallet');
+    document.getElementById('w-credits').innerText = w.freeCredits || 0;
+    document.getElementById('w-cap').innerText = w.dailyCapProgress || 0;
+  } catch(e){}
+}
+
+async function triggerDeposit(tierAmount) {
+  try {
+    const res = await apiFetch('/api/deposit/init', 'POST', { tierAmount });
+    if(res.selarLink) window.location.href = res.selarLink;
+  } catch(e){}
+}
+
+async function handleDMUnlock() {
+  try {
+    const res = await apiFetch('/api/dm/init', 'POST');
+    if(res.selarLink) window.location.href = res.selarLink;
+  } catch(e){}
+}
+
+async function handleWithdrawInit() {
+  const amountPoints = document.getElementById('w-draw-amount').value;
+  const method = document.getElementById('w-draw-method').value;
+  const targetDetails = document.getElementById('w-draw-target').value;
+  
+  if(amountPoints < 50000) return showToast('Min 50,000 points required', 'error');
+  if(method === 'usdt' && (amountPoints < 120000)) return showToast('USDT min 120,000 points', 'error');
+
+  try {
+    await apiFetch('/api/wallet/withdraw', 'POST', { amountPoints, method, targetDetails });
+    document.getElementById('otp-modal').classList.add('active');
+  } catch(e){}
+}
+
+async function confirmWithdrawal() {
+  const otp = document.getElementById('withdraw-otp').value;
+  try {
+    await apiFetch('/api/wallet/withdraw/confirm', 'POST', { otp });
+    showToast('Withdrawal confirmed!');
+    document.getElementById('otp-modal').classList.remove('active');
+    loadWallet();
+  } catch(e){}
+}
+
+async function buyGift(giftType) {
+  try {
+    await apiFetch('/api/gift/init', 'POST', { giftType });
+    showToast('Gift purchased!');
+  } catch(e){}
+}
+
+async function handleSendSupport() {
+  const subject = document.getElementById('sup-subject').value;
+  const message = document.getElementById('sup-msg').value;
+  try {
+    await apiFetch('/api/support/send', 'POST', { subject, message });
+    showToast('Support ticket sent!');
+    loadSupportTickets();
+  } catch(e){}
+}
+
+async function loadSupportTickets() {
+  try {
+    const tickets = await apiFetch('/api/support/my');
+    document.getElementById('support-tickets-list').innerHTML = tickets.map(t => `
+      <div class="glass card" style="margin:8px 0;">
+        <strong>${t.subject}</strong>
+        <p style="font-size:12px; color:var(--muted);">${t.message}</p>
+        <span class="badge" style="margin-top:4px;">Status: ${t.status||'Open'}</span>
+      </div>
+    `).join('');
+  } catch(e){}
+}
+
+async function toggleFollow() {
+  const btn = document.getElementById('follow-btn');
+  const isFollowing = btn.innerText === 'Unfollow';
+  const endpoint = isFollowing ? '/api/unfollow' : '/api/follow';
+  try {
+    await apiFetch(endpoint, 'POST', { followingId: currentProfileId });
+    btn.innerText = isFollowing ? 'Follow' : 'Unfollow';
+    showToast(isFollowing ? 'Unfollowed user' : 'Following user');
+  } catch(e){}
+}
+
+async function loadNotifications() {
+  try {
+    const list = await apiFetch('/api/notifications');
+    document.getElementById('notifications-list').innerHTML = list.map(n => `
+      <div class="glass card" style="margin:8px 0;" onclick="markNotifRead('${n.id}')">
+        <p style="font-size:13px;">${n.message}</p>
+        <span style="font-size:10px; color:var(--muted);">${n.read ? 'Read' : 'New'}</span>
+      </div>
+    `).join('') || '<div style="color:var(--muted);">No notifications.</div>';
+  } catch(e){}
+}
+
+async function markNotifRead(id) {
+  try {
+    await apiFetch(`/api/notifications/read/${id}`, 'POST');
+    loadNotifications();
+  } catch(e){}
+}
+
+function debouncedSearch() {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(async () => {
+    const q = document.getElementById('search-input').value;
+    if(!q) return;
+    try {
+      const users = await apiFetch(`/api/search/users?q=${encodeURIComponent(q)}`);
+      document.getElementById('search-results').innerHTML = users.map(u => `
+        <div class="glass card" style="display:flex; justify-space-between; align-items:center; margin:0;" onclick="window.location.hash='#profile?id=${u.id}'">
+          <div>
+            <strong>@${u.username}</strong>
+            <div style="font-size:11px; color:var(--muted);">${u.followers||0} Followers</div>
+          </div>
+          <button class="btn btn-sm">View</button>
+        </div>
+      `).join('');
+    } catch(e){}
   }, 300);
 }
 
-// Nav bar active selection logic
-document.querySelectorAll('nav .nav-btn').forEach((btn, idx) => {
-  btn.addEventListener('click', () => {
-    if (btn.id === 'navSearch' || btn.getAttribute('onclick')) return;
-    document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    if (idx === 0) {
-      document.getElementById('feed').scrollTop = 0;
+async function loadReader(id) {
+  try {
+    const post = await apiFetch(`/api/post/${id}`);
+    document.getElementById('reader-title').innerText = post.title || 'Untitled Narrative';
+    document.getElementById('reader-meta').innerText = `Author: @${post.username || 'creator'}`;
+    document.getElementById('reader-content').innerText = post.content || post.caption || 'No text content available.';
+    
+    await apiFetch('/api/read-session', 'POST', { contentId: id, authorId: post.userId, contentType: post.type });
+  } catch(e){}
+}
+
+function handleRouting() {
+  const rawHash = window.location.hash || '#feed';
+  const [pageRoute, queryString] = rawHash.split('?');
+  const token = localStorage.getItem('token');
+
+  if(!token && pageRoute !== '#auth') {
+    window.location.hash = '#auth';
+    return;
+  }
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const activePage = document.querySelector(pageRoute) || document.getElementById('page-feed');
+  activePage.classList.add('active');
+
+  const navMap = { '#feed':'nav-feed', '#search':'nav-search', '#post':'nav-post', '#messages':'nav-messages', '#profile':'nav-profile' };
+  if(navMap[pageRoute]) document.getElementById(navMap[pageRoute]).classList.add('active');
+
+  if(pageRoute === '#feed') loadFeed();
+  if(pageRoute === '#post') {
+    if(queryString && queryString.includes('boost=')) {
+      document.getElementById('boost-section').style.display = 'block';
     }
-  });
+  }
+  if(pageRoute === '#messages') {
+    initSocket();
+  }
+  if(pageRoute === '#profile') {
+    const urlParams = new URLSearchParams(queryString);
+    loadProfile(urlParams.get('id'));
+  }
+  if(pageRoute === '#reader') {
+    const urlParams = new URLSearchParams(queryString);
+    loadReader(urlParams.get('id'));
+  }
+}
+
+window.addEventListener('hashchange', handleRouting);
+window.addEventListener('DOMContentLoaded', () => {
+  handleRouting();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 });
-
-loadFeed();
-
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 </script>
 </body>
 </html>
