@@ -1,1236 +1,522 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral</title>
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#e1306c">
+  
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW sync failed:', err));
+    }
+  </script>
+
   <style>
     :root {
-      --accent: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-      --accent-solid: #e1306c;
       --bg: #000000;
-      --card-bg: #121212;
+      --surface: #181818;
+      --accent: #00ff88;
       --text: #ffffff;
-      --gray: #262626;
-      --muted: #a8a8a8;
+      --text-muted: #888888;
+      --top-nav-height: 100px;
+      --bottom-nav-height: 60px;
     }
-    
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    body { 
-      background-color: var(--bg); 
-      color: var(--text); 
-      overflow-x: hidden; 
-      letter-spacing: -0.2px;
-    }
-    
-    #app { 
-      padding-bottom: 65px; 
-      min-height: 100dvh; 
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 500px;
+      margin: 0 auto;
+      height: 100dvh;
+      position: relative;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
-    /* Auth Screens Styling */
-    .auth-logo {
-      text-align: center;
-      font-size: 32px;
-      font-weight: 800;
-      font-style: italic;
-      margin: 40px 0 20px 0;
-      background: var(--accent);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    /* Layout */
+    header {
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--top-nav-height);
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid var(--surface);
     }
 
-    /* Fixed Navigation Bar */
-    .nav-bar { 
-      position: fixed; 
-      bottom: 0; 
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+    }
+
+    .logo { font-weight: 800; font-size: 1.2rem; color: var(--accent); }
+    .search-icon { font-size: 1.2rem; cursor: pointer; }
+
+    .tabs {
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 15px 10px;
+      gap: 20px;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+    .tab.active { color: var(--text); border-bottom: 2px solid var(--accent); }
+
+    main {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+      position: relative;
+    }
+    main::-webkit-scrollbar { display: none; }
+    
+    /* Reels Mode */
+    main.reels-mode { scroll-snap-type: y mandatory; }
+    .reel-container {
+      height: calc(100dvh - var(--top-nav-height) - var(--bottom-nav-height));
+      scroll-snap-align: start;
+      position: relative;
+      background: var(--surface);
+    }
+    .reel-video { width: 100%; height: 100%; object-fit: cover; }
+    .reel-actions {
+      position: absolute;
+      right: 15px;
+      bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+    .action-btn {
+      background: rgba(0,0,0,0.5);
+      border: none;
+      color: var(--text);
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    /* Feed Cards (Novels/Stories) */
+    .feed-card {
+      background: var(--surface);
+      border-radius: 12px;
+      margin: 15px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card-cover { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; background: #333; }
+    .card-title { font-size: 1.1rem; font-weight: bold; }
+    .card-caption { font-size: 0.9rem; color: var(--text-muted); }
+    .btn-read {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* Navigation */
+    .bottom-nav {
+      height: var(--bottom-nav-height);
+      background: var(--bg);
+      border-top: 1px solid var(--surface);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+    }
+    .nav-item { color: var(--text-muted); font-size: 1.5rem; cursor: pointer; text-decoration: none; }
+    .nav-item.active { color: var(--text); }
+
+    .floating-add {
+      position: fixed;
+      bottom: calc(var(--bottom-nav-height) + 20px);
+      right: 20px;
+      background: var(--accent);
+      color: #000;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      font-size: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,255,136,0.3);
+      cursor: pointer;
+      z-index: 90;
+    }
+
+    /* Modals & Components */
+    .toast {
+      position: fixed;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      width: 100%; 
-      max-width: 500px;
-      height: 60px; 
-      background: rgba(0, 0, 0, 0.95); 
-      backdrop-filter: blur(10px);
-      border-top: 1px solid var(--gray); 
-      display: flex; 
-      justify-content: space-around; 
-      align-items: center; 
-      z-index: 1000; 
-    }
-    
-    .nav-item { 
-      background: none; 
-      border: none; 
-      fill: #ffffff; 
-      color: var(--muted); 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      font-size: 10px; 
-      font-weight: 500;
-      cursor: pointer; 
-      text-decoration: none; 
-      transition: color 0.2s ease;
-    }
-    
-    .nav-item.active { 
-      color: var(--text); 
-      font-weight: 700;
-    }
-    
-    .nav-item.active svg {
-      fill: var(--text);
-      transform: scale(1.05);
-    }
-    
-    .nav-item svg { 
-      width: 24px; 
-      height: 24px; 
-      margin-bottom: 4px; 
-      transition: transform 0.2s ease;
-    }
-
-    /* View Viewports */
-    .view-pane { 
-      display: none; 
-      padding: 20px 15px; 
-      max-width: 500px; 
-      margin: 0 auto; 
-      width: 100%;
-      flex: 1;
-    }
-    
-    .view-pane.active { 
-      display: block; 
-    }
-    
-    /* Global Component Buttons */
-    .btn { 
-      display: block; 
-      width: 100%; 
-      padding: 14px; 
-      background: #0095f6; 
-      color: #ffffff; 
-      border: none; 
-      font-weight: 700; 
-      font-size: 14px;
-      border-radius: 8px; 
-      cursor: pointer; 
-      text-decoration: none;
-      transition: opacity 0.2s ease;
-    }
-    
-    .btn:active {
-      opacity: 0.85;
-    }
-    
-    .btn.accent { 
-      background: var(--accent); 
-    }
-
-    .btn.secondary {
-      background: var(--gray);
-      color: var(--text);
-      border: 1px solid #363636;
-    }
-    
-    /* Inputs Form Layouts */
-    .input-field { 
-      width: 100%; 
-      padding: 14px; 
-      margin-bottom: 14px; 
-      background: #121212;
-      border: 1px solid var(--gray); 
-      color: var(--text);
-      outline: none; 
-      font-size: 14px; 
-      border-radius: 8px; 
-      transition: border-color 0.2s ease;
-    }
-    
-    .input-field:focus {
-      border-color: #a8a8a8;
-    }
-
-    select.input-field {
-      appearance: none;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='white'><path d='M7 10l5 5 5-5z'/></svg>");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-    }
-    
-    .badge { 
-      background: var(--accent-solid); 
-      color: white; 
-      font-size: 11px; 
-      font-weight: 600;
-      padding: 3px 8px; 
-      border-radius: 4px; 
-      display: inline-block; 
-    }
-    
-    /* Immersive Reel Components */
-    .reel-container { 
-      scroll-snap-type: y mandatory; 
-      overflow-y: scroll; 
-      height: calc(100dvh - 60px); 
-      width: 100%; 
-      max-width: 500px; 
-      margin: 0 auto; 
-      background: #000;
-      scrollbar-width: none;
-    }
-    
-    .reel-container::-webkit-scrollbar {
-      display: none;
-    }
-    
-    .reel-card { 
-      position: relative; 
-      width: 100%; 
-      height: calc(100dvh - 60px); 
-      scroll-snap-align: start; 
-      background: #000; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-    }
-    
-    .reel-card video { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: cover; 
-    }
-    
-    .reel-overlay { 
-      position: absolute; 
-      bottom: 0; 
-      left: 0; 
-      right: 0; 
-      padding: 40px 80px 25px 16px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.85));
-      color: #FFF; 
+      background: var(--accent);
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s;
       pointer-events: none;
     }
 
-    .reel-overlay h4 {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      pointer-events: auto;
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      z-index: 200;
+      flex-direction: column;
     }
+    .modal-header { padding: 15px; border-bottom: 1px solid var(--surface); display: flex; justify-content: space-between; }
+    .close-btn { background: none; border: none; color: var(--text); font-size: 1.2rem; cursor: pointer; }
     
-    .reel-overlay p {
-      font-size: 14px;
-      font-weight: 400;
-      opacity: 0.9;
-      line-height: 1.3;
+    .search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid #333;
+      color: var(--text);
+      padding: 12px;
+      border-radius: 8px;
+      margin: 15px;
+      width: calc(100% - 30px);
+      outline: none;
     }
-    
-    .reel-actions { 
-      position: absolute; 
-      right: 12px; 
-      bottom: 30px; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: 18px; 
-      z-index: 10;
-    }
-    
-    .action-bubble { 
-      background: transparent;
-      width: 45px; 
-      height: 45px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      border: none; 
-      fill: #FFF; 
-      color: #FFF; 
-      cursor: pointer; 
-      flex-direction: column; 
-      font-size: 12px; 
-      font-weight: 500;
-    }
+    .search-results { padding: 0 15px; flex: 1; overflow-y: auto; }
+    .user-row { padding: 10px 0; border-bottom: 1px solid var(--surface); }
 
-    .action-bubble svg { 
-      width: 28px; 
-      height: 28px; 
-      margin-bottom: 4px;
-      filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.4));
-      transition: fill 0.2s ease, transform 0.2s ease;
-    }
-
-    .action-bubble.voted-like svg {
-      fill: #e1306c !important;
-    }
-
-    .action-bubble.voted-comment svg {
-      fill: #0095f6 !important;
-    }
-
-    .action-bubble:disabled {
-      cursor: default;
-    }
-    
-    /* Layout Cards & Modules */
-    .card { 
-      padding: 18px; 
-      border: 1px solid var(--gray); 
-      border-radius: 12px; 
-      background: var(--card-bg); 
-      margin-bottom: 16px;
-    }
-
-    .wallet-grid { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 12px; 
-      margin-bottom: 16px; 
-    }
-
-    .wallet-grid .card {
-      margin-bottom: 0;
+    /* Bottom Sheet */
+    .bottom-sheet {
+      position: fixed;
+      bottom: -100%;
+      left: 0; right: 0;
+      max-width: 500px;
+      margin: 0 auto;
+      height: 70vh;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      z-index: 300;
+      transition: bottom 0.3s;
       display: flex;
       flex-direction: column;
-      justify-content: center;
     }
-
-    .wallet-grid h5 {
-      font-size: 12px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-      letter-spacing: 0.5px;
-    }
-
-    .wallet-grid h2 {
-      font-size: 20px;
-      font-weight: 700;
-    }
-    
-    /* Tab Architecture */
-    .tabs { 
-      display: flex; 
-      border-bottom: 1px solid var(--gray); 
-      margin-bottom: 20px; 
-    }
-    
-    .tab { 
-      flex: 1; 
-      padding: 14px; 
-      text-align: center; 
-      background: none; 
-      border: none; 
-      font-size: 13px;
-      font-weight: 600; 
-      color: var(--muted);
-      cursor: pointer; 
-      border-bottom: 2px solid transparent;
-    }
-    
-    .tab.active { 
-      border-bottom: 2px solid #ffffff; 
-      color: var(--text); 
-    }
-    
-    /* Modals & Popups */
-    .bot-modal { 
-      display: none; 
-      position: fixed; 
-      top:0; 
-      left:0; 
-      width:100%; 
-      height:100%; 
-      background: rgba(0,0,0,0.85); 
-      z-index:9999; 
-      justify-content:center; 
-      align-items:center; 
-      padding:20px; 
-      backdrop-filter: blur(8px);
-    }
-    
-    .bot-modal.active { 
-      display: flex; 
-    }
-    
-    .bot-content { 
-      background: var(--card-bg); 
-      padding: 25px; 
-      border: 1px solid var(--gray);
-      border-radius: 14px; 
-      width: 100%; 
-      max-width: 340px; 
-      text-align: center; 
-    }
-
-    .bot-content h4 {
-      font-size: 18px;
-      font-weight: 700;
-    }
-    
-    /* Text Readers */
-    .reader-card { 
-      min-height: 60vh; 
-      font-size: 16px; 
-      line-height: 1.6; 
-      padding: 24px; 
-      white-space: pre-wrap; 
-      background: #000000;
-      border-color: var(--gray);
-    }
-    
-    .timer-bar { 
-      height: 3px; 
-      background: var(--gray); 
-      margin-bottom: 20px; 
-      width: 100%; 
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    
-    .timer-fill { 
-      height: 100%; 
-      background: #0095f6; 
-      width: 0%; 
-      transition: width 1s linear; 
-    }
-
-    /* Headings Custom Elements */
-    h3 {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
+    .bottom-sheet.open { bottom: 0; }
+    .sheet-header { padding: 15px; text-align: center; font-weight: bold; border-bottom: 1px solid #333; }
+    .comment-list { flex: 1; overflow-y: auto; padding: 15px; }
+    .comment-input-area { padding: 15px; display: flex; gap: 10px; background: var(--surface); }
+    .comment-input { flex: 1; background: var(--bg); border: none; color: var(--text); padding: 10px; border-radius: 20px; outline: none; }
+    .send-btn { color: var(--accent); background: none; border: none; font-weight: bold; cursor: pointer; }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 299; }
+    .overlay.open { display: block; }
   </style>
 </head>
 <body>
-  <div id="app">
-    <div id="view-auth" class="view-pane">
-      <div class="auth-logo">GolViral</div>
-      <div class="tabs">
-        <button class="tab active" onclick="switchAuthTab('login', event)">LOGIN</button>
-        <button class="tab" onclick="switchAuthTab('signup', event)">SIGNUP</button>
-      </div>
-      <div id="auth-form-container">
-        <input type="email" id="auth-email" class="input-field" placeholder="Email Address">
-        <input type="password" id="auth-pass" class="input-field" placeholder="Password">
-        <p style="text-align:right; font-size:12px; margin-top:-8px; margin-bottom:12px;">
-          <a href="#/forgot" style="color:#0095f6; text-decoration:none;">Forgot Password?</a>
-        </p>
-        <input type="text" id="auth-user" class="input-field" placeholder="Username" style="display:none;">
-        <input type="text" id="auth-ref" class="input-field" placeholder="Referral Code (Optional)" style="display:none;">
-        <button class="btn accent" onclick="triggerBotChallenge(submitAuth)">Continue</button>
-      </div>
+
+  <div id="toast" class="toast"></div>
+
+  <header>
+    <div class="top-bar">
+      <div class="logo">GolViral</div>
+      <div class="search-icon" onclick="openSearch()">🔍</div>
     </div>
-
-    <div id="view-forgot" class="view-pane">
-      <h3 style="margin-bottom:20px;">Reset Password</h3>
-      <input type="email" id="forgot-email" class="input-field" placeholder="Email Address">
-      <button class="btn accent" onclick="triggerBotChallenge(sendForgotOtp)">Send OTP</button>
-      <button class="btn secondary" onclick="window.location.hash='#/auth'" style="margin-top:12px;">Back to Login</button>
+    <div class="tabs" id="tabs-container">
+      <div class="tab active" onclick="switchTab('ForYou')">ForYou</div>
+      <div class="tab" onclick="switchTab('Reels')">Reels</div>
+      <div class="tab" onclick="switchTab('Novels')">Novels</div>
+      <div class="tab" onclick="switchTab('Stories')">Stories</div>
     </div>
+  </header>
 
-    <div id="view-reset" class="view-pane">
-      <h3 style="margin-bottom:20px;">Enter OTP</h3>
-      <input type="email" id="reset-email" class="input-field" placeholder="Email Address" readonly>
-      <input type="text" id="reset-otp" class="input-field" placeholder="6 Digit OTP">
-      <input type="password" id="reset-pass" class="input-field" placeholder="New Password">
-      <button class="btn accent" onclick="submitResetPassword()">Reset Password</button>
-    </div>
+  <main id="feed-container"></main>
 
-    <div id="view-feed" class="view-pane" style="padding:0; max-width:100%;">
-      <div id="reel-viewport" class="reel-container"></div>
-    </div>
+  <button class="floating-add" onclick="location.href='post.html'">+</button>
 
-    <div id="view-post" class="view-pane">
-      <h3 style="margin-bottom:20px;">Publish Engine</h3>
-      <div class="tabs">
-        <button class="tab active" onclick="switchPostType('reel', event)">Reel</button>
-        <button class="tab" onclick="switchPostType('novel', event)">Novel</button>
-        <button class="tab" onclick="switchPostType('story', event)">Story</button>
-      </div>
-      <div class="card" style="margin-bottom:20px; border-color: var(--accent-solid); background: rgba(225, 48, 108, 0.05);">
-        <p style="font-size:13px; color: #ff5388; font-weight: 500;" id="post-warning">Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.</p>
-      </div>
-      <div id="file-selector-group">
-        <input type="file" id="post-file" class="input-field" accept="video/mp4">
-      </div>
-      <div id="text-fields-group" style="display:none;">
-        <input type="text" id="post-title" class="input-field" placeholder="Title">
-        <textarea id="post-content" class="input-field" placeholder="Body Content..." style="height:180px; resize: none;"></textarea>
-      </div>
-      <button class="btn accent" onclick="executePublish()">Publish Content</button>
-    </div>
-
-    <div id="view-novel" class="view-pane">
-      <div class="timer-bar"><div id="novel-timer" class="timer-fill"></div></div>
-      <div class="card reader-card" id="novel-content"></div>
-    </div>
-
-    <div id="view-story" class="view-pane">
-      <div class="timer-bar"><div id="story-timer" class="timer-fill"></div></div>
-      <div class="card reader-card" id="story-content"></div>
-    </div>
-
-    <div id="view-wallet" class="view-pane">
-      <h3 style="margin-bottom:20px;">Balance Ledger</h3>
-      <div class="wallet-grid">
-        <div class="card"><h5>Free Credits</h5><h2 id="w-free">0</h2></div>
-        <div class="card"><h5>Cash Balance</h5><h2 id="w-cash">₦0.00</h2></div>
-        <div class="card"><h5>Today's Vault</h5><h2 id="w-today">0/10000</h2></div>
-        <div class="card"><h5>Monetized</h5><h2 id="w-flag" style="color: #ff3b30;">False</h2></div>
-      </div>
-      <div class="card" style="margin-bottom:20px; background: rgba(255,255,255,0.03);">
-        <p style="font-size:13px; color:var(--muted); text-align: center; font-weight: 500;" id="w-requirements">Monetization: 7 Days + 5 Referrals</p>
-      </div>
-      <a href="#/deposit" class="btn" style="margin-bottom:12px;">Deposit Funds</a>
-      <button class="btn secondary" onclick="window.location.hash='#/withdraw'">Request Payout</button>
-    </div>
-
-    <div id="view-withdraw" class="view-pane">
-      <h3 style="margin-bottom:20px;">Request Cash Payout</h3>
-      <input type="number" id="wd-amount" class="input-field" placeholder="Points Min 50,000">
-      <input type="text" id="wd-target" class="input-field" placeholder="Bank Name / USDT">
-      <input type="text" id="wd-details" class="input-field" placeholder="Account Number / Wallet">
-      <button class="btn accent" onclick="submitWithdrawalInit()">Send OTP</button>
-      <div id="wd-otp-group" style="display:none; margin-top:24px; padding-top:24px; border-top:1px dashed var(--gray);">
-        <input type="text" id="wd-otp" class="input-field" placeholder="Enter OTP">
-        <button class="btn" onclick="confirmWithdrawal()">Confirm Payout</button>
-      </div>
-    </div>
-
-    <div id="view-deposit" class="view-pane">
-      <h3 style="margin-bottom:20px;">Deposit Credits</h3>
-      <select id="dep-tier" class="input-field">
-        <option value="1500">₦1,500 -> 15,000 pts</option>
-        <option value="7000">₦7,000 -> 70,000 pts</option>
-      </select>
-      <button class="btn accent" onclick="triggerBotChallenge(executeDepositVerification)">Pay via Selar</button>
-    </div>
-
-    <div id="view-profile" class="view-pane">
-      <div style="text-align:center; padding: 20px 0 10px 0;">
-        <div style="width: 86px; height: 86px; background: var(--accent); border-radius: 50%; margin: 0 auto 14px auto; padding: 3px;">
-          <div style="width: 100%; height: 100%; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;">👤</div>
-        </div>
-        <h2 id="p-username" style="font-size: 22px; font-weight: 600; margin-bottom: 12px;">@username</h2>
-        <button id="btn-follow" class="btn secondary" style="width:auto; padding:8px 16px; margin-bottom:16px; display:none;" onclick="toggleFollow()">Follow</button>
-
-        <div style="display:flex; justify-content:space-around; margin-bottom:24px; border-top: 1px solid var(--gray); border-bottom: 1px solid var(--gray); padding: 12px 0;">
-          <div><h4 id="p-views" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Views</span></div>
-          <div><h4 id="p-likes" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Likes</span></div>
-          <div><h4 id="p-posts" style="font-size: 16px; font-weight:700;">0</h4><span style="font-size:12px; color:var(--muted);">Posts</span></div>
-        </div>
-
-        <div style="display:flex; justify-content:space-around; font-size:14px; margin-bottom:24px; color: var(--muted);">
-          <div>Followers: <b id="p-followers" style="color: var(--text)">0</b></div>
-          <div>Following: <b id="p-following" style="color: var(--text)">0</b></div>
-        </div>
-
-        <input type="text" id="p-link" class="input-field" readonly onclick="this.select()" style="text-align: center; background: var(--card-bg); cursor: pointer;">
-        <p style="font-size:12px; color:var(--muted); margin-top: -6px;">Tap to copy referral link</p>
-      </div>
-    </div>
-
-    <div id="view-dm-list" class="view-pane">
-      <h3 style="margin-bottom:20px;">Messages</h3>
-      <div id="dm-list" style="display:flex; flex-direction:column; gap:12px;"></div>
-    </div>
-
-    <div id="view-dm-chat" class="view-pane" style="padding:0; display:flex; flex-direction:column; height:calc(100dvh - 60px);">
-      <div style="padding:12px 16px; border-bottom:1px solid var(--gray); display:flex; align-items:center; gap:10px;">
-        <button onclick="window.location.hash='#/dm-list'" style="background:none;border:none;color:#fff;font-size:20px;">←</button>
-        <h4 id="chat-username">@user</h4>
-      </div>
-      <div id="chat-messages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;"></div>
-      <div style="padding:12px; border-top:1px solid var(--gray); display:flex; gap:8px;">
-        <input type="text" id="chat-input" class="input-field" placeholder="Message..." style="margin:0; flex:1;" onkeydown="if(event.key==='Enter') sendSocketMessage()">
-        <button class="btn" onclick="sendSocketMessage()" style="width:auto; padding:12px 18px;">Send</button>
-      </div>
-    </div>
-  </div>
-
-  <nav class="nav-bar">
-    <a href="#/feed" class="nav-item" id="nav-feed"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Feed</a>
-    <a href="#/post" class="nav-item" id="nav-post"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create</a>
-    <a href="#/wallet" class="nav-item" id="nav-wallet"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 0.9 2 2v1h-9c-1.1 0-2 0.9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet</a>
-    <a href="#/dm-list" class="nav-item" id="nav-dm"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>DM</a>
-    <a href="#/profile" class="nav-item" id="nav-profile"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>Profile</a>
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item active">🏠</a>
+    <a href="#" class="nav-item" onclick="openSearch()">🔍</a>
+    <a href="post.html" class="nav-item">➕</a>
+    <a href="dm.html" class="nav-item">💬</a>
+    <a href="profile.html" class="nav-item">👤</a>
   </nav>
 
-  <div id="bot-overlay-modal" class="bot-modal">
-    <div class="bot-content">
-      <h4 style="margin-bottom: 15px;">Bot Verification</h4>
-      <p id="bot-question" style="margin-bottom: 15px; font-weight: 500;"></p>
-      <input type="text" id="bot-answer" class="input-field" placeholder="Your Answer" style="text-align: center;">
-      <button class="btn accent" onclick="submitBotVerification()">Verify</button>
+  <div id="search-modal" class="modal">
+    <div class="modal-header">
+      <h3>Search</h3>
+      <button class="close-btn" onclick="closeSearch()">✕</button>
     </div>
+    <input type="text" class="search-input" id="search-input" placeholder="Search users...">
+    <div class="search-results" id="search-results"></div>
   </div>
 
-  <div id="comment-modal" class="bot-modal">
-    <div class="bot-content" style="max-width: 400px; text-align: left;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h4 style="margin: 0;">Comments</h4>
-        <button onclick="document.getElementById('comment-modal').classList.remove('active')" style="background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer;">&times;</button>
-      </div>
-      <div id="comment-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px; font-size: 14px;"></div>
-      <div style="display: flex; gap: 8px;">
-        <input type="text" id="comment-input" class="input-field" placeholder="Write a comment..." style="margin-bottom: 0; flex: 1;">
-        <button class="btn accent" onclick="postCommentNow()" style="width: auto; padding: 10px 15px;">Post</button>
-      </div>
+  <div id="overlay" class="overlay" onclick="closeComments()"></div>
+  <div id="comment-sheet" class="bottom-sheet">
+    <div class="sheet-header">Comments</div>
+    <div class="comment-list" id="comment-list"></div>
+    <div class="comment-input-area">
+      <input type="text" id="comment-input" class="comment-input" placeholder="Add a comment...">
+      <button class="send-btn" onclick="postComment()">Send</button>
     </div>
   </div>
 
   <script>
-    const API_BASE = "https://golviral-api.onrender.com";
-    let activeAuthTab = 'login';
-    let activePostType = 'reel';
-    let currentBotCallback = null;
-    let currentBotToken = "";
-    let readTimer = null;
-    let deferredPrompt = null;
-    let currentProfileId = null;
-    let isFollowing = false;
-    let activeCommentPost = null;
-    let activeCommentCreator = null;
-    let socket = null;
-    let activeChatUser = null;
+    // --- AUTH & GLOBALS ---
+    const TOKEN = localStorage.getItem('token');
+    if (!TOKEN) window.location.href = 'auth.html';
+    
+    const API_BASE = 'https://golviral-api.onrender.com';
+    let currentFeed = [];
+    let activePostIdForComment = null;
 
-    window.addEventListener('hashchange', routeEngine);
-    window.addEventListener('load', () => {
-      routeEngine();
-      initializeServiceWorker();
-      trackAppImpressions();
-      const ref = new URLSearchParams(window.location.search).get('ref');
-      if(ref) localStorage.setItem('ref', ref);
-    });
-
-    function trackAppImpressions() {
-      let count = parseInt(localStorage.getItem('site_impressions') || '0');
-      localStorage.setItem('site_impressions', count + 1);
+    // --- UTILS ---
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => toast.style.opacity = '0', 3000);
     }
 
-    function routeEngine() {
-      const hash = window.location.hash || '#/feed';
-      document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-      if(readTimer) { clearInterval(readTimer); readTimer = null; }
-
-      if (hash.startsWith('#/feed')) { activateView('view-feed', 'nav-feed'); loadFeedEngine(); }
-      else if (hash.startsWith('#/post')) { activateView('view-post', 'nav-post'); }
-      else if (hash.startsWith('#/wallet')) { activateView('view-wallet', 'nav-wallet'); loadWalletData(); }
-      else if (hash.startsWith('#/profile')) { activateView('view-profile', 'nav-profile'); loadProfileData(hash.split('/')[2]); }
-      else if (hash.startsWith('#/dm-list')) { activateView('view-dm-list', 'nav-dm'); loadDMList(); connectSocket(); }
-      else if (hash.startsWith('#/dm/')) { activateView('view-dm-chat', 'nav-dm'); activeChatUser = hash.split('/')[2]; loadChat(activeChatUser); connectSocket(); }
-      else if (hash.startsWith('#/deposit')) { activateView('view-deposit', 'nav-wallet'); }
-      else if (hash.startsWith('#/withdraw')) { activateView('view-withdraw', 'nav-wallet'); }
-      else if (hash.startsWith('#/auth')) { activateView('view-auth', ''); }
-      else if (hash.startsWith('#/forgot')) { activateView('view-forgot', ''); }
-      else if (hash.startsWith('#/reset')) { activateView('view-reset', ''); }
-      else if (hash.startsWith('#/novel/')) { activateView('view-novel', ''); loadReader('NOVEL', hash.split('/')[2]); }
-      else if (hash.startsWith('#/story/')) { activateView('view-story', ''); loadReader('STORY', hash.split('/')[2]); }
-    }
-
-    function connectSocket(){
-      if(socket) return;
-      const token = localStorage.getItem('token');
-      if(!token) return;
-      socket = io(API_BASE, { auth: { token } });
-
-      socket.on('connect', () => console.log('[WS Connected]'));
-      socket.on('receive_message', (msg) => {
-        if(activeChatUser && (msg.senderId === activeChatUser || msg.receiverId === activeChatUser)){
-          appendMessage(msg);
-        }
-        loadDMList();
-      });
-      socket.on('error_msg', (e) => alert(e.error));
-    }
-
-    function sendSocketMessage(){
-      const text = document.getElementById('chat-input').value.trim();
-      if(!text || !activeChatUser) return;
-      socket.emit('send_message', { receiverId: activeChatUser, text });
-      document.getElementById('chat-input').value = '';
-    }
-
-    function appendMessage(msg){
-      const div = document.createElement('div');
-      const me = localStorage.getItem('userId');
-      const isMe = msg.senderId === me;
-      div.style.cssText = `max-width:75%; padding:10px 14px; border-radius:18px; margin-bottom:8px; ${isMe ? 'background:#0095f6; align-self:flex-end;' : 'background:var(--gray); align-self:flex-start;'}`;
-      div.innerText = msg.text;
-      const parent = document.getElementById('chat-messages');
-      parent.appendChild(div);
-      parent.scrollTop = parent.scrollHeight;
-    }
-
-    async function loadChat(userId){
-      document.getElementById('chat-messages').innerHTML = 'Loading...';
-      const d = await fetch(`${API_BASE}/api/user/${userId}`, {headers:getAuthHeaders()}).then(r=>r.json());
-      document.getElementById('chat-username').innerText = '@' + d.username;
-
-      if(!d.dmUnlocked){
-        if(confirm('Unlock DM for ₦3000 to chat?')){
-          const r = await fetch(`${API_BASE}/api/dm/init`, {method:'POST', headers:getAuthHeaders()});
-          const data = await r.json();
-          window.location.href = data.selarLink;
-          return;
-        }
-      }
-
-      const msgs = await fetch(`${API_BASE}/api/messages/${userId}`, {headers:getAuthHeaders()}).then(r=>r.json());
-      document.getElementById('chat-messages').innerHTML = '';
-      msgs.forEach(appendMessage);
-    }
-
-    async function loadDMList(){
-      const list = document.getElementById('dm-list');
-      list.innerHTML = 'Loading...';
-      const myId = localStorage.getItem('userId');
-      list.innerHTML = `<div class="card" style="cursor:pointer;" onclick="window.location.hash='#/dm/${myId}'">DM is active. Click on a creator profile to start a chat session.</div>`;
-    }
-
-    function activateView(viewId, navId) {
-      document.getElementById(viewId).classList.add('active');
-      if(navId) document.getElementById(navId).classList.add('active');
-    }
-
-    function getAuthHeaders() {
-      const token = localStorage.getItem('token');
-      if (!token) { window.location.hash = '#/auth'; throw new Error("Login required"); }
-      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-    }
-
-    async function signMedia(key, shard) {
-      const token = localStorage.getItem('token');
-      if(!token) return '';
+    async function fetchAPI(endpoint, options = {}) {
       try {
-        const r = await fetch(`${API_BASE}/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`,{headers:{Authorization:`Bearer ${token}`}});
-        const d = await r.json();
-        return d.url || '';
-      } catch { return ''; }
-    }
-
-    function triggerBotChallenge(callback) {
-      currentBotCallback = callback;
-      fetch(`${API_BASE}/api/bot-challenge`, { method: 'POST' })
-      .then(r => r.json())
-      .then(data => {
-          currentBotToken = data.token;
-          document.getElementById('bot-question').innerText = data.question;
-          document.getElementById('bot-overlay-modal').classList.add('active');
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+          ...options,
+          headers: {
+            'Authorization': `Bearer ${TOKEN}`,
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          }
         });
-    }
-
-    function submitBotVerification() {
-      const answer = document.getElementById('bot-answer').value;
-      fetch(`${API_BASE}/api/bot-verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: currentBotToken, answer })
-      }).then(r => {
-        if(!r.ok) throw new Error("Incorrect answer");
-        return r.json();
-      }).then(data => {
-        document.getElementById('bot-overlay-modal').classList.remove('active');
-        document.getElementById('bot-answer').value = "";
-        if (currentBotCallback) currentBotCallback(data.passToken);
-      }).catch(err => alert(err.message));
-    }
-
-    function switchAuthTab(tab, e) {
-      activeAuthTab = tab;
-      document.querySelectorAll('#view-auth .tab').forEach(t => t.classList.remove('active'));
-      e.target.classList.add('active');
-      document.getElementById('auth-user').style.display = tab === 'signup'? 'block' : 'none';
-      document.getElementById('auth-ref').style.display = tab === 'signup'? 'block' : 'none';
-    }
-
-    function submitAuth(passToken) {
-      const email = document.getElementById('auth-email').value;
-      const password = document.getElementById('auth-pass').value;
-      const username = document.getElementById('auth-user').value;
-      const referralCode = localStorage.getItem('ref') || document.getElementById('auth-ref').value;
-      const endpoint = activeAuthTab === 'login'? '/api/auth/login' : '/api/auth/signup';
-      const body = activeAuthTab === 'login'? { email, password, passToken } : { username, email, password, passToken, referralCode };
-      fetch(`${API_BASE}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      }).then(r => r.json()).then(data => {
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userId', data.userId);
-          localStorage.removeItem('ref');
-          window.location.hash = '#/feed';
-        } else {
-          alert(data.error || "Auth failed");
+        
+        if (res.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'auth.html';
+          return null;
         }
-      });
-    }
-
-    async function sendForgotOtp(passToken){
-      const email = document.getElementById('forgot-email').value;
-      if(!email) return alert('Enter email');
-      const r = await fetch(`${API_BASE}/api/auth/forgot-password`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email, passToken})
-      });
-      if(r.ok){
-        document.getElementById('reset-email').value = email;
-        window.location.hash='#/reset';
-      } else { alert((await r.json()).error); }
-    }
-
-    async function submitResetPassword(){
-      const email = document.getElementById('reset-email').value;
-      const otp = document.getElementById('reset-otp').value;
-      const newPassword = document.getElementById('reset-pass').value;
-      if(!otp || !newPassword) return alert('Fill all fields');
-      const r = await fetch(`${API_BASE}/api/auth/reset-password`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email, otp, newPassword})
-      });
-      const d = await r.json();
-      alert(d.message || 'Password updated');
-      if(r.ok) window.location.hash='#/auth';
-    }
-
-    async function loadFeedEngine() {
-      const viewport = document.getElementById('reel-viewport');
-      viewport.innerHTML = "<p style='padding:20px; text-align:center;'>Loading feed...</p>";
-      const token = localStorage.getItem('token');
-      const myId = localStorage.getItem('userId');
-      if(!token) return window.location.hash='#/auth';
-
-      const posts = await fetch(`${API_BASE}/api/feed`).then(r => r.json());
-      viewport.innerHTML = "";
-      if(posts.length === 0) return viewport.innerHTML = "<p style='color:#777; padding:40px; text-align:center;'>No posts yet.</p>";
-
-      const userLikes = JSON.parse(localStorage.getItem('gv_likes') || '[]');
-      const userComments = JSON.parse(localStorage.getItem('gv_comments') || '[]');
-
-      for(const post of posts){
-        const card = document.createElement('div');
-        card.className = 'reel-card';
-
-        let mediaHtml = '';
-        if(post.type === 'reel' && post.mediaUrl){
-          const url = await signMedia(post.mediaUrl, post.b2Shard);
-          const thumb = post.thumbnailUrl? await signMedia(post.thumbnailUrl, post.b2Shard) : '';
-          mediaHtml = url? `
-            <video
-              src="${url}"
-              poster="${thumb}"
-              loop muted autoplay playsinline
-              preload="metadata"
-              style="background-color:#000;width:100%;height:100%;display:block;"
-            ></video>`
-          : `<p style="color:red">Video unavailable</p>`;
-        } else {
-          mediaHtml = `<div style="color:#FFF; text-align:center; padding:20px;"><h2>${post.title||'Untitled'}</h2><p>Double tap to read</p></div>`;
-        }
-
-        const hasLiked = userLikes.includes(post.id);
-        const hasCommented = userComments.includes(post.id);
-        const isOwner = post.userId === myId;
-
-        card.innerHTML = `
-          ${mediaHtml}
-          <div class="reel-overlay">
-            <h4>
-              <a href="#/profile/${post.userId}" style="color:#fff; text-decoration:none;">@${post.userId}</a>
-              ${!isOwner? `<button id="btn-follow-${post.id}" class="btn secondary" style="width:auto; padding:4px 10px; font-size:12px; margin-left:8px;" onclick="toggleFollowFromFeed('${post.userId}', '${post.id}')">Follow</button>` : ''}
-            </h4>
-            <p>${post.title || post.type}</p>
-          </div>
-          <div class="reel-actions">
-            <button class="action-bubble ${hasLiked? 'voted-like' : ''}" ${hasLiked? 'disabled' : ''} id="btn-like-${post.id}" onclick="interactFeed('${post.id}', 'like', '${post.userId}')">
-              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              <span id="count-like-${post.id}">${post.likes}</span>
-            </button>
-            <button class="action-bubble ${hasCommented? 'voted-comment' : ''}" id="btn-comment-${post.id}" onclick="openCommentModal('${post.id}', '${post.userId}')">
-              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
-              <span id="count-comment-${post.id}">${post.comments}</span>
-            </button>
-            <button class="action-bubble" onclick="shareReel('${post.id}')">
-              <svg viewBox="0 0 24 24" fill="#FFF"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0.24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-              <span>Share</span>
-            </button>
-          </div>
-        `;
-        viewport.appendChild(card);
-
-        if(!isOwner) checkFollowState(post.userId, post.id);
-
-        let viewTriggered = false;
-        const videoEl = card.querySelector('video');
-        if(videoEl){
-          videoEl.addEventListener('play', () => {
-            if (!viewTriggered) {
-              setTimeout(() => {
-                if (!videoEl.paused) {
-                  viewTriggered = true;
-                  fetch(`${API_BASE}/api/view`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ postId: post.id, userId: post.userId })
-                  });
-                }
-              }, 3000);
-            }
-          });
-          card.addEventListener('click', () => { videoEl.paused? videoEl.play() : videoEl.pause(); });
-        }
-        if(post.type === 'novel') card.addEventListener('dblclick', () => window.location.hash = `#/novel/${post.id}?author=${post.userId}`);
-        if(post.type === 'story') card.addEventListener('dblclick', () => window.location.hash = `#/story/${post.id}?author=${post.userId}`);
+        
+        if (!res.ok) throw new Error(`Error: ${res.status}`);
+        return await res.json();
+      } catch (err) {
+        showToast(err.message);
+        return null;
       }
     }
 
-    async function checkFollowState(targetId, postId){
-      const btn = document.getElementById(`btn-follow-${postId}`);
-      if(!btn) return;
-      try {
-        const d = await fetch(`${API_BASE}/api/user/${targetId}`, {headers:getAuthHeaders()}).then(r=>r.json());
-        if(d.isFollowing){
-          btn.innerText = 'Following';
-          btn.disabled = true;
-          btn.className = 'btn';
-        } else {
-          btn.innerText = 'Follow';
-          btn.className = 'btn secondary';
-        }
-      } catch(e){ console.error(e); }
+    // --- MEDIA SIGNING ---
+    async function getSignedVideoUrl(key, shard = '') {
+      const data = await fetchAPI(`/api/media/sign?key=${key}&shard=${shard}`);
+      return data?.url || null;
     }
 
-    async function toggleFollowFromFeed(targetId, postId){
-      const btn = document.getElementById(`btn-follow-${postId}`);
-      const endpoint = btn.innerText === 'Follow'? '/api/follow' : '/api/unfollow';
-      const r = await fetch(`${API_BASE}${endpoint}`,{
-        method:'POST', headers:getAuthHeaders(), body:JSON.stringify({followingId: targetId})
-      });
-      if(r.ok){
-        if(btn.innerText === 'Follow'){
-          btn.innerText = 'Following';
-          btn.disabled = true;
-          btn.className = 'btn';
-        } else {
-          btn.innerText = 'Follow';
-          btn.disabled = false;
-          btn.className = 'btn secondary';
-        }
-      } else { alert((await r.json()).error); }
+    // --- FEED LOGIC ---
+    async function loadFeed() {
+      const data = await fetchAPI('/api/feed');
+      if (data) {
+        currentFeed = data;
+        renderFeed('ForYou');
+      }
     }
 
-    function shareReel(postId) {
-      const baseUrl = window.location.origin + window.location.pathname;
-      const shareUrl = `${baseUrl}#/feed?post=${postId}`;
-      const text = `Watch this on GolViral`;
-      if (navigator.share) {
-        navigator.share({ title: 'GolViral', text: text, url: shareUrl, }).catch(() => {});
+    function switchTab(type) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      renderFeed(type);
+    }
+
+    async function renderFeed(type) {
+      const container = document.getElementById('feed-container');
+      container.innerHTML = '';
+      
+      let filtered = type === 'ForYou' ? currentFeed : currentFeed.filter(item => item.type === type);
+      
+      if (type === 'Reels') {
+        container.classList.add('reels-mode');
+        for (const post of filtered) {
+          container.appendChild(await createReelElement(post));
+        }
+        setupReelsObserver();
       } else {
-        navigator.clipboard.writeText(shareUrl).then(() => { alert('Link copied ✅'); });
+        container.classList.remove('reels-mode');
+        filtered.forEach(post => container.appendChild(createCardElement(post)));
       }
     }
 
-    function interactFeed(postId, action, creatorId) {
-      const cacheKey = action === 'like'? 'gv_likes' : 'gv_comments';
-      let storageItems = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-      if(action==='like' && storageItems.includes(postId)) return;
-
-      const targetedBtn = document.getElementById(`btn-${action}-${postId}`);
-      const targetedCount = document.getElementById(`count-${action}-${postId}`);
-
-      if(targetedBtn && targetedCount) {
-        targetedBtn.disabled = true;
-        targetedBtn.classList.add(action === 'like'? 'voted-like' : 'voted-comment');
-        targetedCount.innerText = parseInt(targetedCount.innerText || '0') + 1;
+    // --- UI BUILDERS ---
+    async function createReelElement(post) {
+      const div = document.createElement('div');
+      div.className = 'reel-container';
+      
+      let videoSrc = post.mediaUrl;
+      // If it looks like a B2 key instead of full URL
+      if (!videoSrc.startsWith('http')) {
+        videoSrc = await getSignedVideoUrl(post.mediaKey, post.shard);
       }
-      storageItems.push(postId);
-      localStorage.setItem(cacheKey, JSON.stringify(storageItems));
 
-      fetch(`${API_BASE}/api/${action}`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({postId, creatorId})
-      }).then(r => { if(r.status === 202) console.log("Buffered"); });
+      div.innerHTML = `
+        <video class="reel-video" data-id="${post.id}" loop playsinline src="${videoSrc}"></video>
+        <div class="reel-actions">
+          <button class="action-btn" onclick="likePost('${post.id}')">❤️</button>
+          <button class="action-btn" onclick="openComments('${post.id}')">💬</button>
+          <button class="action-btn" onclick="sendGiftModal('${post.userId}')">🎁</button>
+          <button class="action-btn" onclick="sharePost('${post.id}')">↗️</button>
+          <button class="action-btn" onclick="boostPost('${post.id}')">🚀</button>
+        </div>
+      `;
+      return div;
     }
 
-    async function openCommentModal(postId, creatorId){
-      activeCommentPost = postId; activeCommentCreator = creatorId;
-      document.getElementById('comment-modal').classList.add('active');
+    function createCardElement(post) {
+      const div = document.createElement('div');
+      div.className = 'feed-card';
+      div.innerHTML = `
+        ${post.coverImage ? `<img src="${post.coverImage}" class="card-cover">` : ''}
+        <div class="card-title">${post.title || 'Untitled'}</div>
+        <div class="card-caption">${post.caption || ''}</div>
+        <div style="color: var(--accent); font-weight: bold; margin-top: 5px;">Earned: ₦${post.earnings || 0}</div>
+        <button class="btn-read" onclick="readSession('${post.id}')">Read</button>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button class="action-btn" style="width:35px; height:35px;" onclick="likePost('${post.id}')">❤️</button>
+          <button class="action-btn" style="width:35px; height:35px;" onclick="openComments('${post.id}')">💬</button>
+        </div>
+      `;
+      return div;
+    }
+
+    // --- REELS INTERSECTION OBSERVER ---
+    let reelsObserver = null;
+    function setupReelsObserver() {
+      if (reelsObserver) reelsObserver.disconnect();
+      
+      reelsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const video = entry.target;
+          if (entry.intersectionRatio >= 0.7) {
+            video.play().catch(e => console.log('Autoplay blocked', e));
+            fetchAPI('/api/view', {
+              method: 'POST',
+              body: JSON.stringify({ postId: video.dataset.id })
+            });
+          } else {
+            video.pause();
+          }
+        });
+      }, { threshold: 0.7 });
+
+      document.querySelectorAll('.reel-video').forEach(vid => reelsObserver.observe(vid));
+    }
+
+    // --- ACTIONS ---
+    async function likePost(postId) {
+      const res = await fetchAPI('/api/like', { method: 'POST', body: JSON.stringify({ postId }) });
+      if (res) showToast('Liked!');
+    }
+
+    async function readSession(postId) {
+      const res = await fetchAPI('/api/read-session', { method: 'POST', body: JSON.stringify({ postId }) });
+      if (res) showToast('Session started');
+    }
+
+    function sendGiftModal(userId) {
+      if(window.sendGift) window.sendGift(userId);
+      else showToast('Gift UI loads from profile module.');
+    }
+
+    function sharePost(id) { showToast('Copied link!'); }
+    function boostPost(id) { showToast('Boost initiated'); }
+
+    // --- COMMENTS ---
+    async function openComments(postId) {
+      activePostIdForComment = postId;
+      document.getElementById('comment-sheet').classList.add('open');
+      document.getElementById('overlay').classList.add('open');
+      
       const list = document.getElementById('comment-list');
       list.innerHTML = 'Loading...';
-      const d = await fetch(`${API_BASE}/api/comments/${postId}`).then(r=>r.json());
-      list.innerHTML = d.comments.map(c=>`<p style="margin-bottom:8px;"><b>@${c.user.username}</b>: ${c.text}</p>`).join('') || '<p style="color:var(--muted)">No comments yet</p>';
-    }
-
-    async function postCommentNow(){
-      const text = document.getElementById('comment-input').value.trim();
-      if(text.length < 2) return;
-      await fetch(`${API_BASE}/api/comment`,{
-        method:'POST', headers:getAuthHeaders(), body:JSON.stringify({postId:activeCommentPost, creatorId:activeCommentCreator, text})
-      });
-      document.getElementById('comment-input').value='';
-      openCommentModal(activeCommentPost, activeCommentCreator);
-      const countEl = document.getElementById(`count-comment-${activeCommentPost}`);
-      if(countEl) countEl.innerText = parseInt(countEl.innerText || '0') + 1;
-    }
-
-    function switchPostType(type, e) {
-      activePostType = type;
-      document.querySelectorAll('#view-post .tab').forEach(t => t.classList.remove('active'));
-      e.target.classList.add('active');
-      document.getElementById('file-selector-group').style.display = type === 'reel'? 'block' : 'none';
-      document.getElementById('text-fields-group').style.display = type!== 'reel'? 'block' : 'none';
-      document.getElementById('post-warning').innerText = type === 'reel'? 'Rule: Reel costs 25pts. Max 3 posts daily. Max 1.5MB, 30s.' : 'Rule: Narrative costs 10pts.';
-    }
-
-    async function executePublish() {
-      const btn = document.querySelector('#view-post .btn.accent');
-      if(!btn) return alert('Button not found');
-      btn.disabled = true;
-      btn.innerText = "Uploading...";
-
-      try {
-        const body = { postType: activePostType };
-
-        if (activePostType === 'reel') {
-          const fileInput = document.getElementById('post-file')?.files?.[0];
-          if (!fileInput) throw new Error("Select video file");
-
-          if (fileInput.size > 1.5 * 1024 * 1024) {
-            throw new Error("Rejected: Max 1.5MB. Your file is " + (fileInput.size / 1024 / 1024).toFixed(2) + "MB");
-          }
-
-          const video = document.createElement('video');
-          video.preload = 'metadata';
-          video.src = URL.createObjectURL(fileInput);
-          await new Promise(resolve => { video.onloadedmetadata = resolve; video.onerror = () => resolve(); });
-          const duration = video.duration;
-          URL.revokeObjectURL(video.src);
-
-          if (duration > 30) throw new Error("Rejected: Max 30s. Yours is " + Math.floor(duration) + "s");
-          if (duration < 3) throw new Error("Rejected: Min 3s required");
-
-          body.fileExtension = fileInput.name.split('.').pop().toLowerCase();
-          body.contentType = fileInput.type;
-
-          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(body)
-          }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error || 'Create intent failed') }); return r.json(); });
-
-          const putRes = await fetch(intentRes.uploadUrl, {
-            method: 'PUT',
-            headers: { 'Content-Type': fileInput.type },
-            body: fileInput
-          });
-          if (!putRes.ok) throw new Error(`B2 Upload failed: ${putRes.status}`);
-
-          await fetch(`${API_BASE}/api/post/create`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey })
-          });
-
-          alert("Content submitted for system review ✅");
-          window.location.hash = '#/feed';
-
-        } else {
-          const title = document.getElementById('post-title').value.trim();
-          const content = document.getElementById('post-content').value.trim();
-          if (!title) throw new Error("Title required");
-          if (!content) throw new Error("Content required");
-
-          const intentRes = await fetch(`${API_BASE}/api/post/create-intent`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(body)
-          }).then(r => { if (!r.ok) return r.json().then(e => { throw new Error(e.error) }); return r.json(); });
-
-          await fetch(`${API_BASE}/api/post/create`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ postId: intentRes.postId, objectKey: intentRes.objectKey, title, content })
-          });
-          alert("Content submitted for admin approval");
-          window.location.hash = '#/feed';
-        }
-      } catch (err) {
-        const fileInput = document.getElementById('post-file')?.files?.[0];
-        const size = fileInput? (fileInput.size/1024/1024).toFixed(2) + 'MB' : 'N/A';
-        alert('ERROR: ' + err.message + '\nSize: ' + size);
-        console.error('Publish Error:', err);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "Publish Content";
-      }
-    }
-
-    async function loadReader(type, id) {
-      const contentEl = document.getElementById(`${type.toLowerCase()}-content`);
-      const timerEl = document.getElementById(`${type.toLowerCase()}-timer`);
-      const authorId = new URLSearchParams(window.location.hash.split('?')[1] || '').get('author') || 'unknown';
-      const seconds = type === 'NOVEL'? 120 : 180;
-      let elapsed = 0;
-
-      const post = await fetch(`${API_BASE}/api/post/${id}`).then(r => r.ok? r.json() : null);
-      if (!post || post.type.toUpperCase()!== type) return contentEl.innerHTML = 'Post not found';
-
-      contentEl.innerHTML = `<h3>${post.title || ''}</h3><br>${post.content || 'No content'}`;
-      timerEl.style.width = '0%';
-      readTimer = setInterval(() => {
-        elapsed++;
-        timerEl.style.width = `${(elapsed / seconds) * 100}%`;
-        if (elapsed >= seconds) {
-          clearInterval(readTimer);
-          fetch(`${API_BASE}/api/read-session`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ contentId: id, authorId: authorId, contentType: type })
-          });
-          alert(`+10pts credited`);
-        }
-      }, 1000);
-    }
-
-    function loadWalletData() {
-      fetch(`${API_BASE}/api/wallet`, { headers: getAuthHeaders() })
-       .then(r => r.json())
-       .then(d => {
-          document.getElementById('w-free').innerText = d.freeCredits;
-          document.getElementById('w-cash').innerText = `₦${(d.cashBalance * 0.1).toFixed(2)}`;
-          document.getElementById('w-today').innerText = `${d.todayEarnings}/10000`;
-          document.getElementById('w-flag').innerText = d.monetized? "True" : "False";
-          document.getElementById('w-requirements').innerText = `Days: ${d.daysProgress} | Followers: ${d.followersProgress}`;
+      
+      const comments = await fetchAPI(`/api/comments/${postId}`);
+      list.innerHTML = '';
+      if(comments && comments.length) {
+        comments.forEach(c => {
+          list.innerHTML += `<div style="margin-bottom:10px;"><b>${c.username}</b>: ${c.text}</div>`;
         });
-    }
-
-    function executeDepositVerification(passToken) {
-      const tierAmount = parseInt(document.getElementById('dep-tier').value);
-      fetch(`${API_BASE}/api/deposit/init`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ tierAmount, passToken })
-      }).then(r => r.json()).then(d => {
-        if (d.selarLink) { window.location.href = d.selarLink; }
-        else { alert(d.error); }
-      });
-    }
-
-    function submitWithdrawalInit() {
-      const amountPoints = parseInt(document.getElementById('wd-amount').value);
-      const routingTarget = document.getElementById('wd-target').value;
-      const targetDetails = document.getElementById('wd-details').value;
-      fetch(`${API_BASE}/api/wallet/withdraw`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ amountPoints, routingTarget, targetDetails })
-      }).then(r => r.json()).then(d => {
-        if (d.authChallenge) {
-          document.getElementById('wd-otp-group').style.display = 'block';
-          alert("OTP sent to email");
-        } else { alert(d.error); }
-      });
-    }
-
-    function confirmWithdrawal() {
-      const otp = document.getElementById('wd-otp').value;
-      fetch(`${API_BASE}/api/wallet/withdraw/confirm`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ otp })
-      }).then(r => r.json()).then(d => {
-        if (d.transactionAcknowledged) { alert("Payout requested"); window.location.hash = '#/wallet'; }
-        else { alert(d.error); }
-      });
-    }
-
-    async function loadProfileData(uidParam) {
-      const myId = localStorage.getItem('userId');
-      const uid = uidParam || myId;
-      if (!uid) { window.location.hash = '#/auth'; return; }
-      currentProfileId = uid;
-
-      const d = await fetch(`${API_BASE}/api/user/${uid}`, {headers:getAuthHeaders()}).then(r => r.json());
-      document.getElementById('p-username').innerText = `@${d.username}`;
-      document.getElementById('p-views').innerText = d.totalViews;
-      document.getElementById('p-likes').innerText = d.totalLikes;
-      document.getElementById('p-posts').innerText = d.totalPosts;
-      document.getElementById('p-followers').innerText = d.followers;
-      document.getElementById('p-following').innerText = d.following;
-      const baseUrl = window.location.origin + window.location.pathname;
-      document.getElementById('p-link').value = `${baseUrl}#/auth?ref=${d.userId}`;
-
-      const btn = document.getElementById('btn-follow');
-      const parent = btn.parentNode;
-      const oldMsgBtn = document.getElementById('btn-message');
-      if(oldMsgBtn) oldMsgBtn.remove();
-
-      if (uid === myId) { btn.style.display = 'none'; return; }
-      btn.style.display = 'inline-block';
-
-      const msgBtn = document.createElement('button');
-      msgBtn.id = 'btn-message';
-      msgBtn.innerText = 'Message';
-      msgBtn.className = 'btn accent';
-      msgBtn.style.cssText = 'width:auto; padding:8px 16px; margin-left:8px; display:inline-block;';
-      msgBtn.onclick = () => window.location.hash = `#/dm/${uid}`;
-      parent.appendChild(msgBtn);
-
-      if(d.isFollowing){
-        btn.innerText = 'Following';
-        btn.disabled = true;
-        btn.className = 'btn';
       } else {
-        btn.innerText = 'Follow';
-        btn.disabled = false;
-        btn.className = 'btn secondary';
+        list.innerHTML = '<div style="color:var(--text-muted)">No comments yet.</div>';
       }
     }
 
-    async function toggleFollow() {
-      if (!currentProfileId) return;
-      const btn = document.getElementById('btn-follow');
-      const endpoint = btn.innerText === 'Follow'? '/api/follow' : '/api/unfollow';
-      const r = await fetch(`${API_BASE}${endpoint}`, {
-        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ followingId: currentProfileId })
+    function closeComments() {
+      document.getElementById('comment-sheet').classList.remove('open');
+      document.getElementById('overlay').classList.remove('open');
+      activePostIdForComment = null;
+    }
+
+    async function postComment() {
+      const input = document.getElementById('comment-input');
+      const text = input.value.trim();
+      if(!text || !activePostIdForComment) return;
+      
+      const res = await fetchAPI('/api/comment', {
+        method: 'POST',
+        body: JSON.stringify({ postId: activePostIdForComment, text })
       });
-      if (r.ok) {
-        loadProfileData(currentProfileId);
-      } else {
-        alert((await r.json()).error);
+      
+      if(res) {
+        input.value = '';
+        openComments(activePostIdForComment); // reload
       }
     }
 
-    function initializeServiceWorker() {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').then(() => console.log("[PWA Registered]"));
-      }
-    }
+    // --- SEARCH ---
+    function openSearch() { document.getElementById('search-modal').style.display = 'flex'; }
+    function closeSearch() { document.getElementById('search-modal').style.display = 'none'; }
+    
+    let searchTimeout;
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      const q = e.target.value.trim();
+      const resultsDiv = document.getElementById('search-results');
+      
+      if(!q) { resultsDiv.innerHTML = ''; return; }
+      
+      searchTimeout = setTimeout(async () => {
+        const users = await fetchAPI(`/api/search/users?q=${encodeURIComponent(q)}`);
+        if(users) {
+          resultsDiv.innerHTML = users.map(u => `<div class="user-row">${u.username}</div>`).join('');
+        }
+      }, 300);
+    });
+
+    // --- INIT ---
+    window.onload = loadFeed;
   </script>
 </body>
 </html>
