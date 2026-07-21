@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GolViral - Auth</title>
+  
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    :root {
+      --bg: #000000;
+      --card: #000000;
+      --input-bg: #181818;
+      --border: #333333;
+      --accent: #00ff88;
+      --text: #ffffff;
+      --text-muted: #888888;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100dvh;
+      position: relative;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card);
+      padding: 30px 20px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .tab.active {
+      color: var(--text);
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .form-group {
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .form-group.active {
+      display: flex;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    button.primary {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: #181818;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .modal-title { font-size: 1.2rem; font-weight: bold; text-align: center; }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .intent-toggle {
+      display: flex;
+      background: var(--bg);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .intent-toggle label {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .intent-toggle input[type="radio"] { display: none; }
+    .intent-toggle input[type="radio"]:checked + span { color: var(--accent); font-weight: bold; }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast" class="toast"></div>
+
+  <div class="auth-container">
+    <div class="logo">GolViral</div>
+    
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('login')">Login</div>
+      <div class="tab" onclick="switchTab('signup')">Signup</div>
+      <div class="tab" onclick="switchTab('forgot')">Forgot</div>
+    </div>
+
+    <form id="form-login" class="form-group active" onsubmit="handleLogin(event)">
+      <input type="text" id="login-username" placeholder="Username or Email" required>
+      <input type="password" id="login-password" placeholder="Password" required>
+      <button type="submit" class="primary">Login</button>
+    </form>
+
+    <form id="form-signup" class="form-group" onsubmit="handleSignup(event)">
+      <input type="text" id="signup-username" placeholder="Username" required>
+      <input type="email" id="signup-email" placeholder="Email" required>
+      <input type="password" id="signup-password" placeholder="Password" required>
+      <input type="text" id="signup-referral" placeholder="Referral Code (Optional)">
+      <button type="submit" class="primary">Sign Up</button>
+    </form>
+
+    <form id="form-forgot" class="form-group" onsubmit="handleForgot(event)">
+      <div id="forgot-step-1">
+        <input type="email" id="forgot-email" placeholder="Enter your Email" required>
+        <button type="submit" class="primary">Send OTP</button>
+      </div>
+      <div id="forgot-step-2" style="display: none; flex-direction: column; gap: 15px;">
+        <input type="text" id="forgot-otp" placeholder="Enter OTP">
+        <input type="password" id="forgot-new-password" placeholder="New Password">
+        <button type="button" class="primary" onclick="handleReset()">Reset Password</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="bot-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title">Security Check</div>
+      <p id="bot-question" style="text-align: center; color: var(--text-muted);">Loading challenge...</p>
+      <input type="text" id="bot-answer" placeholder="Your answer" autocomplete="off">
+      <button class="primary" onclick="submitBotAnswer()">Verify</button>
+    </div>
+  </div>
+
+  <div id="onboarding-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title">Welcome to GolViral</div>
+      
+      <p style="font-size: 0.9rem; color: var(--accent);">Pick up to 3 Categories:</p>
+      <div class="checkbox-grid" id="category-list">
+        <label class="checkbox-label"><input type="checkbox" value="Comedy"> Comedy</label>
+        <label class="checkbox-label"><input type="checkbox" value="Tech"> Tech</label>
+        <label class="checkbox-label"><input type="checkbox" value="Lifestyle"> Lifestyle</label>
+        <label class="checkbox-label"><input type="checkbox" value="Music"> Music</label>
+        <label class="checkbox-label"><input type="checkbox" value="Novels"> Novels</label>
+        <label class="checkbox-label"><input type="checkbox" value="News"> News</label>
+      </div>
+
+      <p style="font-size: 0.9rem; color: var(--accent); margin-top: 10px;">I am primarily a:</p>
+      <div class="intent-toggle">
+        <label>
+          <input type="radio" name="intent" value="Viewer" checked>
+          <span>Viewer</span>
+        </label>
+        <label>
+          <input type="radio" name="intent" value="Creator">
+          <span>Creator</span>
+        </label>
+      </div>
+
+      <select id="onboard-country">
+        <option value="NG">Nigeria</option>
+        <option value="US">United States</option>
+        <option value="UK">United Kingdom</option>
+        <option value="GH">Ghana</option>
+        <option value="ZA">South Africa</option>
+        <option value="IN">India</option>
+      </select>
+
+      <button class="primary" onclick="completeOnboarding()">Complete Profile</button>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://golviral-api.onrender.com';
+    let currentChallengeId = null;
+    let pendingBotResolve = null;
+
+    // --- UTILS ---
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => toast.style.opacity = '0', 3000);
+    }
+
+    async function fetchAPI(endpoint, options = {}) {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+          ...options,
+          headers: { ...headers, ...(options.headers || {}) }
+        });
+        
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || `Error: ${res.status}`);
+        return data;
+      } catch (err) {
+        showToast(err.message);
+        return null;
+      }
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.form-group').forEach(f => f.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(`form-${tab}`).classList.add('active');
+    }
+
+    // --- BOT CHALLENGE FLOW ---
+    async function runBotFlow() {
+      return new Promise(async (resolve) => {
+        const challenge = await fetchAPI('/api/bot-challenge', { method: 'POST' });
+        if (!challenge) return resolve(null);
+
+        currentChallengeId = challenge.id;
+        document.getElementById('bot-question').innerText = challenge.question || 'Solve this challenge';
+        document.getElementById('bot-answer').value = '';
+        document.getElementById('bot-modal').style.display = 'flex';
+        pendingBotResolve = resolve;
+      });
+    }
+
+    async function submitBotAnswer() {
+      const answer = document.getElementById('bot-answer').value.trim();
+      if (!answer) return showToast('Please enter an answer');
+
+      const res = await fetchAPI('/api/bot-verify', {
+        method: 'POST',
+        body: JSON.stringify({ challengeId: currentChallengeId, answer })
+      });
+
+      if (res && res.passToken) {
+        document.getElementById('bot-modal').style.display = 'none';
+        if (pendingBotResolve) pendingBotResolve(res.passToken);
+      }
+    }
+
+    // --- AUTH ACTIONS ---
+    async function handleLogin(e) {
+      e.preventDefault();
+      const passToken = await runBotFlow();
+      if (!passToken) return;
+
+      const identifier = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+
+      const res = await fetchAPI('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ identifier, password, passToken })
+      });
+
+      if (res && res.token) {
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('userId', res.userId);
+        triggerOnboarding();
+      }
+    }
+
+    async function handleSignup(e) {
+      e.preventDefault();
+      const passToken = await runBotFlow();
+      if (!passToken) return;
+
+      const username = document.getElementById('signup-username').value;
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      const referralCode = document.getElementById('signup-referral').value;
+
+      const res = await fetchAPI('/api/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({ username, email, password, referralCode, passToken })
+      });
+
+      if (res && res.token) {
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('userId', res.userId);
+        triggerOnboarding();
+      }
+    }
+
+    async function handleForgot(e) {
+      e.preventDefault();
+      const passToken = await runBotFlow();
+      if (!passToken) return;
+
+      const email = document.getElementById('forgot-email').value;
+      const res = await fetchAPI('/api/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email, passToken })
+      });
+
+      if (res) {
+        showToast('OTP sent to email!');
+        document.getElementById('forgot-step-1').style.display = 'none';
+        document.getElementById('forgot-step-2').style.display = 'flex';
+      }
+    }
+
+    async function handleReset() {
+      const email = document.getElementById('forgot-email').value;
+      const otp = document.getElementById('forgot-otp').value;
+      const newPassword = document.getElementById('forgot-new-password').value;
+
+      const res = await fetchAPI('/api/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp, newPassword })
+      });
+
+      if (res) {
+        showToast('Password reset successful! Please login.');
+        document.getElementById('forgot-step-1').style.display = 'block';
+        document.getElementById('forgot-step-2').style.display = 'none';
+        switchTab('login');
+        // Hack to make the login tab active programmatically
+        document.querySelectorAll('.tab')[0].click(); 
+      }
+    }
+
+    // --- ONBOARDING & PUSH ---
+    function triggerOnboarding() {
+      document.getElementById('onboarding-modal').style.display = 'flex';
+      
+      // Limit to 3 categories
+      const checkboxes = document.querySelectorAll('#category-list input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+          const checked = document.querySelectorAll('#category-list input[type="checkbox"]:checked');
+          if (checked.length > 3) {
+            cb.checked = false;
+            showToast('You can only select up to 3 categories.');
+          }
+        });
+      });
+    }
+
+    async function completeOnboarding() {
+      const categories = Array.from(document.querySelectorAll('#category-list input[type="checkbox"]:checked')).map(cb => cb.value);
+      const intent = document.querySelector('.intent-toggle input[type="radio"]:checked').value;
+      const country = document.getElementById('onboard-country').value;
+
+      if (categories.length === 0) return showToast('Please select at least 1 category');
+
+      localStorage.setItem('onboarding_data', JSON.stringify({ categories, intent, country }));
+      document.getElementById('onboarding-modal').style.display = 'none';
+      
+      await setupPushNotifications();
+      window.location.href = 'index.html';
+    }
+
+    async function setupPushNotifications() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          const registration = await navigator.serviceWorker.ready;
+          
+          // Note: A real implementation requires applicationServerKey (VAPID key).
+          // We attempt subscription. If it fails due to missing key, we bypass gracefully.
+          let subscription;
+          try {
+             subscription = await registration.pushManager.subscribe({ userVisibleOnly: true });
+          } catch(e) {
+             console.warn("Push subscription failed (likely missing VAPID key in frontend mockup):", e);
+             // Create a dummy subscription payload for the API if standard subscribe fails
+             subscription = { endpoint: "dummy_endpoint", keys: { p256dh: "dummy", auth: "dummy" } };
+          }
+          
+          await fetchAPI('/api/push/subscribe', {
+            method: 'POST',
+            body: JSON.stringify({ subscription })
+          });
+        }
+      } catch (err) {
+        console.error("Push Notification Setup Error:", err);
+      }
+    }
+  </script>
+</body>
+</html>
