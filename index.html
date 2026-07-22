@@ -35,13 +35,17 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 .reader.active{transform:translateX(0)}
 .input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;outline:none}
 .btn{background:var(--accent);color:#000;border:none;padding:12px 20px;border-radius:12px;font-weight:800;cursor:pointer}
+.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
+.toast.show{transform:translate(-50%,0);opacity:1}
 </style>
 </head>
 <body>
+<div id="toast" class="toast"></div>
+
 <header>
   <div class="topbar">
     <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>GolViral</div>
-    <svg onclick="openSearch()" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <svg onclick="openSearch()" viewBox="0 0 24 24" style="cursor:pointer"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
   </div>
   <div class="tabs">
     <div class="tab active" onclick="loadFeed('ForYou',this)">ForYou</div>
@@ -90,16 +94,21 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 <script>
 const API='https://golviral-api.onrender.com';
 const TOKEN=localStorage.token;
+const USER_ID=localStorage.userId;
 if(!TOKEN) location.href='auth.html';
 
 let feedData=[];
 let currentPost=null;
 let searchTimer=null;
 
+function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
+
 async function api(path,opt={}){
-  const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
-  if(res.status===401) location.href='auth.html';
-  return res.json();
+  try{
+    const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
+    if(res.status===401) location.href='auth.html';
+    return res.json();
+  }catch{ toast('Network error'); return {} }
 }
 
 async function getSignedUrl(key,shard){
@@ -132,10 +141,12 @@ function createReel(p){
   const div=document.createElement('div');
   div.className='reel';
   div.dataset.id=p.id;
+  div.dataset.creator=p.userId;
   div.innerHTML=`
     <video muted loop playsinline data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video>
-    <div style="position:relative;padding:16px">
-      <b>${p.title||''}</b><p>${p.caption||''}</p>
+    <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
+      <b>@${p.userId}</b><p>${p.caption||''}</p>
+      ${p.externalLink && p.isBoosted ? `<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ''}
     </div>
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>${p.likes||0}</span></div>
@@ -149,7 +160,7 @@ function createReel(p){
 function createCard(p){
   const div=document.createElement('div');
   div.className='card';
-  div.innerHTML=`<b>${p.title}</b><p>${p.caption}</p><button class="btn" onclick="openReader('${p.id}')">Read</button>`;
+  div.innerHTML=`<b>${p.title||'Untitled'}</b><p style="color:var(--muted);margin:8px 0">${p.caption||''}</p><button class="btn" onclick="openReader('${p.id}')">Read</button>`;
   return div;
 }
 
@@ -157,11 +168,14 @@ function setupReelObserver(){
   const obs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       const video=e.target.querySelector('video');
+      const postId=e.target.dataset.id;
+      const creatorId=e.target.dataset.creator;
       if(e.intersectionRatio>0.7){
         if(!video.src){
           getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{video.src=url;video.play()});
         } else { video.play(); }
-        api('/api/view',{method:'POST',body:JSON.stringify({postId:e.target.dataset.id,userId:JSON.parse(localStorage.user||'{}').userId})})
+        // Track view with both creator and viewer
+        api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})
       }else video.pause();
     })
   },{threshold:0.7});
@@ -169,11 +183,12 @@ function setupReelObserver(){
 }
 
 async function likePost(postId,creatorId){
-  await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})})
+  await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})
 }
 
 async function sendGift(userId){
-  await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId})})
+  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId})})
+  if(res.success) toast('Gift sent!')
 }
 
 function boostPost(id){location.href=`post.html?boost=${id}`}
@@ -182,7 +197,7 @@ async function openComments(postId,creatorId){
   currentPost={postId,creatorId};
   document.getElementById('comment-sheet').classList.add('active');
   const d=await api(`/api/comments/${postId}`);
-  document.getElementById('comment-list').innerHTML=d.comments.map(c=>`<p><b>${c.user.username}</b>: ${c.text}</p>`).join('');
+  document.getElementById('comment-list').innerHTML=(d.comments||[]).map(c=>`<p style="margin-bottom:8px"><b>${c.user.username}</b>: ${c.text}</p>`).join('');
 }
 
 function closeSheet(){document.getElementById('comment-sheet').classList.remove('active')}
@@ -199,9 +214,10 @@ async function sendComment(){
 }
 
 async function openReader(id){
-  const p=feedData.find(x=>x.id===id);
-  document.getElementById('reader-title').innerText=p.title;
-  document.getElementById('reader-content').innerText=p.content;
+  // Fetch full post because feed doesn't have content
+  const p=await api(`/api/post/${id}`);
+  document.getElementById('reader-title').innerText=p.title||'No Title';
+  document.getElementById('reader-content').innerText=p.content||'No Content';
   document.getElementById('reader-tab').classList.add('active');
   api('/api/read-session',{method:'POST',body:JSON.stringify({contentId:id,authorId:p.userId,contentType:p.type})})
 }
@@ -215,12 +231,12 @@ function debounceSearch(q){clearTimeout(searchTimer);searchTimer=setTimeout(()=>
 async function searchUsers(q){
   if(q.length<2)return;
   const users=await api(`/api/search/users?q=${q}`);
-  document.getElementById('search-results').innerHTML=users.map(u=>`<div onclick="location.href='profile.html?id=${u.id}'" style="padding:8px;cursor:pointer">${u.username}</div>`).join('');
+  document.getElementById('search-results').innerHTML=(users||[]).map(u=>`<div onclick="location.href='profile.html?id=${u.id}'" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border)">${u.username} - ${u.followers} followers</div>`).join('');
 }
 
 loadFeed('ForYou',document.querySelector('.tab'));
 
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/golviral-frontend/sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
