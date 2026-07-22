@@ -69,7 +69,6 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 <div id="tab-admin" style="display:none"></div>
 </div>
 
-<!-- OTP MODAL -->
 <div id="otp-modal" class="modal"><div class="glass-modal">
 <h3>Enter OTP</h3>
 <input class="input" id="otp-input" placeholder="OTP from email">
@@ -143,14 +142,17 @@ document.getElementById('tab-wallet').innerHTML=`
 async function deposit(amount){const d=await api('/api/deposit/init',{method:'POST',body:JSON.stringify({tierAmount:amount})});window.open(d.selarLink)}
 async function unlockDM(){const d=await api('/api/dm/init',{method:'POST'});window.open(d.selarLink)}
 async function requestWithdraw(){
-const amount=withdraw-amount.value; const method=withdraw-method.value; const target=withdraw-target.value;
-if(method==='USDT_TRC20' && amount!=120000 && amount!=12000000)return toast('USDT min 120k or 12M');
+const amount=document.getElementById('withdraw-amount').value; 
+const method=document.getElementById('withdraw-method').value; 
+const target=document.getElementById('withdraw-target').value;
+if(method==='USDT_TRC20' && Number(amount)!==120000 && Number(amount)!==12000000) return toast('USDT min 120k or 12M');
 pendingWithdraw={amountPoints:amount,method,targetDetails:target};
 const res=await api('/api/wallet/withdraw',{method:'POST',body:JSON.stringify(pendingWithdraw)});
 if(res.otpRequired)document.getElementById('otp-modal').style.display='flex';
 }
 async function confirmWithdraw(){
-await api('/api/wallet/withdraw/confirm',{method:'POST',body:JSON.stringify({...pendingWithdraw,otp:otp-input.value})});
+const otpVal=document.getElementById('otp-input').value;
+await api('/api/wallet/withdraw/confirm',{method:'POST',body:JSON.stringify({...pendingWithdraw,otp:otpVal})});
 toast('Withdraw Requested');document.getElementById('otp-modal').style.display='none';
 }
 
@@ -162,7 +164,7 @@ document.getElementById('tab-gifts').innerHTML=`
 <div class="card" onclick="buyGift('DIAMOND')"><svg viewBox="0 0 24 24"><path d="M2 9l10 13L22 9"/></svg><b>DIAMOND</b><p>₦15000</p></div>`;
 }
 async function buyGift(type){await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});toast('Gift sent')}
-window.sendGift=async(userId,giftType='RUBY')=>{await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId,giftType})}
+window.sendGift=async(userId,giftType='RUBY')=>{await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId,giftType})});}
 
 // SUPPORT
 async function loadSupport(){
@@ -174,7 +176,12 @@ document.getElementById('tab-support').innerHTML=`
 const t=await api('/api/support/my');
 document.getElementById('tickets').innerHTML=t.tickets.map(x=>`<div class="card"><b>${x.subject}</b><p>${x.status}</p></div>`).join('');
 }
-async function sendSupport(){await api('/api/support/send',{method:'POST',body:JSON.stringify({subject:support-subject.value,message:support-msg.value})});toast('Ticket sent')}
+async function sendSupport(){
+const subject=document.getElementById('support-subject').value;
+const message=document.getElementById('support-msg').value;
+await api('/api/support/send',{method:'POST',body:JSON.stringify({subject,message})});
+toast('Ticket sent');
+}
 
 // FOLLOW
 async function toggleFollow(){
