@@ -41,7 +41,6 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 </head>
 <body>
 <div id="toast" class="toast"></div>
-
 <header>
   <div class="topbar">
     <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>GolViral</div>
@@ -54,11 +53,8 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
     <div class="tab" onclick="loadFeed('Stories',this)">Stories</div>
   </div>
 </header>
-
 <main id="feed"></main>
-
 <button class="fab" onclick="location.href='post.html'"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-
 <nav class="bottom-nav">
   <div class="nav-btn active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
   <div class="nav-btn" onclick="openSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Search</span></div>
@@ -66,7 +62,6 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
   <div class="nav-btn" onclick="location.href='messages.html'"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>DM</span></div>
   <div class="nav-btn" onclick="location.href='profile.html'"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Me</span></div>
 </nav>
-
 <!-- COMMENT SHEET -->
 <div id="comment-sheet" class="modal">
   <div class="sheet">
@@ -75,7 +70,6 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
     <div style="display:flex;gap:8px"><input id="comment-input" class="input" placeholder="Add comment..."><button class="btn" onclick="sendComment()">Send</button></div>
   </div>
 </div>
-
 <!-- SEARCH MODAL -->
 <div id="search-modal" class="modal">
   <div class="sheet">
@@ -83,159 +77,42 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
     <div id="search-results" style="margin-top:12px"></div>
   </div>
 </div>
-
 <!-- READER TAB -->
 <div id="reader-tab" class="reader">
   <svg onclick="closeReader()" viewBox="0 0 24 24" style="margin-bottom:20px;cursor:pointer"><path d="M15 18l-6-6 6-6"/></svg>
   <h2 id="reader-title"></h2>
   <p id="reader-content" style="line-height:1.8;margin-top:16px;white-space:pre-wrap"></p>
 </div>
-
 <script>
 const API='https://golviral-api.onrender.com';
 const TOKEN=localStorage.token;
 const USER_ID=localStorage.userId;
 if(!TOKEN) location.href='auth.html';
-
 let feedData=[];
 let currentPost=null;
 let searchTimer=null;
-
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
-
-async function api(path,opt={}){
-  try{
-    const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
-    if(res.status===401) location.href='auth.html';
-    return res.json();
-  }catch{ toast('Network error'); return {} }
-}
-
-async function getSignedUrl(key,shard){
-  const d=await api(`/api/media/sign?key=${key}&shard=${shard}`);
-  return d.url;
-}
-
-async function loadFeed(type,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  feedData=await api('/api/feed');
-  let filtered=type==='ForYou'?feedData:feedData.filter(p=>p.type.toLowerCase()===type.toLowerCase());
-  renderFeed(filtered,type);
-}
-
-function renderFeed(posts,type){
-  const container=document.getElementById('feed');
-  container.innerHTML='';
-  if(type==='Reels'){
-    container.style.overflowY='scroll';
-    posts.filter(p=>p.type==='reel').forEach(p=>container.appendChild(createReel(p)));
-    setupReelObserver();
-  }else{
-    container.style.overflowY='auto';
-    posts.forEach(p=>container.appendChild(createCard(p)));
-  }
-}
-
-function createReel(p){
-  const div=document.createElement('div');
-  div.className='reel';
-  div.dataset.id=p.id;
-  div.dataset.creator=p.userId;
-  div.innerHTML=`
-    <video muted loop playsinline data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video>
-    <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
-      <b>@${p.userId}</b><p>${p.caption||''}</p>
-      ${p.externalLink && p.isBoosted ? `<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ''}
-    </div>
-    <div class="actions">
-      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>${p.likes||0}</span></div>
-      <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>
-      <div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
-      <div class="action-btn" onclick="boostPost('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-    </div>`;
-  return div;
-}
-
-function createCard(p){
-  const div=document.createElement('div');
-  div.className='card';
-  div.innerHTML=`<b>${p.title||'Untitled'}</b><p style="color:var(--muted);margin:8px 0">${p.caption||''}</p><button class="btn" onclick="openReader('${p.id}')">Read</button>`;
-  return div;
-}
-
-function setupReelObserver(){
-  const obs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      const video=e.target.querySelector('video');
-      const postId=e.target.dataset.id;
-      const creatorId=e.target.dataset.creator;
-      if(e.intersectionRatio>0.7){
-        if(!video.src){
-          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{video.src=url;video.play()});
-        } else { video.play(); }
-        // Track view with both creator and viewer
-        api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})
-      }else video.pause();
-    })
-  },{threshold:0.7});
-  document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
-}
-
-async function likePost(postId,creatorId){
-  await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})
-}
-
-async function sendGift(userId){
-  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId})})
-  if(res.success) toast('Gift sent!')
-}
-
+async function api(path,opt={}){ try{ const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}}); if(res.status===401) location.href='auth.html'; return res.json(); }catch{ toast('Network error'); return {} } }
+async function getSignedUrl(key,shard){ const d=await api(`/api/media/sign?key=${key}&shard=${shard}`); return d.url; }
+async function loadFeed(type,el){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); feedData=await api('/api/feed'); let filtered=type==='ForYou'?feedData:feedData.filter(p=>p.type.toLowerCase()===type.toLowerCase()); renderFeed(filtered,type); }
+function renderFeed(posts,type){ const container=document.getElementById('feed'); container.innerHTML=''; if(type==='Reels'){ container.style.overflowY='scroll'; posts.filter(p=>p.type==='reel').forEach(p=>container.appendChild(createReel(p))); setupReelObserver(); }else{ container.style.overflowY='auto'; posts.forEach(p=>container.appendChild(createCard(p))); } }
+function createReel(p){ const div=document.createElement('div'); div.className='reel'; div.dataset.id=p.id; div.dataset.creator=p.userId; div.innerHTML=` <video muted loop playsinline data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video> <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))"> <b>@${p.userId}</b><p>${p.caption||''}</p> ${p.externalLink && p.isBoosted ? `<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ''} </div> <div class="actions"> <div class="action-btn" onclick="likePost('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>${p.likes||0}</span></div> <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div> <div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div> <div class="action-btn" onclick="boostPost('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div> </div>`; return div; }
+function createCard(p){ const div=document.createElement('div'); div.className='card'; div.innerHTML=`<b>${p.title||'Untitled'}</b><p style="color:var(--muted);margin:8px 0">${p.caption||''}</p><button class="btn" onclick="openReader('${p.id}')">Read</button>`; return div; }
+function setupReelObserver(){ const obs=new IntersectionObserver(entries=>{ entries.forEach(e=>{ const video=e.target.querySelector('video'); const postId=e.target.dataset.id; const creatorId=e.target.dataset.creator; if(e.intersectionRatio>0.7){ if(!video.src){ getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{video.src=url;video.play()}); } else { video.play(); } api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID}) }else video.pause(); }) },{threshold:0.7}); document.querySelectorAll('.reel').forEach(r=>obs.observe(r)); }
+async function likePost(postId,creatorId){ await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})}) }
+async function sendGift(userId){ const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId}) if(res.success) toast('Gift sent!') }
 function boostPost(id){location.href=`post.html?boost=${id}`}
-
-async function openComments(postId,creatorId){
-  currentPost={postId,creatorId};
-  document.getElementById('comment-sheet').classList.add('active');
-  const d=await api(`/api/comments/${postId}`);
-  document.getElementById('comment-list').innerHTML=(d.comments||[]).map(c=>`<p style="margin-bottom:8px"><b>${c.user.username}</b>: ${c.text}</p>`).join('');
-}
-
+async function openComments(postId,creatorId){ currentPost={postId,creatorId}; document.getElementById('comment-sheet').classList.add('active'); const d=await api(`/api/comments/${postId}`); document.getElementById('comment-list').innerHTML=(d.comments||[]).map(c=>`<p style="margin-bottom:8px"><b>${c.user.username}</b>: ${c.text}</p>`).join(''); }
 function closeSheet(){document.getElementById('comment-sheet').classList.remove('active')}
-
 document.getElementById('comment-sheet').onclick = e => {if(e.target.id==='comment-sheet') closeSheet()}
 document.getElementById('search-modal').onclick = e => {if(e.target.id==='search-modal') e.target.classList.remove('active')}
-
-async function sendComment(){
-  const text=document.getElementById('comment-input').value;
-  if(!text) return;
-  await api('/api/comment',{method:'POST',body:JSON.stringify({...currentPost,text})});
-  document.getElementById('comment-input').value='';
-  openComments(currentPost.postId,currentPost.creatorId);
-}
-
-async function openReader(id){
-  // Fetch full post because feed doesn't have content
-  const p=await api(`/api/post/${id}`);
-  document.getElementById('reader-title').innerText=p.title||'No Title';
-  document.getElementById('reader-content').innerText=p.content||'No Content';
-  document.getElementById('reader-tab').classList.add('active');
-  api('/api/read-session',{method:'POST',body:JSON.stringify({contentId:id,authorId:p.userId,contentType:p.type})})
-}
-
+async function sendComment(){ const text=document.getElementById('comment-input').value; if(!text) return; await api('/api/comment',{method:'POST',body:JSON.stringify({...currentPost,text})}); document.getElementById('comment-input').value=''; openComments(currentPost.postId,currentPost.creatorId); }
+async function openReader(id){ const p=await api(`/api/post/${id}`); document.getElementById('reader-title').innerText=p.title||'No Title'; document.getElementById('reader-content').innerText=p.content||'No Content'; document.getElementById('reader-tab').classList.add('active'); api('/api/read-session',{method:'POST',body:JSON.stringify({contentId:id,authorId:p.userId,contentType:p.type})}) }
 function closeReader(){document.getElementById('reader-tab').classList.remove('active')}
-
 function openSearch(){document.getElementById('search-modal').classList.add('active')}
-
 function debounceSearch(q){clearTimeout(searchTimer);searchTimer=setTimeout(()=>searchUsers(q),300)}
-
-async function searchUsers(q){
-  if(q.length<2)return;
-  const users=await api(`/api/search/users?q=${q}`);
-  document.getElementById('search-results').innerHTML=(users||[]).map(u=>`<div onclick="location.href='profile.html?id=${u.id}'" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border)">${u.username} - ${u.followers} followers</div>`).join('');
-}
-
+async function searchUsers(q){ if(q.length<2)return; const users=await api(`/api/search/users?q=${q}`); document.getElementById('search-results').innerHTML=(users||[]).map(u=>`<div onclick="location.href='profile.html?id=${u.id}'" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border)">${u.username} - ${u.followers} followers</div>`).join(''); }
 loadFeed('ForYou',document.querySelector('.tab'));
-
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/golviral-frontend/sw.js').catch(()=>{})}
 </script>
 </body>
