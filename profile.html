@@ -6,31 +6,49 @@
 <title>GolViral - Profile</title>
 <link rel="manifest" href="manifest.json">
 <style>
-:root{--bg:#000;--card:#0a0a0a;--glass:rgba(10,10,10,0.7);--accent:#00ff88;--text:#fff;--muted:#888;--border:#1a1a1a}
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
-body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto}
-header{padding:16px;display:flex;justify-content:space-between;align-items:center}
-svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
-.profile{padding:20px;text-align:center}
-.avatar{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#00cc6a);padding:3px;margin:0 auto}
-.avatar img{width:100%;height:100%;border-radius:50%;background:var(--card)}
+:root{
+  --bg:#000;--card:#0a0a0a;--glass:rgba(10,10,10,0.6);--text:#fff;--muted:#888;--border:#1a1a1a;
+  --green:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;
+  --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;min-height:100dvh}
+header{padding:16px;display:flex;justify-content:space-between;align-items:center;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:pointer}
+.profile{padding:24px 20px;text-align:center;background:radial-gradient(circle at 50% 0%,rgba(0,255,136,0.1),transparent 70%)}
+.avatar{width:100px;height:100px;border-radius:50%;background:var(--gradient);padding:3px;margin:0 auto;box-shadow:0 0 30px rgba(0,255,136,0.4)}
+.avatar img{width:100%;height:100%;border-radius:50%;background:var(--card);object-fit:cover}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800;margin-top:8px}
+.badge.verified{background:var(--blue);color:#fff}
+.badge.creator{background:var(--purple);color:#fff}
 .stats{display:flex;justify-content:space-around;margin:20px 0}
-.stat{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:14px}
-.tabs{display:flex;gap:20px;padding:0 20px;border-bottom:1px solid var(--border)}
-.tab{padding:12px 0;color:var(--muted);cursor:pointer;display:flex;gap:6px;align-items:center}
-.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
-.content{padding:20px}
+.stat{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;padding:12px;border-radius:16px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);flex:1;margin:0 4px}
+.stat b{font-size:18px;color:var(--green)}
+.tabs{display:flex;gap:8px;padding:0 12px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:14px 16px;color:var(--muted);cursor:pointer;display:flex;gap:6px;align-items:center;white-space:nowrap;font-weight:700;border-radius:12px 12px 0 0}
+.tab.active{color:#000;background:var(--gradient)}
+.content{padding:16px}
 .card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
-.grid-item{aspect-ratio:1;background:var(--card);border-radius:8px}
-.input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;margin-bottom:10px}
-.btn{background:var(--accent);color:#000;border:none;padding:12px;border-radius:12px;font-weight:800;width:100%;cursor:pointer}
-.progress{height:8px;background:var(--card);border-radius:10px;overflow:hidden;margin:6px 0}
-.progress-bar{height:100%;background:var(--accent)}
+.card.posts{background:linear-gradient(135deg,rgba(0,255,136,0.1),transparent)}
+.card.wallet{background:linear-gradient(135deg,rgba(59,130,246,0.1),transparent)}
+.card.gifts{background:linear-gradient(135deg,rgba(236,72,153,0.1),transparent)}
+.card.support{background:linear-gradient(135deg,rgba(168,85,247,0.1),transparent)}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.grid-item{aspect-ratio:1;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;margin-bottom:10px;outline:none}
+.input:focus{border-color:var(--green)}
+.btn{background:var(--gradient);color:#000;border:none;padding:12px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:16px}
+.btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.progress{height:10px;background:var(--card);border-radius:10px;overflow:hidden;margin:8px 0}
+.progress-bar{height:100%;background:var(--gradient);border-radius:10px;transition:0.3s}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(10px);display:none;justify-content:center;align-items:center;z-index:200}
-.glass-modal{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:20px;width:90%}
-.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
+.modal.active{display:flex}
+.glass-modal{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:24px;width:90%;max-width:400px}
+.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--green);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
 .toast.show{transform:translate(-50%,0);opacity:1}
+.gift-card{display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;margin-bottom:10px;cursor:pointer;border:2px solid transparent;transition:0.2s}
+.gift-card:hover{border-color:var(--green);transform:translateY(-2px)}
 </style>
 </head>
 <body>
@@ -44,7 +62,8 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 
 <div class="profile">
 <div class="avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"></div>
-<h2 id="bio" style="margin:8px 0;color:var(--muted)"></h2>
+<h2 id="username-display" style="margin:8px 0"></h2>
+<div id="badges"></div>
 <div class="stats">
 <div class="stat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><b id="posts">0</b><span>Posts</span></div>
 <div class="stat"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><b id="followers">0</b><span>Followers</span></div>
@@ -58,7 +77,6 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 <div class="tab" onclick="showTab('wallet',this)"><svg viewBox="0 0 24 24"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/><path d="M16 5h6v6"/><circle cx="18" cy="15" r="3"/></svg>Wallet</div>
 <div class="tab" onclick="showTab('gifts',this)"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>Gifts</div>
 <div class="tab" onclick="showTab('support',this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Support</div>
-<div class="tab" id="admin-tab" style="display:none" onclick="showTab('admin',this)"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admin</div>
 </div>
 
 <div class="content">
@@ -66,13 +84,13 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 <div id="tab-wallet" style="display:none"></div>
 <div id="tab-gifts" style="display:none"></div>
 <div id="tab-support" style="display:none"></div>
-<div id="tab-admin" style="display:none"></div>
 </div>
 
 <div id="otp-modal" class="modal"><div class="glass-modal">
-<h3>Enter OTP</h3>
-<input class="input" id="otp-input" placeholder="OTP from email">
-<button class="btn" onclick="confirmWithdraw()">Confirm</button>
+<h3 style="margin-bottom:12px">Verify Withdrawal</h3>
+<p style="color:var(--muted);margin-bottom:12px">Enter OTP sent to your email</p>
+<input class="input" id="otp-input" placeholder="123456">
+<button class="btn" onclick="confirmWithdraw()">Confirm Withdraw</button>
 </div></div>
 
 <script>
@@ -84,17 +102,24 @@ const isSelf=profileId===localStorage.userId;
 let pendingWithdraw=null;
 
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
-async function api(path,opt={}){const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});if(res.status===401)location.href='auth.html';return res.json()}
+async function api(path,opt={}){try{const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});if(res.status===401)location.href='auth.html';return res.json()}catch{toast('Network error');return {}}}
+
+function getPercent(str){if(!str)return 0;const [a,b]=str.split('/').map(Number);return b?Math.min(100,Math.round(a/b*100)):0}
 
 // LOAD PROFILE
 async function loadProfile(){
 const u=await api(`/api/user/${profileId}`);
 document.getElementById('username').innerText='@'+u.username;
-document.getElementById('bio').innerText=u.bio||'';
+document.getElementById('username-display').innerText=u.username;
 document.getElementById('posts').innerText=u.totalPosts||0;
 document.getElementById('followers').innerText=u.followers||0;
 document.getElementById('likes').innerText=u.totalLikes||0;
-if(u.role==='admin')document.getElementById('admin-tab').style.display='flex';
+
+let badges='';
+if(u.isVerified) badges+=`<span class="badge verified">Verified</span>`;
+if(u.dmUnlocked) badges+=`<span class="badge creator">Creator</span>`;
+document.getElementById('badges').innerHTML=badges;
+
 if(!isSelf)document.getElementById('follow-btn').innerText=u.isFollowing?'Unfollow':'Follow';
 else document.getElementById('follow-btn').style.display='none';
 loadPosts();
@@ -102,7 +127,7 @@ loadPosts();
 
 async function loadPosts(){
 const d=await api(`/api/user/${profileId}/posts`);
-document.getElementById('tab-posts').innerHTML=`<div class="grid">${d.posts.map(p=>`<div class="grid-item"></div>`).join('')}</div>`;
+document.getElementById('tab-posts').innerHTML=`<div class="grid">${(d||[]).map(()=>`<div class="grid-item"></div>`).join('')}</div>`;
 }
 
 function showTab(tab,el){
@@ -118,82 +143,86 @@ if(tab==='support')loadSupport();
 // WALLET
 async function loadWallet(){
 const w=await api('/api/wallet');
+const cap=getPercent(w.dailyCapProgress); const days=getPercent(w.daysProgress); const foll=getPercent(w.followersProgress);
 document.getElementById('tab-wallet').innerHTML=`
-<div class="card"><b>Free Credits: ${w.freeCredits}</b></div>
-<div class="card"><b>Cash Balance: ₦${w.cashBalance}</b></div>
-<div class="card">
-<p>Daily Cap ${w.dailyCapProgress}%</p><div class="progress"><div class="progress-bar" style="width:${w.dailyCapProgress}%"></div></div>
-<p>Days ${w.daysProgress}%</p><div class="progress"><div class="progress-bar" style="width:${w.daysProgress}%"></div></div>
-<p>Followers ${w.followersProgress}%</p><div class="progress"><div class="progress-bar" style="width:${w.followersProgress}%"></div></div>
+<div class="card wallet"><b>Free Credits: ${w.freeCredits}</b></div>
+<div class="card wallet"><b>Cash Balance: ₦${w.cashBalance}</b></div>
+<div class="card wallet">
+<p>Daily Cap ${w.dailyCapProgress}</p><div class="progress"><div class="progress-bar" style="width:${cap}%"></div></div>
+<p>Days to Monetize ${w.daysProgress}</p><div class="progress"><div class="progress-bar" style="width:${days}%"></div></div>
+<p>Followers ${w.followersProgress}</p><div class="progress"><div class="progress-bar" style="width:${foll}%"></div></div>
 </div>
-<div class="card">
-<button class="btn" onclick="deposit(1500)">Deposit ₦1500</button>
-<button class="btn" onclick="deposit(7000)">Deposit ₦7000</button>
-<button class="btn" onclick="unlockDM()">Unlock DM ₦3000</button>
+<div class="card wallet">
+<button class="btn" onclick="deposit(1500)">Deposit ₦1500 = 15,000 pts</button>
+<button class="btn" onclick="deposit(7000)">Deposit ₦7000 = 70,000 pts</button>
+<button class="btn secondary" onclick="unlockDM()">Unlock DM ₦3000</button>
 </div>
-<div class="card">
-<input class="input" id="withdraw-amount" placeholder="Amount in Points">
-<input class="input" id="withdraw-method" placeholder="USDT_TRC20">
-<input class="input" id="withdraw-target" placeholder="TRC20 Address">
+<div class="card wallet">
+<input class="input" id="withdraw-amount" type="number" placeholder="Amount in Points">
+<select class="input" id="withdraw-method"><option value="BANK">Bank Transfer</option><option value="USDT">USDT TRC20</option></select>
+<input class="input" id="withdraw-target" placeholder="Bank details or TRC20 Address">
 <button class="btn" onclick="requestWithdraw()">Withdraw</button>
 </div>`;
 }
 
-async function deposit(amount){const d=await api('/api/deposit/init',{method:'POST',body:JSON.stringify({tierAmount:amount})});window.open(d.selarLink)}
-async function unlockDM(){const d=await api('/api/dm/init',{method:'POST'});window.open(d.selarLink)}
+async function deposit(amount){const d=await api('/api/deposit/init',{method:'POST',body:JSON.stringify({tierAmount:amount})});if(d.selarLink)window.open(d.selarLink)}
+async function unlockDM(){const d=await api('/api/dm/init',{method:'POST'});if(d.selarLink)window.open(d.selarLink)}
 async function requestWithdraw(){
 const amount=document.getElementById('withdraw-amount').value; 
 const method=document.getElementById('withdraw-method').value; 
 const target=document.getElementById('withdraw-target').value;
-if(method==='USDT_TRC20' && Number(amount)!==120000 && Number(amount)!==12000000) return toast('USDT min 120k or 12M');
-pendingWithdraw={amountPoints:amount,method,targetDetails:target};
+if(method==='USDT' && Number(amount)!==120000 && Number(amount)!==12000000) return toast('USDT only 120k or 12M pts');
+pendingWithdraw={amountPoints:Number(amount),method,targetDetails:target};
 const res=await api('/api/wallet/withdraw',{method:'POST',body:JSON.stringify(pendingWithdraw)});
-if(res.otpRequired)document.getElementById('otp-modal').style.display='flex';
+if(res.authChallenge)document.getElementById('otp-modal').classList.add('active');
 }
 async function confirmWithdraw(){
 const otpVal=document.getElementById('otp-input').value;
 await api('/api/wallet/withdraw/confirm',{method:'POST',body:JSON.stringify({...pendingWithdraw,otp:otpVal})});
-toast('Withdraw Requested');document.getElementById('otp-modal').style.display='none';
+toast('Withdraw Requested');document.getElementById('otp-modal').classList.remove('active');
 }
 
 // GIFTS
 function loadGifts(){
 document.getElementById('tab-gifts').innerHTML=`
-<div class="card" onclick="buyGift('RUBY')"><svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9l4-6z"/></svg><b>RUBY</b><p>₦5000</p></div>
-<div class="card" onclick="buyGift('GOLD')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg><b>GOLD</b><p>₦10000</p></div>
-<div class="card" onclick="buyGift('DIAMOND')"><svg viewBox="0 0 24 24"><path d="M2 9l10 13L22 9"/></svg><b>DIAMOND</b><p>₦15000</p></div>`;
+<div class="card gifts gift-card" onclick="buyGift('RUBY')" style="background:linear-gradient(135deg,rgba(236,72,153,0.2),transparent)">
+<svg viewBox="0 0 24 24" style="color:#ec4899"><path d="M6 3h12l4 6-10 13L2 9l4-6z"/></svg><div><b>RUBY</b><p style="color:var(--muted)">₦5000 - 200pts x 100 gifts</p></div></div>
+<div class="card gifts gift-card" onclick="buyGift('GOLD')" style="background:linear-gradient(135deg,rgba(234,179,8,0.2),transparent)">
+<svg viewBox="0 0 24 24" style="color:#eab308"><circle cx="12" cy="12" r="10"/></svg><div><b>GOLD</b><p style="color:var(--muted)">₦10000 - 500pts x 100 gifts</p></div></div>
+<div class="card gifts gift-card" onclick="buyGift('DIAMOND')" style="background:linear-gradient(135deg,rgba(59,130,246,0.2),transparent)">
+<svg viewBox="0 0 24 24" style="color:#3b82f6"><path d="M2 9l10 13L22 9"/></svg><div><b>DIAMOND</b><p style="color:var(--muted)">₦15000 - 1000pts x 100 gifts</p></div></div>`;
 }
-async function buyGift(type){await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});toast('Gift sent')}
-window.sendGift=async(userId,giftType='RUBY')=>{await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId,giftType})});}
+async function buyGift(type){const d=await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});if(d.selarLink)window.open(d.selarLink)}
+window.sendGift=async(userId,giftType='RUBY')=>{await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId,giftType})});toast('Gift Sent!')}
 
 // SUPPORT
 async function loadSupport(){
 document.getElementById('tab-support').innerHTML=`
-<div class="card"><input class="input" id="support-subject" placeholder="Subject">
-<textarea class="input" id="support-msg" placeholder="Message"></textarea>
+<div class="card support"><input class="input" id="support-subject" placeholder="Subject">
+<textarea class="input" id="support-msg" placeholder="Describe your issue" rows="4"></textarea>
 <button class="btn" onclick="sendSupport()">Send Ticket</button></div>
 <div id="tickets"></div>`;
 const t=await api('/api/support/my');
-document.getElementById('tickets').innerHTML=t.tickets.map(x=>`<div class="card"><b>${x.subject}</b><p>${x.status}</p></div>`).join('');
+document.getElementById('tickets').innerHTML=(t||[]).map(x=>`<div class="card support"><b>${x.subject}</b><p style="color:${x.status==='RESOLVED'?'var(--green)':'var(--orange)'}">${x.status}</p></div>`).join('');
 }
 async function sendSupport(){
 const subject=document.getElementById('support-subject').value;
 const message=document.getElementById('support-msg').value;
 await api('/api/support/send',{method:'POST',body:JSON.stringify({subject,message})});
-toast('Ticket sent');
+toast('Ticket sent');loadSupport();
 }
 
 // FOLLOW
 async function toggleFollow(){
 const btn=document.getElementById('follow-btn');
-if(btn.innerText==='Follow'){await api('/api/follow',{method:'POST',body:JSON.stringify({followingId:profileId})});btn.innerText='Unfollow'}
-else{await api('/api/unfollow',{method:'POST',body:JSON.stringify({followingId:profileId})});btn.innerText='Follow'}
+if(btn.innerText==='Follow'){await api('/api/follow',{method:'POST',body:JSON.stringify({followingId:profileId})});btn.innerText='Unfollow';toast('Following')}
+else{await api('/api/unfollow',{method:'POST',body:JSON.stringify({followingId:profileId})});btn.innerText='Follow';toast('Unfollowed')}
 }
 
 function logout(){localStorage.clear();location.href='auth.html'}
 
 loadProfile();
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/golviral-frontend/sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
