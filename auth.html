@@ -1,29 +1,4 @@
-Here is the breakdown of the issues found in your code, followed by the complete corrected code.
 
----
-
-### Key Issues Found & Fixed
-
-1. **DOM Element Identifier Subtraction Bug (Critical)**
-* **Issue:** Code like `login-email.value` or `signup-user.value` was written directly. In JavaScript, `login-email` is interpreted as arithmetic subtraction (`login` minus `email`), throwing a runtime `ReferenceError: login is not defined`.
-* **Fix:** Replaced these direct expressions with `document.getElementById('login-email').value`.
-
-
-2. **Web Push VAPID Key Format**
-* **Issue:** `pushManager.subscribe()` requires the `applicationServerKey` as a `Uint8Array` rather than a raw Base64 string, which would cause push subscription requests to fail.
-* **Fix:** Included a standard `urlBase64ToUint8Array` helper function to handle VAPID key conversion safely.
-
-
-3. **Minor Attribute Selector Safeguard**
-* **Fix:** Wrapped radio query selector `input[name="role"]:checked` with explicit quotes to prevent selector parsing issues across different browsers.
-
-
-
----
-
-### Clean Fixed Code
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
