@@ -19,7 +19,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 .type{padding:20px;text-align:center;border:1px solid var(--border);border-radius:12px;cursor:pointer}
 .type.active{border-color:var(--accent);background:rgba(0,255,136,0.1)}
 .input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px;outline:none}
-.drop{border:2px dashed var(--border);border-radius:12px;padding:40px;text-align:center;margin-bottom:12px}
+.drop{border:2px dashed var(--border);border-radius:12px;padding:40px;text-align:center;margin-bottom:12px;cursor:pointer}
 .progress{height:6px;background:var(--card);border-radius:10px;overflow:hidden}
 .progress-bar{height:100%;background:var(--accent);width:0%;transition:0.3s}
 .btn{background:linear-gradient(90deg,var(--accent),#00cc6a);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px}
@@ -38,23 +38,22 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 
 <div id="toast" class="toast"></div>
 
-<!-- UPLOAD SCREEN -->
 <div id="upload-screen">
-<div class="stepper"><div class="step active">1. Type</div><div class="step">2. Upload</div><div class="step">3. Details</div></div>
+<div class="stepper"><div class="step active" id="step-1">1. Type</div><div class="step" id="step-2">2. Upload</div><div class="step" id="step-3">3. Details</div></div>
 <div class="card">
 <h3 style="margin-bottom:12px">Choose Post Type</h3>
 <div class="types">
-<div class="type" onclick="selectType('reel',this)"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg><p>Reel</p><small>25 Credits</small></div>
+<div class="type active" onclick="selectType('reel',this)"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg><p>Reel</p><small>25 Credits</small></div>
 <div class="type" onclick="selectType('novel',this)"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg><p>Novel</p><small>10 Credits</small></div>
 <div class="type" onclick="selectType('story',this)"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><p>Story</p><small>10 Credits</small></div>
 </div>
 </div>
 
-<div id="upload-step" style="display:none" class="card">
+<div id="upload-step" class="card">
 <h3>Upload File</h3>
 <div class="drop" id="drop">
 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-<p>Drag.mp4 or.mov here or click</p>
+<p>Drag .mp4 or .mov here or click</p>
 <input type="file" id="file-input" accept="video/mp4,video/quicktime,video/mov" style="display:none">
 </div>
 <div class="progress"><div class="progress-bar" id="progress"></div></div>
@@ -64,17 +63,16 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 <h3>Post Details</h3>
 <input class="input" id="title" placeholder="Title">
 <textarea class="input" id="caption" placeholder="Caption"></textarea>
-<input class="input" id="externalLink" placeholder="External Link Optional">
+<input class="input" id="externalLink" placeholder="External Link (Optional)">
 <textarea class="input" id="content" placeholder="Novel/Story Content" style="display:none;height:200px"></textarea>
 <button class="btn" onclick="submitPost()">Publish Post</button>
 </div>
 </div>
 
-<!-- BOOST SCREEN -->
 <div id="boost-screen" style="display:none">
 <h3 style="margin-bottom:16px">Boost This Post</h3>
 <div class="boost-grid">
-<div class="boost-card card" onclick="selectBoost(3500,this)"><h2>₦3,500</h2><p>1 Day Boost</p></div>
+<div class="boost-card card active" onclick="selectBoost(3500,this)"><h2>₦3,500</h2><p>1 Day Boost</p></div>
 <div class="boost-card card" onclick="selectBoost(7500,this)"><h2>₦7,500</h2><p>3 Days Boost</p></div>
 <div class="boost-card card" onclick="selectBoost(17000,this)"><h2>₦17,000</h2><p>7 Days Boost</p></div>
 </div>
@@ -88,60 +86,95 @@ if(!TOKEN) location.href='auth.html';
 
 const params=new URLSearchParams(location.search);
 const boostId=params.get('boost');
-let selectedType='reel'; let selectedFile=null; let postData={}; let selectedBoost=3500;
+let selectedType='reel'; let selectedFile=null; let selectedBoost=3500;
 
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 
-if(boostId){document.getElementById('upload-screen').style.display='none';document.getElementById('boost-screen').style.display='block';document.getElementById('page-title').innerText='Boost Post'}else{document.getElementById('upload-screen').style.display='block'}
+if(boostId){
+document.getElementById('upload-screen').style.display='none';
+document.getElementById('boost-screen').style.display='block';
+document.getElementById('page-title').innerText='Boost Post';
+}else{
+document.getElementById('upload-screen').style.display='block';
+}
 
-function selectType(t,el){selectedType=t;document.querySelectorAll('.type').forEach(x=>x.classList.remove('active'));el.classList.add('active');document.getElementById('upload-step').style.display='block';if(t==='novel'||t==='story'){document.getElementById('content').style.display='block'}}
+function selectType(t,el){
+selectedType=t;
+document.querySelectorAll('.type').forEach(x=>x.classList.remove('active'));
+el.classList.add('active');
 
-document.getElementById('drop').onclick=()=>file-input.click();
+const isTextPost = t==='novel' || t==='story';
+document.getElementById('upload-step').style.display = isTextPost ? 'none' : 'block';
+document.getElementById('details-step').style.display = isTextPost ? 'block' : (selectedFile ? 'block' : 'none');
+document.getElementById('content').style.display = isTextPost ? 'block' : 'none';
+
+document.getElementById('step-2').classList.toggle('active', !isTextPost);
+document.getElementById('step-3').classList.toggle('active', isTextPost);
+}
+
+document.getElementById('drop').onclick=()=>document.getElementById('file-input').click();
 document.getElementById('file-input').onchange=e=>{selectedFile=e.target.files[0];handleFile(selectedFile)}
 document.getElementById('drop').ondrop=e=>{e.preventDefault();selectedFile=e.dataTransfer.files[0];handleFile(selectedFile)}
 document.getElementById('drop').ondragover=e=>e.preventDefault();
 
 function handleFile(file){
+if(!file) return;
 if(file.size>50*1024*1024)return toast('Max 50MB');
 document.getElementById('details-step').style.display='block';
+document.getElementById('step-3').classList.add('active');
 }
 
 function selectBoost(amount,el){selectedBoost=amount;document.querySelectorAll('.boost-card').forEach(x=>x.classList.remove('active'));el.classList.add('active')}
 
 async function submitPost(){
-const fileExt=selectedFile.name.split('.').pop();
-const contentType=selectedFile.type;
+if(selectedType==='reel' && !selectedFile) return toast('Please select a video file');
+
+const fileExt=selectedFile ? selectedFile.name.split('.').pop() : '';
+const contentType=selectedFile ? selectedFile.type : '';
 const title=document.getElementById('title').value;
 const caption=document.getElementById('caption').value;
 const content=document.getElementById('content').value;
 const externalLink=document.getElementById('externalLink').value;
 
+try {
 const res1=await fetch(API+'/api/post/create-intent',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({fileExtension:fileExt,contentType,postType:selectedType,caption,externalLink})});
 const d1=await res1.json(); if(d1.error)return toast(d1.error);
 
+if(selectedFile && d1.uploadUrl){
 await uploadFile(d1.uploadUrl,selectedFile);
+}
 
 const res3=await fetch(API+'/api/post/create',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({postId:d1.postId,objectKey:d1.objectKey,title,content})});
 const d3=await res3.json();
-toast(d3.message); setTimeout(()=>location.href='index.html',1500)
+toast(d3.message||'Post published!'); setTimeout(()=>location.href='index.html',1500);
+} catch(err) {
+toast('Failed to publish post');
+}
 }
 
 async function uploadFile(url,file){
-await new Promise((resolve,reject)=>{
+return new Promise((resolve,reject)=>{
 const xhr=new XMLHttpRequest();
-xhr.upload.onprogress=e=>{document.getElementById('progress').style.width=(e.loaded/e.total*100)+'%'}
-xhr.onload=()=>resolve();
-xhr.onerror=()=>reject();
+xhr.upload.onprogress=e=>{if(e.lengthComputable) document.getElementById('progress').style.width=(e.loaded/e.total*100)+'%'}
+xhr.onload=()=>{
+if(xhr.status>=200 && xhr.status<300) resolve();
+else reject(new Error('Upload failed'));
+};
+xhr.onerror=()=>reject(new Error('Network error'));
 xhr.open('PUT',url);
 xhr.send(file);
-})
+});
 }
 
 async function initBoost(){
+try {
 const res=await fetch(API+'/api/boost/init',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({postId:boostId,tierAmount:selectedBoost})});
 const data=await res.json();
-window.open(data.selarLink,'_blank');
-// After payment user returns, you call payment/verify from profile
+if(data.selarLink) window.open(data.selarLink,'_blank');
+else toast(data.error||'Failed to init boost');
+} catch(err) {
+toast('Boost initialization failed');
+}
 }
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
