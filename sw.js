@@ -1,3 +1,4 @@
+
 const CACHE_NAME = 'golviral-v2';
 const APP_BASE_URL = 'https://selimzy535-ai.github.io/golviral-frontend';
 const API_URL = 'https://golviral-api.onrender.com';
@@ -64,9 +65,18 @@ self.addEventListener('fetch', event => {
 
   // 3. App Shell: Stale While Revalidate
   event.respondWith(
-    caches.match(event.request).then(cached => 
-      cached || fetch(event.request)
-    )
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, networkResponse.clone());
+        });
+        return networkResponse;
+      }).catch(() => {
+        // Network failure fallback handled by cached response below if available
+      });
+
+      return cached || fetchPromise;
+    })
   );
 });
 
