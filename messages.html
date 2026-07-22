@@ -35,13 +35,11 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
 </head>
 <body>
 
-<!-- CHAT LIST -->
 <div id="chat-list-screen">
 <header><svg onclick="location.href='index.html'" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg><h3>Messages</h3></header>
 <div class="list" id="chat-list"></div>
 </div>
 
-<!-- CHAT SCREEN -->
 <div id="chat-screen" style="display:none;flex-direction:column;height:100dvh">
 <header class="chat-header">
 <svg onclick="backToList()" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -53,7 +51,7 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
 <div id="typing-indicator" class="typing" style="display:none"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
 <div class="input-area">
-<input class="input" id="msg-input" placeholder="Message..." onkeydown="handleTyping()">
+<input class="input" id="msg-input" placeholder="Message..." onkeydown="handleTyping(event)">
 <button class="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
 </div>
 </div>
@@ -73,7 +71,10 @@ const params=new URLSearchParams(location.search);
 const toUserId=params.get('to');
 let socket=null; let currentChat=null; let typingTimer=null;
 
-function showScreen(s){document.getElementById('chat-list-screen').style.display=s==='list'?'block':'none';document.getElementById('chat-screen').style.display=s==='chat'?'flex':'none'}
+function showScreen(s){
+document.getElementById('chat-list-screen').style.display=s==='list'?'block':'none';
+document.getElementById('chat-screen').style.display=s==='chat'?'flex':'none';
+}
 
 async function api(path,opt={}){
 const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
@@ -87,34 +88,46 @@ socket=io(API,{auth:{token:TOKEN}});
 socket.on('connect',()=>console.log('socket connected'));
 socket.on('receive_message',data=>{if(data.senderId===currentChat)addBubble(data.text,'recv')});
 socket.on('typing',data=>{if(data.senderId===currentChat)showTyping()});
+socket.on('error',data=>{if(data?.message==='DM_LOCKED'||data?.error)showError()});
 socket.on('disconnect',()=>console.log('socket disconnected'));
 }
 
 // LOAD CHAT LIST
 async function loadChatList(){
-const chats=await api('/api/messages'); // assuming this returns last messages
-document.getElementById('chat-list').innerHTML=chats.map(c=>`
-<div class="chat-item" onclick="openChat('${c.userId}','${c.username}')">
-<div class="avatar">${c.username[0]}</div>
+const res=await api('/api/messages');
+const chats=Array.isArray(res)?res:(res.chats||[]);
+document.getElementById('chat-list').innerHTML=chats.map(c=>{
+const username=c.username||'User';
+const initial=username[0].toUpperCase();
+return `
+<div class="chat-item" onclick="openChat('${c.userId}','${username}')">
+<div class="avatar">${initial}</div>
 <div class="chat-wrap">
-<b>${c.username}</b>
+<b>${username}</b>
 <small style="color:var(--muted)">${c.lastMessage||'No messages yet'}</small>
 </div>
-</div>`).join('');
+</div>`;
+}).join('');
 }
 
 // OPEN CHAT
 async function openChat(userId,username){
 currentChat=userId;
-document.getElementById('chat-name').innerText=username;
-document.getElementById('chat-avatar').innerText=username[0];
+const validName=username||'User';
+document.getElementById('chat-name').innerText=validName;
+document.getElementById('chat-avatar').innerText=validName[0].toUpperCase();
 showScreen('chat');
 const d=await api(`/api/messages/${userId}`);
 document.getElementById('chat-box').innerHTML='';
-d.messages.forEach(m=>addBubble(m.text,m.senderId===localStorage.userId?'sent':'recv'));
+const messages=Array.isArray(d)?d:(d.messages||[]);
+messages.forEach(m=>addBubble(m.text,m.senderId===localStorage.userId?'sent':'recv'));
 }
 
-function backToList(){showScreen('list');currentChat=null}
+function backToList(){
+showScreen('list');
+currentChat=null;
+loadChatList();
+}
 
 // SEND MESSAGE
 async function sendMessage(){
@@ -132,7 +145,11 @@ if(res.error)showError();
 }
 
 // TYPING
-function handleTyping(){
+function handleTyping(e){
+if(e && e.key === 'Enter'){
+sendMessage();
+return;
+}
 if(socket) socket.emit('typing',{receiverId:currentChat});
 clearTimeout(typingTimer);
 typingTimer=setTimeout(()=>{},1000);
@@ -156,7 +173,16 @@ function closeError(){document.getElementById('dm-error').style.display='none'}
 
 // INIT
 initSocket();
-if(toUserId){api(`/api/search/users?q=${toUserId}`).then(u=>openChat(toUserId,u[0].username))}else{loadChatList();showScreen('list')}
+if(toUserId){
+api(`/api/search/users?q=${toUserId}`).then(u=>{
+const users=Array.isArray(u)?u:(u.users||[]);
+if(users.length>0) openChat(toUserId, users[0].username);
+else openChat(toUserId, 'User');
+});
+}else{
+loadChatList();
+showScreen('list');
+}
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
 </script>
