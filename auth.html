@@ -63,7 +63,6 @@ GolViral
 </form>
 </main>
 
-<!-- BOT CHALLENGE MODAL -->
 <div id="bot-modal" class="modal">
 <div class="glass-modal">
 <h3 style="margin-bottom:12px">Verify You Are Human</h3>
@@ -73,7 +72,6 @@ GolViral
 </div>
 </div>
 
-<!-- ONBOARDING MODAL -->
 <div id="onboard-modal" class="modal">
 <div class="glass-modal">
 <h3 style="margin-bottom:12px">Welcome to GolViral</h3>
@@ -123,9 +121,36 @@ if(pendingData.type==='forgot') doForgot(pendingData, data.passToken);
 }else toast('Wrong answer');
 }
 
-document.getElementById('form-login').onsubmit=async e=>{e.preventDefault();pendingData={type:'login',email:login-email.value,password:login-pass.value};botChallenge()}
-document.getElementById('form-signup').onsubmit=async e=>{e.preventDefault();pendingData={type:'signup',username:signup-user.value,email:signup-email.value,password:signup-pass.value,referralCode:signup-ref.value};botChallenge()}
-document.getElementById('form-forgot').onsubmit=async e=>{e.preventDefault();pendingData={type:'forgot',email:forgot-email.value};botChallenge()}
+document.getElementById('form-login').onsubmit=async e=>{
+e.preventDefault();
+pendingData={
+type:'login',
+email:document.getElementById('login-email').value,
+password:document.getElementById('login-pass').value
+};
+botChallenge();
+}
+
+document.getElementById('form-signup').onsubmit=async e=>{
+e.preventDefault();
+pendingData={
+type:'signup',
+username:document.getElementById('signup-user').value,
+email:document.getElementById('signup-email').value,
+password:document.getElementById('signup-pass').value,
+referralCode:document.getElementById('signup-ref').value
+};
+botChallenge();
+}
+
+document.getElementById('form-forgot').onsubmit=async e=>{
+e.preventDefault();
+pendingData={
+type:'forgot',
+email:document.getElementById('forgot-email').value
+};
+botChallenge();
+}
 
 async function doLogin(d,passToken){
 const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
@@ -152,19 +177,35 @@ categories.forEach(c=>{const div=document.createElement('div');div.className='ch
 function showOnboard(){document.getElementById('onboard-modal').classList.add('active')}
 async function finishOnboard(){
 const selected=[...document.querySelectorAll('.chip.active')].map(c=>c.innerText).slice(0,3);
-const role=document.querySelector('input[name=role]:checked').value;
+const role=document.querySelector('input[name="role"]:checked').value;
 const country=document.getElementById('country').value;
 localStorage.onboarding_data=JSON.stringify({categories:selected,role,country});
 await requestPush();
 window.location.href='index.html';
 }
 
+function urlBase64ToUint8Array(base64String) {
+const padding = '='.repeat((4 - base64String.length % 4) % 4);
+const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+const rawData = window.atob(base64);
+const outputArray = new Uint8Array(rawData.length);
+for (let i = 0; i < rawData.length; ++i) {
+outputArray[i] = rawData.charCodeAt(i);
+}
+return outputArray;
+}
+
 async function requestPush(){
+try {
 const reg=await navigator.serviceWorker.register('/sw.js');
 // REPLACE THIS WITH YOUR REAL VAPID PUBLIC KEY
 const vapidKey = 'BEl0YourPublicKeyHere';
-const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidKey});
+const convertedKey = urlBase64ToUint8Array(vapidKey);
+const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:convertedKey});
 await fetch(API+'/api/push/subscribe',{method:'POST',headers:{'Authorization':'Bearer '+localStorage.token,'Content-Type':'application/json'},body:JSON.stringify({subscription:sub})});
+} catch(err) {
+console.error('Push notification error:', err);
+}
 }
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
