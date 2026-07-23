@@ -107,8 +107,9 @@ GolViral
 
 <script>
 const API='https://golviral-api.onrender.com';
-let currentTab='login'; let pendingData=null; let botToken=null;
+let currentTab='login'; let pendingData=null; let botToken=null; let mathAnswer=null; // store math answer
 let surveyStep=0; let surveyData={};
+let captchaText = '';
 
 const surveyQuestions=[
   {id:'interests', title:'Q1: Pick up to 3 interests', type:'chips', options:['Comedy','Tech','Lifestyle','Music','Novels','News','Gaming','Sports','Crypto','Motivation']},
@@ -129,19 +130,83 @@ document.getElementById('form-'+tab).style.display='block';
 
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 
+// ===== NEW CAPTCHA SYSTEM =====
+function generateCaptcha(len=7){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0,O,1,I
+  let res = '';
+  for(let i=0;i<len;i++) res += chars.charAt(Math.floor(Math.random()*chars.length));
+  return res;
+}
+
+function renderGlitchCaptcha(text){
+  const canvas = document.createElement('canvas');
+  canvas.width = 300; canvas.height = 80;
+  const ctx = canvas.getContext('2d');
+
+  // bg
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0,0,300,80);
+
+  // glitch lines
+  for(let i=0;i<5;i++){
+    ctx.strokeStyle = `rgba(0,255,136,${Math.random()})`;
+    ctx.beginPath();
+    ctx.moveTo(Math.random()*300,0);
+    ctx.lineTo(Math.random()*300,80);
+    ctx.stroke();
+  }
+
+  // text with distortion
+  ctx.font = 'bold 36px monospace';
+  ctx.fillStyle = '#00ff88';
+  for(let i=0;i<text.length;i++){
+    ctx.save();
+    ctx.translate(30 + i*35, 50);
+    ctx.rotate((Math.random()-0.5)*0.3);
+    ctx.fillText(text[i], 0, 0);
+    ctx.restore();
+  }
+
+  return canvas.toDataURL();
+}
+
 async function botChallenge(){
 try{
 const res=await fetch(API+'/api/bot-challenge',{method:'POST',headers:{'Content-Type':'application/json'}});
 const data=await res.json();
 botToken=data.token;
-document.getElementById('bot-question').innerText=data.question;
+
+// 1. Solve math backend gave us
+const parts = data.question.split(' ');
+const a = parseInt(parts[0]);
+const b = parseInt(parts[2]);
+const op = parts[1];
+if(op==='+') mathAnswer = a+b;
+if(op==='-') mathAnswer = a-b;
+if(op==='*') mathAnswer = a*b;
+
+// 2. Generate our own captcha
+captchaText = generateCaptcha(7);
+const img = renderGlitchCaptcha(captchaText);
+
+document.getElementById('bot-question').innerHTML = `
+  <img src="${img}" style="width:100%;border-radius:8px;border:1px solid var(--border)"/>
+  <p style="font-size:12px;color:var(--muted);margin-top:8px">Type the 7 characters above</p>
+`;
 document.getElementById('bot-modal').classList.add('active');
 }catch{toast('Bot check failed')}
 }
 
 async function verifyBot(){
-const answer=document.getElementById('bot-answer').value;
-const res=await fetch(API+'/api/bot-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:botToken,answer})});
+const userInput=document.getElementById('bot-answer').value.trim().toUpperCase();
+if(userInput!== captchaText){
+  toast('Captcha incorrect. Try again');
+  botChallenge(); // get new one
+  return;
+}
+
+// If captcha correct, send the MATH answer to backend so it passes
+const res=await fetch(API+'/api/bot-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:botToken,answer:mathAnswer})});
 const data=await res.json();
 if(data.passToken){
 document.getElementById('bot-modal').classList.remove('active');
@@ -149,8 +214,12 @@ document.getElementById('bot-answer').value='';
 if(pendingData.type==='login') doLogin(pendingData, data.passToken);
 if(pendingData.type==='signup') doSignup(pendingData, data.passToken);
 if(pendingData.type==='forgot') doForgot(pendingData, data.passToken);
-}else toast('Wrong answer');
+}else {
+  toast('Verification failed');
+  botChallenge();
 }
+}
+// ===== END CAPTCHA SYSTEM =====
 
 document.getElementById('form-login').onsubmit=async e=>{
 e.preventDefault();
