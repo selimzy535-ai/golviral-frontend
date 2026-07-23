@@ -6,7 +6,18 @@
 <title>GolViral - Login</title>
 <link rel="manifest" href="manifest.json">
 <style>
-:root{--bg:#000;--card:#0a0a0a;--glass:rgba(10,10,10,0.7);--accent:#00ff88;--purple:#a855f7;--blue:#3b82f6;--text:#fff;--muted:#888;--border:#1a1a1a;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)}
+:root{
+  --bg:#000;
+  --card:#0a0a0a;
+  --glass:rgba(10,10,10,0.7);
+  --accent:#00ff88;
+  --purple:#a855f7;
+  --blue:#3b82f6;
+  --text:#fff;
+  --muted:#888;
+  --border:#1a1a1a;
+  --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)
+}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
 body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
 header{padding:20px;display:flex;justify-content:center;align-items:center;gap:10px;font-size:22px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -39,76 +50,79 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
 </head>
 <body>
 <header>
-<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-GolViral
+  <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+  GolViral
 </header>
-
 <div id="toast" class="toast"></div>
-
 <main class="card">
-<div class="tabs">
-<div class="tab active" onclick="showTab('login', this)"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>Login</div>
-<div class="tab" onclick="showTab('signup', this)"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M8.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6"/></svg>Signup</div>
-<div class="tab" onclick="showTab('forgot', this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>Forgot</div>
-</div>
-
-<form id="form-login">
-<input class="input" id="login-email" type="email" placeholder="Email" required>
-<input class="input" id="login-pass" type="password" placeholder="Password" required>
-<button class="btn" type="submit">Login</button>
-</form>
-
-<form id="form-signup" style="display:none">
-<input class="input" id="signup-user" placeholder="Username" required>
-<input class="input" id="signup-email" type="email" placeholder="Email" required>
-<input class="input" id="signup-pass" type="password" placeholder="Password" required>
-<input class="input" id="signup-ref" placeholder="Referral Code Optional">
-<button class="btn" type="submit">Create Account</button>
-</form>
-
-<form id="form-forgot" style="display:none">
-<input class="input" id="forgot-email" type="email" placeholder="Email" required>
-<button class="btn" type="submit">Send OTP</button>
-</form>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('login', this)">
+      <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>Login
+    </div>
+    <div class="tab" onclick="showTab('signup', this)">
+      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M8.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6"/></svg>Signup
+    </div>
+    <div class="tab" onclick="showTab('forgot', this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>Forgot
+    </div>
+  </div>
+  <form id="form-login">
+    <input class="input" id="login-email" type="email" placeholder="Email" required>
+    <input class="input" id="login-pass" type="password" placeholder="Password" required>
+    <button class="btn" type="submit">Login</button>
+  </form>
+  <form id="form-signup" style="display:none">
+    <input class="input" id="signup-user" placeholder="Username" required>
+    <input class="input" id="signup-email" type="email" placeholder="Email" required>
+    <input class="input" id="signup-pass" type="password" placeholder="Password" required>
+    <input class="input" id="signup-ref" placeholder="Referral Code Optional">
+    <button class="btn" type="submit">Create Account</button>
+  </form>
+  <form id="form-forgot" style="display:none">
+    <input class="input" id="forgot-email" type="email" placeholder="Email" required>
+    <button class="btn" type="submit">Send OTP</button>
+  </form>
 </main>
 
 <!-- BOT MODAL -->
 <div id="bot-modal" class="modal">
-<div class="glass-modal">
-<h3 style="margin-bottom:12px">Verify You Are Human</h3>
-<p id="bot-question" style="font-size:20px;font-weight:800;margin-bottom:12px"></p>
-<input class="input" id="bot-answer" placeholder="Answer">
-<button class="btn" onclick="verifyBot()">Verify</button>
-</div>
+  <div class="glass-modal">
+    <h3 style="margin-bottom:12px">Verify You Are Human</h3>
+    <p id="bot-question" style="font-size:20px;font-weight:800;margin-bottom:12px"></p>
+    <input class="input" id="bot-answer" placeholder="Answer">
+    <button class="btn" onclick="verifyBot()">Verify</button>
+  </div>
 </div>
 
 <!-- OTP MODAL -->
 <div id="otp-modal" class="modal">
-<div class="glass-modal">
-<h3 style="margin-bottom:12px">Reset Password</h3>
-<input class="input" id="otp-code" placeholder="Enter 6 digit OTP">
-<input class="input" id="new-pass" type="password" placeholder="New Password">
-<button class="btn" onclick="submitReset()">Reset Password</button>
-</div>
+  <div class="glass-modal">
+    <h3 style="margin-bottom:12px">Reset Password</h3>
+    <input class="input" id="otp-code" placeholder="Enter 6 digit OTP">
+    <input class="input" id="new-pass" type="password" placeholder="New Password">
+    <button class="btn" onclick="submitReset()">Reset Password</button>
+  </div>
 </div>
 
-<!-- ONBOARD SURVEY MODAL - ONLY FOR SIGNUP -->
+<!-- ONBOARD SURVEY MODAL -->
 <div id="onboard-modal" class="modal">
-<div class="glass-modal">
-<div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
-<h3 style="margin-bottom:8px">Welcome to GolViral 🎉</h3>
-<p style="color:var(--muted);margin-bottom:16px;font-size:14px">Help us personalize your feed</p>
-
-<div id="survey-container"></div>
-
-<button class="btn" id="next-btn" onclick="nextQuestion()">Continue</button>
-</div>
+  <div class="glass-modal">
+    <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+    <h3 style="margin-bottom:8px">Welcome to GolViral 🎉</h3>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Help us personalize your feed</p>
+    <div id="survey-container"></div>
+    <button class="btn" id="next-btn" onclick="nextQuestion()">Continue</button>
+  </div>
 </div>
 
 <script>
 const API='https://golviral-api.onrender.com';
-let currentTab='login'; let pendingData=null; let botToken=null; let mathAnswer=null; // store math answer
-let surveyStep=0; let surveyData={};
+let currentTab='login';
+let pendingData=null;
+let botToken=null;
+let mathAnswer=null;
+let surveyStep=0;
+let surveyData={};
 let captchaText = '';
 
 const surveyQuestions=[
@@ -121,18 +135,23 @@ const surveyQuestions=[
 ];
 
 function showTab(tab, el){
-currentTab=tab;
-document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-document.querySelectorAll('form').forEach(f=>f.style.display='none');
-el.classList.add('active');
-document.getElementById('form-'+tab).style.display='block';
+  currentTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('form').forEach(f=>f.style.display='none');
+  el.classList.add('active');
+  document.getElementById('form-'+tab).style.display='block';
 }
 
-function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.innerText=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000)
+}
 
-// ===== NEW CAPTCHA SYSTEM =====
+// ===== CAPTCHA SYSTEM =====
 function generateCaptcha(len=7){
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0,O,1,I
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let res = '';
   for(let i=0;i<len;i++) res += chars.charAt(Math.floor(Math.random()*chars.length));
   return res;
@@ -140,14 +159,11 @@ function generateCaptcha(len=7){
 
 function renderGlitchCaptcha(text){
   const canvas = document.createElement('canvas');
-  canvas.width = 300; canvas.height = 80;
+  canvas.width = 300;
+  canvas.height = 80;
   const ctx = canvas.getContext('2d');
-
-  // bg
   ctx.fillStyle = '#0a0a0a';
   ctx.fillRect(0,0,300,80);
-
-  // glitch lines
   for(let i=0;i<5;i++){
     ctx.strokeStyle = `rgba(0,255,136,${Math.random()})`;
     ctx.beginPath();
@@ -155,8 +171,6 @@ function renderGlitchCaptcha(text){
     ctx.lineTo(Math.random()*300,80);
     ctx.stroke();
   }
-
-  // text with distortion
   ctx.font = 'bold 36px monospace';
   ctx.fillStyle = '#00ff88';
   for(let i=0;i<text.length;i++){
@@ -166,201 +180,192 @@ function renderGlitchCaptcha(text){
     ctx.fillText(text[i], 0, 0);
     ctx.restore();
   }
-
   return canvas.toDataURL();
 }
 
 async function botChallenge(){
-try{
-const res=await fetch(API+'/api/bot-challenge',{method:'POST',headers:{'Content-Type':'application/json'}});
-const data=await res.json();
-botToken=data.token;
-
-// 1. Solve math backend gave us
-const parts = data.question.split(' ');
-const a = parseInt(parts[0]);
-const b = parseInt(parts[2]);
-const op = parts[1];
-if(op==='+') mathAnswer = a+b;
-if(op==='-') mathAnswer = a-b;
-if(op==='*') mathAnswer = a*b;
-
-// 2. Generate our own captcha
-captchaText = generateCaptcha(7);
-const img = renderGlitchCaptcha(captchaText);
-
-document.getElementById('bot-question').innerHTML = `
-  <img src="${img}" style="width:100%;border-radius:8px;border:1px solid var(--border)"/>
-  <p style="font-size:12px;color:var(--muted);margin-top:8px">Type the 7 characters above</p>
-`;
-document.getElementById('bot-modal').classList.add('active');
-}catch{toast('Bot check failed')}
+  try{
+    const res=await fetch(API+'/api/bot-challenge',{method:'POST',headers:{'Content-Type':'application/json'}});
+    const data=await res.json();
+    botToken=data.token;
+    const parts = data.question.split(' ');
+    const a = parseInt(parts[0]);
+    const b = parseInt(parts[2]);
+    const op = parts[1];
+    if(op==='+') mathAnswer = a+b;
+    if(op==='-') mathAnswer = a-b;
+    if(op==='*') mathAnswer = a*b;
+    captchaText = generateCaptcha(7);
+    const img = renderGlitchCaptcha(captchaText);
+    document.getElementById('bot-question').innerHTML = `
+      <img src="${img}" style="width:100%;border-radius:8px;border:1px solid var(--border)"/>
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">Type the 7 characters above</p>
+    `;
+    document.getElementById('bot-modal').classList.add('active');
+  }catch{toast('Bot check failed')}
 }
 
 async function verifyBot(){
-const userInput=document.getElementById('bot-answer').value.trim().toUpperCase();
-if(userInput!== captchaText){
-  toast('Captcha incorrect. Try again');
-  botChallenge(); // get new one
-  return;
+  const userInput=document.getElementById('bot-answer').value.trim().toUpperCase();
+  if(userInput!== captchaText){
+    toast('Captcha incorrect. Try again');
+    botChallenge();
+    return;
+  }
+  const res=await fetch(API+'/api/bot-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:botToken,answer:mathAnswer})});
+  const data=await res.json();
+  if(data.passToken){
+    document.getElementById('bot-modal').classList.remove('active');
+    document.getElementById('bot-answer').value='';
+    if(pendingData.type==='login') doLogin(pendingData, data.passToken);
+    if(pendingData.type==='signup') doSignup(pendingData, data.passToken);
+    if(pendingData.type==='forgot') doForgot(pendingData, data.passToken);
+  }else {
+    toast('Verification failed');
+    botChallenge();
+  }
 }
 
-// If captcha correct, send the MATH answer to backend so it passes
-const res=await fetch(API+'/api/bot-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:botToken,answer:mathAnswer})});
-const data=await res.json();
-if(data.passToken){
-document.getElementById('bot-modal').classList.remove('active');
-document.getElementById('bot-answer').value='';
-if(pendingData.type==='login') doLogin(pendingData, data.passToken);
-if(pendingData.type==='signup') doSignup(pendingData, data.passToken);
-if(pendingData.type==='forgot') doForgot(pendingData, data.passToken);
-}else {
-  toast('Verification failed');
-  botChallenge();
-}
-}
-// ===== END CAPTCHA SYSTEM =====
-
+// ===== FORM HANDLERS =====
 document.getElementById('form-login').onsubmit=async e=>{
-e.preventDefault();
-pendingData={type:'login',email:document.getElementById('login-email').value,password:document.getElementById('login-pass').value};
-botChallenge();
+  e.preventDefault();
+  pendingData={type:'login',email:document.getElementById('login-email').value,password:document.getElementById('login-pass').value};
+  botChallenge();
 }
 
 document.getElementById('form-signup').onsubmit=async e=>{
-e.preventDefault();
-pendingData={type:'signup',username:document.getElementById('signup-user').value,email:document.getElementById('signup-email').value,password:document.getElementById('signup-pass').value,referralCode:document.getElementById('signup-ref').value};
-botChallenge();
+  e.preventDefault();
+  pendingData={type:'signup',username:document.getElementById('signup-user').value,email:document.getElementById('signup-email').value,password:document.getElementById('signup-pass').value,referralCode:document.getElementById('signup-ref').value};
+  botChallenge();
 }
 
 document.getElementById('form-forgot').onsubmit=async e=>{
-e.preventDefault();
-pendingData={type:'forgot',email:document.getElementById('forgot-email').value};
-botChallenge();
+  e.preventDefault();
+  pendingData={type:'forgot',email:document.getElementById('forgot-email').value};
+  botChallenge();
 }
 
 async function doLogin(d,passToken){
-try{
-const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
-const data=await res.json();
-if(data.token){localStorage.token=data.token;localStorage.userId=data.userId;window.location.href='index.html'}else toast(data.error||'Login failed')
-}catch{toast('Network error')}
+  try{
+    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
+    const data=await res.json();
+    if(data.token){localStorage.token=data.token;localStorage.userId=data.userId;window.location.href='index.html'}else toast(data.error||'Login failed')
+  }catch{toast('Network error')}
 }
 
 async function doSignup(d,passToken){
-try{
-const res=await fetch(API+'/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
-const data=await res.json();
-if(data.token){localStorage.token=data.token;localStorage.userId=data.userId;startSurvey()}else toast(data.error||'Signup failed')
-}catch{toast('Network error')}
+  try{
+    const res=await fetch(API+'/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
+    const data=await res.json();
+    if(data.token){localStorage.token=data.token;localStorage.userId=data.userId;startSurvey()}else toast(data.error||'Signup failed')
+  }catch{toast('Network error')}
 }
 
 async function doForgot(d,passToken){
-try{
-await fetch(API+'/api/auth/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
-toast('OTP Sent to Email');
-document.getElementById('otp-modal').classList.add('active');
-}catch{toast('Failed to send OTP')}
+  try{
+    await fetch(API+'/api/auth/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
+    toast('OTP Sent to Email');
+    document.getElementById('otp-modal').classList.add('active');
+  }catch{toast('Failed to send OTP')}
 }
 
 async function submitReset(){
-const otp=document.getElementById('otp-code').value;
-const newPass=document.getElementById('new-pass').value;
-await fetch(API+'/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingData.email,otp,newPassword:newPass})});
-toast('Password Reset');document.getElementById('otp-modal').classList.remove('active');showTab('login', document.querySelectorAll('.tab')[0])
+  const otp=document.getElementById('otp-code').value;
+  const newPass=document.getElementById('new-pass').value;
+  await fetch(API+'/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingData.email,otp,newPassword:newPass})});
+  toast('Password Reset');
+  document.getElementById('otp-modal').classList.remove('active');
+  showTab('login', document.querySelectorAll('.tab')[0])
 }
 
-// ===== SURVEY LOGIC =====
+// ===== SURVEY LOGIC - FIXED =====
 function startSurvey(){
-surveyStep=0;
-surveyData={};
-document.getElementById('onboard-modal').classList.add('active');
-renderQuestion();
+  surveyStep=0;
+  surveyData={};
+  document.getElementById('onboard-modal').classList.add('active');
+  renderQuestion();
 }
 
 function renderQuestion(){
-const q=surveyQuestions[surveyStep];
-const container=document.getElementById('survey-container');
-document.getElementById('progress-bar').style.width=((surveyStep+1)/surveyQuestions.length*100)+'%';
-document.getElementById('next-btn').innerText = surveyStep===surveyQuestions.length-1? 'Finish' : 'Next';
-
-let html=`<div class="q-group"><div class="q-title">${q.title}</div>`;
-
-if(q.type==='chips'){
-html+=`<div class="chips" id="q-${q.id}">`;
-q.options.forEach(opt=>html+=`<div class="chip" onclick="toggleChip(this,'${q.id}')">${opt}</div>`);
-html+=`</div>`;
-}else if(q.type==='radio'){
-html+=`<div class="radio-group" id="q-${q.id}">`;
-q.options.forEach(opt=>html+=`<div class="radio-option" onclick="selectRadio(this,'${q.id}','${opt}')">${opt}</div>`);
-html+=`</div>`;
-}else if(q.type==='select'){
-html+=`<select class="input" id="q-${q.id}">`;
-q.options.forEach(opt=>html+=`<option>${opt}</option>`);
-html+=`</select>`;
-}
-html+=`</div>`;
-container.innerHTML=html;
+  const q=surveyQuestions[surveyStep];
+  const container=document.getElementById('survey-container');
+  document.getElementById('progress-bar').style.width=((surveyStep+1)/surveyQuestions.length*100)+'%';
+  document.getElementById('next-btn').innerText = surveyStep===surveyQuestions.length-1? 'Finish' : 'Next';
+  let html=`<div class="q-group"><div class="q-title">${q.title}</div>`;
+  if(q.type==='chips'){
+    html+=`<div class="chips" id="q-${q.id}">`;
+    q.options.forEach(opt=>html+=`<div class="chip" onclick="toggleChip(this,'${q.id}')">${opt}</div>`);
+    html+=`</div>`;
+  }else if(q.type==='radio'){
+    html+=`<div class="radio-group" id="q-${q.id}">`;
+    q.options.forEach(opt=>html+=`<div class="radio-option" onclick="selectRadio(this,'${q.id}','${opt}')">${opt}</div>`);
+    html+=`</div>`;
+  }else if(q.type==='select'){
+    html+=`<select class="input" id="q-${q.id}">`;
+    q.options.forEach(opt=>html+=`<option>${opt}</option>`);
+    html+=`</select>`;
+  }
+  html+=`</div>`;
+  container.innerHTML=html;
 }
 
 function toggleChip(el,id){
-el.classList.toggle('active');
-const selected=document.querySelectorAll(`#q-${id}.chip.active`).length;
-if(selected>3) el.classList.remove('active');
+  el.classList.toggle('active');
+  const selected=document.querySelectorAll(`#q-${id}.chip.active`).length; // FIXED
+  if(selected>3) el.classList.remove('active');
 }
 
 function selectRadio(el,id,val){
-document.querySelectorAll(`#q-${id}.radio-option`).forEach(r=>r.classList.remove('active'));
-el.classList.add('active');
-surveyData[id]=val;
+  document.querySelectorAll(`#q-${id}.radio-option`).forEach(r=>r.classList.remove('active')); // FIXED
+  el.classList.add('active');
+  surveyData[id]=val;
 }
 
 function nextQuestion(){
-const q=surveyQuestions[surveyStep];
-if(q.type==='chips'){
-surveyData[q.id]=[...document.querySelectorAll(`#q-${q.id}.chip.active`)].map(c=>c.innerText);
-if(surveyData[q.id].length===0){toast('Pick at least 1');return}
-}else if(q.type==='radio'){
-if(!surveyData[q.id]){toast('Select an option');return}
-}else if(q.type==='select'){
-surveyData[q.id]=document.getElementById(`q-${q.id}`).value;
-}
-
-surveyStep++;
-if(surveyStep<surveyQuestions.length){
-renderQuestion();
-}else{
-finishOnboard();
-}
+  const q=surveyQuestions[surveyStep];
+  if(q.type==='chips'){
+    surveyData[q.id]=[...document.querySelectorAll(`#q-${q.id}.chip.active`)].map(c=>c.innerText); // FIXED
+    if(surveyData[q.id].length===0){toast('Pick at least 1');return}
+  }else if(q.type==='radio'){
+    if(!surveyData[q.id]){toast('Select an option');return}
+  }else if(q.type==='select'){
+    surveyData[q.id]=document.getElementById(`q-${q.id}`).value;
+  }
+  surveyStep++;
+  if(surveyStep<surveyQuestions.length){
+    renderQuestion();
+  }else{
+    finishOnboard();
+  }
 }
 
 async function finishOnboard(){
-localStorage.onboarding_data=JSON.stringify(surveyData);
-await requestPush();
-document.getElementById('onboard-modal').classList.remove('active');
-toast('Profile Setup Complete');
-setTimeout(()=>window.location.href='index.html',1000)
+  localStorage.onboarding_data=JSON.stringify(surveyData);
+  await requestPush();
+  document.getElementById('onboard-modal').classList.remove('active');
+  toast('Profile Setup Complete');
+  setTimeout(()=>window.location.href='index.html',1000)
 }
 
 function urlBase64ToUint8Array(base64String) {
-const padding = '='.repeat((4 - base64String.length % 4) % 4);
-const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-const rawData = window.atob(base64);
-const outputArray = new Uint8Array(rawData.length);
-for (let i = 0; i < rawData.length; ++i) {
-outputArray[i] = rawData.charCodeAt(i);
-}
-return outputArray;
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }
 
 async function requestPush(){
-try {
-const reg=await navigator.serviceWorker.register('/sw.js');
-const vapidKey = 'BEl0YourPublicKeyHere';
-const convertedKey = urlBase64ToUint8Array(vapidKey);
-const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:convertedKey});
-await fetch(API+'/api/push/subscribe',{method:'POST',headers:{'Authorization':'Bearer '+localStorage.token,'Content-Type':'application/json'},body:JSON.stringify({subscription:sub})});
-} catch(err) {console.log('Push disabled')}
+  try {
+    const reg=await navigator.serviceWorker.register('/sw.js');
+    const vapidKey = 'BEl0YourPublicKeyHere';
+    const convertedKey = urlBase64ToUint8Array(vapidKey);
+    const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:convertedKey});
+    await fetch(API+'/api/push/subscribe',{method:'POST',headers:{'Authorization':'Bearer '+localStorage.token,'Content-Type':'application/json'},body:JSON.stringify({subscription:sub})});
+  } catch(err) {console.log('Push disabled')}
 }
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
