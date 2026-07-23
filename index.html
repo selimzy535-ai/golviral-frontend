@@ -12,10 +12,6 @@
   --text:#fff;--muted:#888;--border:#1f1f1f;--nav:70px;--top:100px;
   --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)
 }
-body.light{
-  --bg:#f5f5f5;--card:#ffffff;--glass:rgba(255,255,255,0.8);
-  --text:#111;--muted:#666;--border:#e0e0e0;
-}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;overflow:hidden}
 header{height:var(--top);background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
@@ -30,14 +26,9 @@ main{height:calc(100dvh - var(--nav) - var(--top));overflow-y:auto;scroll-snap-t
 .nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);cursor:pointer;font-size:12px}
 .nav-btn.active{color:var(--accent)}
 .fab{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--gradient);box-shadow:0 0 20px rgba(0,255,136,0.4);border:none;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:9}
-
-/* SCROLL CARDS - NOW FULL SCREEN LIKE REELS */
-.scroll-card{height:calc(100dvh - var(--nav) - var(--top));scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end;background:#000}
-.scroll-card.bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(20px) brightness(0.4)}
-.scroll-card.content{position:relative;padding:20px;z-index:2;background:linear-gradient(transparent,rgba(0,0,0,0.9))}
-.scroll-card h2{font-size:22px;margin-bottom:8px}
-.scroll-card p{color:var(--muted);font-size:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-
+.card{background:var(--glass);border:1px solid var(--border);border-radius:16px;margin:12px;padding:16px;backdrop-filter:blur(10px)}
+.card.meme{background:linear-gradient(135deg,rgba(236,72,153,0.15),transparent)}
+.card.story{background:linear-gradient(135deg,rgba(168,85,247,0.15),transparent)}
 .reel{height:calc(100dvh - var(--nav) - var(--top));scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end}
 .reel video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .actions{position:absolute;right:10px;bottom:80px;display:flex;flex-direction:column;gap:18px}
@@ -64,10 +55,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 <header>
   <div class="topbar">
     <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>GolViral</div>
-    <div style="display:flex;gap:12px">
-      <svg id="theme-toggle" onclick="toggleTheme()" viewBox="0 0 24 24" style="cursor:pointer"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <svg onclick="openSearch()" viewBox="0 0 24 24" style="cursor:pointer"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    </div>
+    <svg onclick="openSearch()" viewBox="0 0 24 24" style="cursor:pointer"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
   </div>
   <div class="tabs">
     <div class="tab active" onclick="loadFeed('ForYou',this)">ForYou</div>
@@ -124,27 +112,6 @@ let currentPost=null;
 let searchTimer=null;
 let reactionCounts={};
 
-// THEME TOGGLE
-(function(){
-  const saved = localStorage.getItem('golviral_theme');
-  if(saved === 'light') document.body.classList.add('light');
-  updateThemeIcon();
-})();
-function toggleTheme(){
-  document.body.classList.toggle('light');
-  const theme = document.body.classList.contains('light')? 'light' : 'dark';
-  localStorage.setItem('golviral_theme', theme);
-  updateThemeIcon();
-}
-function updateThemeIcon(){
-  const icon = document.getElementById('theme-toggle');
-  if(!icon) return;
-  const isLight = document.body.classList.contains('light');
-  icon.innerHTML = isLight
-   ? `<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>`
-    : `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
-}
-
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 
 async function api(path,opt={}){
@@ -176,18 +143,18 @@ function renderFeed(posts,type){
   container.innerHTML='';
   if(!posts || posts.length===0){container.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>'; return}
 
-  container.style.overflowY='scroll';
-  if(type==='Reels'){
+  const showReels = type==='Reels' || type==='ForYou';
+  const showCards = type!=='Reels';
+
+  if(showReels){
+    container.style.overflowY='scroll';
     posts.filter(p=>p.type==='reel').forEach(p=>container.appendChild(createReel(p)));
-  }else if(type==='Novels'){
-    posts.filter(p=>p.type==='novel').forEach(p=>container.appendChild(createScrollCard(p,'story')));
-  }else if(type==='Stories'){
-    posts.filter(p=>p.type==='story').forEach(p=>container.appendChild(createScrollCard(p,'meme')));
-  }else{
-    posts.filter(p=>p.type==='reel').forEach(p=>container.appendChild(createReel(p)));
-    posts.filter(p=>p.type!=='reel').forEach(p=>container.appendChild(createScrollCard(p,p.type)));
+    setupReelObserver();
   }
-  setupScrollObserver();
+  if(showCards){
+    container.style.overflowY='auto';
+    posts.filter(p=>p.type!=='reel').forEach(p=>container.appendChild(createCard(p,type)));
+  }
 }
 
 function createReel(p){
@@ -200,6 +167,7 @@ function createReel(p){
     <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
       <b>@${p.userId}</b><p>${p.caption||''}</p>
       ${p.externalLink && p.isBoosted? `<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ''}
+      <div class="reactions">${renderReactions(p.id)}</div>
     </div>
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>${p.likes||0}</span></div>
@@ -210,22 +178,16 @@ function createReel(p){
   return div;
 }
 
-function createScrollCard(p,type){
+function createCard(p,type){
   const div=document.createElement('div');
-  div.className='scroll-card';
-  div.dataset.id=p.id;
-  let lastTap=0;
-  div.ondblclick=()=>openReader(p.id); // double tap to open
-
+  const cardClass = p.type==='story'? 'card meme' : 'card story';
+  div.className=cardClass;
   div.innerHTML=`
-    <div class="bg" style="background-image:url(${p.cover||'https://picsum.photos/500/900'})"></div>
-    <div class="content">
-      <b>@${p.userId}</b>
-      <h2>${p.title||'Untitled'}</h2>
-      <p>${p.content?.slice(0,150)||p.caption||''}</p>
-      <div class="reactions">${renderReactions(p.id)}</div>
-      <p style="margin-top:8px;font-size:12px;color:var(--accent)">Double tap to read full</p>
-    </div>`;
+    <b>${p.title||'Untitled'}</b>
+    <p style="color:var(--muted);margin:8px 0">${p.caption||p.content?.slice(0,100)||''}</p>
+    <button class="btn" onclick="openReader('${p.id}')">Read</button>
+    <div class="reactions">${renderReactions(p.id)}</div>
+  `;
   return div;
 }
 
@@ -237,28 +199,27 @@ function renderReactions(postId){
 
 function addReaction(postId,emoji){
   reactionCounts[postId][emoji]=(reactionCounts[postId][emoji]||0)+1;
+  // re-render just reactions
   document.querySelectorAll(`[data-id="${postId}"].reactions`).forEach(el=>el.innerHTML=renderReactions(postId));
 }
 
-function setupScrollObserver(){
+function setupReelObserver(){
   const obs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       const video=e.target.querySelector('video');
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
       if(e.intersectionRatio>0.7){
-        if(video){
-          if(!video.src){
-            getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{video.src=url;video.play()});
-          } else { video.play(); }
-        }
+        if(!video.src){
+          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{video.src=url;video.play()});
+        } else { video.play(); }
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
       }else{
-        if(video) video.pause();
+        video.pause();
       }
     });
   },{threshold:0.7});
-  document.querySelectorAll('.reel,.scroll-card').forEach(r=>obs.observe(r));
+  document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
 }
 
 async function likePost(postId,creatorId){
