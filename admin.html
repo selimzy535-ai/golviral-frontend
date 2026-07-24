@@ -4,451 +4,169 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GolViral - Admin Dashboard</title>
-
   <link rel="manifest" href="manifest.json">
-
   <style>
-    :root {
-      --bg: #000000;
-      --card: #181818;
-      --accent: #00ff88;
-      --text: #ffffff;
-      --text-muted: #888888;
-      --border: #262626;
-      --danger: #ff4444;
-    }
-
+    :root { --bg: #000000; --card: #181818; --accent: #00ff88; --text: #ffffff; --text-muted: #888888; --border: #262626; --danger: #ff4444; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
-      max-width: 600px;
-      margin: 0 auto;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      padding-bottom: 30px;
-    }
-
-    /* Top Bar */
-    .top-bar {
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      z-index: 10;
-      padding: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .top-bar h1 {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: var(--text);
-    }
-
-    .back-btn {
-      background: none;
-      border: none;
-      color: var(--text);
-      font-size: 1.2rem;
-      cursor: pointer;
-    }
-
-    /* Tabs */
-    .tabs-nav {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg);
-      position: sticky;
-      top: 52px;
-      z-index: 9;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 12px 0;
-      text-align: center;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-    }
-
-    /* Content Area */
-    .tab-content {
-      display: none;
-      padding: 15px;
-    }
-
-    .tab-content.active {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    /* Cards */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: bold;
-      font-size: 0.95rem;
-    }
-
-    .media-preview {
-      width: 100%;
-      max-height: 250px;
-      object-fit: cover;
-      border-radius: 8px;
-      background: #000;
-      border: 1px solid var(--border);
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 5px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 0.85rem;
-      text-align: center;
-    }
-
-    .btn-accent { background: var(--accent); color: #000; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-secondary { background: #262626; color: var(--text); }
-
-    /* Inputs */
-    textarea {
-      width: 100%;
-      background: #000;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px;
-      border-radius: 8px;
-      outline: none;
-      font-family: inherit;
-      resize: vertical;
-    }
-
-    textarea:focus {
-      border-color: var(--accent);
-    }
-
-    /* Toast */
-    .toast {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--accent);
-      color: #000;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-weight: bold;
-      z-index: 999;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-    }
-
-    .empty-state {
-      text-align: center;
-      color: var(--text-muted);
-      padding: 40px 0;
-      font-size: 0.9rem;
-    }
+    body { background-color: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; position: relative; padding-bottom: 30px; }
+    .top-bar { position: sticky; top: 0; background: var(--bg); z-index: 10; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .top-bar h1 { font-size: 1.1rem; font-weight: bold; color: var(--text); }
+    .back-btn { background: none; border: none; color: var(--text); font-size: 1.2rem; cursor: pointer; }
+    .tabs-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 52px; z-index: 9; }
+    .tab-btn { flex: 1; padding: 12px 0; text-align: center; background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-content { display: none; padding: 15px; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 15px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.95rem; }
+    .media-preview { width: 100%; max-height: 250px; object-fit: cover; border-radius: 8px; background: #000; border: 1px solid var(--border); }
+    .btn-group { display: flex; gap: 10px; margin-top: 5px; }
+    .btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; }
+    .btn-accent { background: var(--accent); color: #000; } .btn-danger { background: var(--danger); color: #fff; } .btn-secondary { background: #262626; color: var(--text); }
+    textarea { width: 100%; background: #000; border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; outline: none; font-family: inherit; resize: vertical; }
+    textarea:focus { border-color: var(--accent); }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 0.9rem; }
   </style>
 </head>
 <body>
-
   <div id="toast" class="toast"></div>
-
   <header class="top-bar">
     <button class="back-btn" onclick="location.href='profile.html'">←</button>
     <h1>GolViral Admin</h1>
     <div style="width: 20px;"></div>
   </header>
-
   <nav class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab('posts')">Pending Posts</button>
-    <button class="tab-btn" onclick="switchTab('payouts')">Payouts</button>
-    <button class="tab-btn" onclick="switchTab('support')">Support</button>
+    <button class="tab-btn active" onclick="switchTab('posts', event)">Pending Posts</button>
+    <button class="tab-btn" onclick="switchTab('payouts', event)">Payouts</button>
+    <button class="tab-btn" onclick="switchTab('support', event)">Support</button>
   </nav>
 
-  <div id="tab-posts" class="tab-content active">
-    <div id="posts-container">Loading pending posts...</div>
-  </div>
-
-  <div id="tab-payouts" class="tab-content">
-    <div id="payouts-container">Loading payout requests...</div>
-  </div>
-
-  <div id="tab-support" class="tab-content">
-    <div id="support-container">Loading tickets...</div>
-  </div>
+  <div id="tab-posts" class="tab-content active"><div id="posts-container">Loading pending posts...</div></div>
+  <div id="tab-payouts" class="tab-content"><div id="payouts-container">Loading payout requests...</div></div>
+  <div id="tab-support" class="tab-content"><div id="support-container">Loading tickets...</div></div>
 
   <script>
-    // --- AUTH & SETUP ---
     const TOKEN = localStorage.getItem('token');
     const USER_ID = localStorage.getItem('userId');
     const API_BASE = 'https://golviral-api.onrender.com';
+    if (!TOKEN || !USER_ID) window.location.href = 'auth.html';
 
-    if (!TOKEN || !USER_ID) {
-      window.location.href = 'auth.html';
-    }
-
-    // UTILS
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.style.opacity = '1';
-      setTimeout(() => toast.style.opacity = '0', 3000);
-    }
+    function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.style.opacity = '1'; setTimeout(() => toast.style.opacity = '0', 3000); }
 
     async function fetchAPI(endpoint, options = {}) {
       try {
-        const res = await fetch(`${API_BASE}${endpoint}`, {
-          ...options,
-          headers: {
-            'Authorization': `Bearer ${TOKEN}`,
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-          }
-        });
-
-        if (res.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = 'auth.html';
-          return null;
-        }
-
+        const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...(options.headers || {}) } });
+        if (res.status === 401) { localStorage.removeItem('token'); window.location.href = 'auth.html'; return null; }
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || `Error: ${res.status}`);
+        if (!res.ok) throw new Error(data.error || data.message || `Error: ${res.status}`);
         return data;
-      } catch (err) {
-        showToast(err.message);
-        return null;
-      }
+      } catch (err) { showToast(err.message); return null; }
     }
 
-    // 1. ADMIN AUTHORIZATION CHECK
+    async function getSignedUrl(key, shard) {
+      const data = await fetchAPI(`/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`);
+      return data?.url || '';
+    }
+
+    // TEMP ADMIN CHECK: Try to load pending posts. If 403, not admin
     async function checkAdminAuth() {
-      const user = await fetchAPI(`/api/user/${USER_ID}`);
-      if (!user || user.role !== 'admin') {
-        showToast('Unauthorized. Admin access required.');
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1000);
-      } else {
-        loadPendingPosts();
-      }
+      const posts = await fetchAPI('/api/admin/posts/pending');
+      if (posts === null) { showToast('Unauthorized. Admin access required.'); setTimeout(() => { window.location.href = 'index.html'; }, 1000); }
+      else { loadPendingPosts(); }
     }
 
-    // TAB SWITCHING
-    function switchTab(tabId) {
+    function switchTab(tabId, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
       event.target.classList.add('active');
-      const targetContent = document.getElementById(`tab-${tabId}`);
-      if (targetContent) targetContent.classList.add('active');
-
+      document.getElementById(`tab-${tabId}`).classList.add('active');
       if (tabId === 'posts') loadPendingPosts();
       if (tabId === 'payouts') loadPayouts();
       if (tabId === 'support') loadSupport();
     }
 
-    // --- TAB 1: POSTS LOGIC ---
     async function loadPendingPosts() {
       const container = document.getElementById('posts-container');
       container.innerHTML = 'Loading...';
-
       const posts = await fetchAPI('/api/admin/posts/pending');
       if (!posts) return;
+      if (posts.length === 0) { container.innerHTML = '<div class="empty-state">No pending posts for approval.</div>'; return; }
 
-      if (posts.length === 0) {
-        container.innerHTML = '<div class="empty-state">No pending posts for approval.</div>';
-        return;
-      }
+      container.innerHTML = '';
+      for (const post of posts) {
+        let mediaHtml = '';
+        if (post.mediaUrl) {
+          const signed = await getSignedUrl(post.mediaUrl, post.b2Shard);
+          if (post.type === 'reel') mediaHtml = `<video src="${signed}" class="media-preview" controls preload="metadata"></video>`;
+          else mediaHtml = `<img src="${signed}" class="media-preview" />`;
+        }
 
-      container.innerHTML = posts.map(post => `
-        <div class="card" id="post-card-${post.id}">
-          <div class="card-header">
-            <span>@${post.username || 'User'}</span>
-            <span style="color:var(--accent); font-size:0.8rem;">${post.postType || 'Reel'}</span>
-          </div>
-          ${post.mediaUrl ? `
-            <video src="${post.mediaUrl}" class="media-preview" controls preload="metadata"></video>
-          ` : ''}
-          <div>
-            <strong>${post.title || 'Untitled'}</strong>
-            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${post.content || ''}</p>
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-accent" onclick="approvePost('${post.id}')">Approve</button>
-            <button class="btn btn-danger" onclick="rejectPost('${post.id}')">Reject</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function approvePost(id) {
-      const res = await fetchAPI(`/api/admin/posts/${id}/approve`, { method: 'POST' });
-      if (res) {
-        showToast('Post Approved!');
-        const el = document.getElementById(`post-card-${id}`);
-        if (el) el.remove();
+        container.innerHTML += `
+          <div class="card" id="post-card-${post.id}">
+            <div class="card-header"><span>@${post.user?.username || 'User'}</span><span style="color:var(--accent); font-size:0.8rem;">${post.type}</span></div>
+            ${mediaHtml}
+            <div><strong>${post.title || 'Untitled'}</strong><p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${post.content || ''}</p></div>
+            <div class="btn-group">
+              <button class="btn btn-accent" onclick="approvePost('${post.id}')">Approve</button>
+              <button class="btn btn-danger" onclick="rejectPost('${post.id}')">Reject</button>
+            </div>
+          </div>`;
       }
     }
 
-    async function rejectPost(id) {
-      const res = await fetchAPI(`/api/admin/posts/${id}/reject`, { method: 'POST' });
-      if (res) {
-        showToast('Post Rejected');
-        const el = document.getElementById(`post-card-${id}`);
-        if (el) el.remove();
-      }
-    }
+    async function approvePost(id) { const res = await fetchAPI(`/api/admin/posts/${id}/approve`, { method: 'POST' }); if (res) { showToast('Post Approved!'); document.getElementById(`post-card-${id}`)?.remove(); } }
+    async function rejectPost(id) { const res = await fetchAPI(`/api/admin/posts/${id}/reject`, { method: 'POST' }); if (res) { showToast('Post Rejected'); document.getElementById(`post-card-${id}`)?.remove(); } }
 
-    // --- TAB 2: PAYOUTS LOGIC ---
     async function loadPayouts() {
       const container = document.getElementById('payouts-container');
       container.innerHTML = 'Loading...';
-
       const payouts = await fetchAPI('/api/admin/payouts');
       if (!payouts) return;
-
-      if (payouts.length === 0) {
-        container.innerHTML = '<div class="empty-state">No pending payout requests.</div>';
-        return;
-      }
-
+      if (payouts.length === 0) { container.innerHTML = '<div class="empty-state">No pending payout requests.</div>'; return; }
       container.innerHTML = payouts.map(p => `
         <div class="card" id="payout-card-${p.id}">
-          <div class="card-header">
-            <span>User ID: ${p.userId}</span>
-            <span style="color:var(--accent);">₦${(p.amount || 0).toLocaleString()}</span>
-          </div>
+          <div class="card-header"><span>User: ${p.userId}</span><span style="color:var(--accent);">${(p.amountPoints/10).toLocaleString()} pts</span></div>
           <div style="font-size:0.85rem; color:var(--text-muted);">
-            <div><strong>Method:</strong> ${p.type || 'BANK'}</div>
-            <div><strong>Destination:</strong> ${p.destination || 'N/A'}</div>
+            <div><strong>Method:</strong> ${p.routingTarget}</div>
+            <div><strong>Details:</strong> ${p.targetDetails}</div>
             <div><strong>Requested:</strong> ${new Date(p.createdAt).toLocaleDateString()}</div>
           </div>
           <div class="btn-group">
-            <button class="btn btn-accent" onclick="approvePayout('${p.id}')">Approve Payout</button>
-            <button class="btn btn-danger" onclick="rejectPayout('${p.id}')">Reject Payout</button>
+            <button class="btn btn-accent" onclick="approvePayout('${p.id}', '${p.userId}')">Approve</button>
+            <button class="btn btn-danger" onclick="rejectPayout('${p.id}', '${p.userId}')">Reject</button>
           </div>
-        </div>
-      `).join('');
+        </div>`).join('');
     }
 
-    async function approvePayout(id) {
-      const res = await fetchAPI('/api/admin/payouts/approve', {
-        method: 'POST',
-        body: JSON.stringify({ payoutId: id })
-      });
-      if (res) {
-        showToast('Payout Approved!');
-        const el = document.getElementById(`payout-card-${id}`);
-        if (el) el.remove();
-      }
-    }
+    async function approvePayout(id, userId) { const res = await fetchAPI('/api/admin/payouts/approve', { method: 'POST', body: JSON.stringify({ payoutId: id, userId }) }); if (res) { showToast('Payout Approved!'); document.getElementById(`payout-card-${id}`)?.remove(); } }
+    async function rejectPayout(id, userId) { const res = await fetchAPI('/api/admin/payouts/reject', { method: 'POST', body: JSON.stringify({ payoutId: id, userId }) }); if (res) { showToast('Payout Rejected'); document.getElementById(`payout-card-${id}`)?.remove(); } }
 
-    async function rejectPayout(id) {
-      const res = await fetchAPI('/api/admin/payouts/reject', {
-        method: 'POST',
-        body: JSON.stringify({ payoutId: id })
-      });
-      if (res) {
-        showToast('Payout Rejected');
-        const el = document.getElementById(`payout-card-${id}`);
-        if (el) el.remove();
-      }
-    }
-
-    // --- TAB 3: SUPPORT LOGIC ---
     async function loadSupport() {
       const container = document.getElementById('support-container');
       container.innerHTML = 'Loading...';
-
       const tickets = await fetchAPI('/api/admin/support');
       if (!tickets) return;
-
-      if (tickets.length === 0) {
-        container.innerHTML = '<div class="empty-state">No active support tickets.</div>';
-        return;
-      }
-
+      if (tickets.length === 0) { container.innerHTML = '<div class="empty-state">No active support tickets.</div>'; return; }
       container.innerHTML = tickets.map(t => `
         <div class="card" id="ticket-card-${t.id}">
-          <div class="card-header">
-            <span>Ticket #${t.id.slice(0, 8)}</span>
-            <span style="color:var(--text-muted); font-size:0.8rem;">User: ${t.userId}</span>
-          </div>
-          <div>
-            <strong>${t.subject}</strong>
-            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${t.message}</p>
-          </div>
+          <div class="card-header"><span>Ticket #${t.id.slice(0, 8)}</span><span style="color:var(--text-muted); font-size:0.8rem;">User: ${t.userId}</span></div>
+          <div><strong>${t.subject}</strong><p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${t.message}</p></div>
           <div style="display:flex; flex-direction:column; gap:8px;">
             <textarea id="reply-input-${t.id}" rows="2" placeholder="Write admin reply..."></textarea>
-            <button class="btn btn-accent" onclick="replySupport('${t.id}')">Send Reply</button>
+            <button class="btn btn-accent" onclick="replySupport('${t.id}', '${t.userId}')">Send Reply</button>
           </div>
-        </div>
-      `).join('');
+        </div>`).join('');
     }
 
-    async function replySupport(ticketId) {
+    async function replySupport(ticketId, userId) {
       const input = document.getElementById(`reply-input-${ticketId}`);
       const reply = input ? input.value.trim() : '';
-
       if (!reply) return showToast('Please type a reply.');
-
-      const res = await fetchAPI('/api/admin/support/reply', {
-        method: 'POST',
-        body: JSON.stringify({ ticketId, reply })
-      });
-
-      if (res) {
-        showToast('Reply Sent!');
-        const el = document.getElementById(`ticket-card-${ticketId}`);
-        if (el) el.remove();
-      }
+      const res = await fetchAPI('/api/admin/support/reply', { method: 'POST', body: JSON.stringify({ ticketId, userId, reply }) });
+      if (res) { showToast('Reply Sent!'); document.getElementById(`ticket-card-${ticketId}`)?.remove(); }
     }
 
-    // INITIALIZATION
     window.onload = checkAdminAuth;
   </script>
 </body>
