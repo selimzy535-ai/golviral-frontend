@@ -86,34 +86,49 @@
       if (tabId === 'support') loadSupport();
     }
 
-    async function loadPendingPosts() {
-      const container = document.getElementById('posts-container');
-      container.innerHTML = 'Loading...';
-      const posts = await fetchAPI('/api/admin/posts/pending');
-      if (!posts) return;
-      if (posts.length === 0) { container.innerHTML = '<div class="empty-state">No pending posts for approval.</div>'; return; }
+async function loadPendingPosts() {
+  const container = document.getElementById('posts-container');
+  container.innerHTML = 'Loading...';
+  const posts = await fetchAPI('/api/admin/posts/pending');
+  if (!posts) return;
+  if (posts.length === 0) { container.innerHTML = '<div class="empty-state">No pending posts for approval.</div>'; return; }
 
-      container.innerHTML = '';
-      for (const post of posts) {
-        let mediaHtml = '';
-        if (post.mediaUrl) {
-          const signed = await getSignedUrl(post.mediaUrl, post.b2Shard);
-          if (post.type === 'reel') mediaHtml = `<video src="${signed}" class="media-preview" controls preload="metadata"></video>`;
-          else mediaHtml = `<img src="${signed}" class="media-preview" />`;
-        }
+  container.innerHTML = ''; // clear
 
-        container.innerHTML += `
-          <div class="card" id="post-card-${post.id}">
-            <div class="card-header"><span>@${post.user?.username || 'User'}</span><span style="color:var(--accent); font-size:0.8rem;">${post.type}</span></div>
-            ${mediaHtml}
-            <div><strong>${post.title || 'Untitled'}</strong><p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${post.content || ''}</p></div>
-            <div class="btn-group">
-              <button class="btn btn-accent" onclick="approvePost('${post.id}')">Approve</button>
-              <button class="btn btn-danger" onclick="rejectPost('${post.id}')">Reject</button>
-            </div>
-          </div>`;
+  for (const post of posts) {
+    let mediaHtml = '';
+    if (post.mediaUrl) {
+      const signed = await getSignedUrl(post.mediaUrl, post.b2Shard); // wait for URL first
+      if (!signed) {
+        mediaHtml = `<div style="color:var(--danger)">Failed to load media</div>`;
+      } else if (post.type === 'reel') {
+        mediaHtml = `<video src="${signed}" class="media-preview" controls playsinline></video>`;
+      } else {
+        mediaHtml = `<img src="${signed}" class="media-preview" />`;
       }
     }
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = `post-card-${post.id}`;
+    card.innerHTML = `
+      <div class="card-header">
+        <span>@${post.user?.username || 'User'}</span>
+        <span style="color:var(--accent); font-size:0.8rem;">${post.type}</span>
+      </div>
+      ${mediaHtml}
+      <div>
+        <strong>${post.title || 'Untitled'}</strong>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${post.content || ''}</p>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-accent" onclick="approvePost('${post.id}')">Approve</button>
+        <button class="btn btn-danger" onclick="rejectPost('${post.id}')">Reject</button>
+      </div>
+    `;
+    container.appendChild(card); // append after URL is ready
+  }
+}
 
     async function approvePost(id) { const res = await fetchAPI(`/api/admin/posts/${id}/approve`, { method: 'POST' }); if (res) { showToast('Post Approved!'); document.getElementById(`post-card-${id}`)?.remove(); } }
     async function rejectPost(id) { const res = await fetchAPI(`/api/admin/posts/${id}/reject`, { method: 'POST' }); if (res) { showToast('Post Rejected'); document.getElementById(`post-card-${id}`)?.remove(); } }
