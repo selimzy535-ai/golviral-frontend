@@ -4,26 +4,35 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GolViral - Create</title>
 <style>
-:root{--bg:#050505;--card:#0f0f0f;--accent:#00ff88;--text:#fff;--muted:#888;--border:#1f1f1f;--gradient:linear-gradient(135deg,#00ff88,#3b82f6)}
+:root{--bg:#050505;--card:#0f0f0f;--accent:#00ff88;--text:#fff;--muted:#888;--border:#1f1f1f;--danger:#ff4444;--gradient:linear-gradient(135deg,#00ff88,#3b82f6)}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
 body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;padding:20px}
+h2{margin-bottom:16px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px}
-.input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px}
-.drop{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;margin-bottom:12px}
-.progress{height:6px;background:var(--card);border-radius:10px;overflow:hidden;margin-top:12px}
-.progress-bar{height:100%;background:var(--gradient);width:0%}
-.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%}
-.btn:disabled{opacity:0.6}
-.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
+.input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px;outline:none}
+.input:focus{border-color:var(--accent)}
+.drop{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;margin-bottom:12px;cursor:pointer}
+.drop:hover{border-color:var(--accent)}
+.progress{height:8px;background:#000;border-radius:10px;overflow:hidden;margin-top:12px}
+.progress-bar{height:100%;background:var(--gradient);width:0%;transition:0.2s}
+.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer}
+.btn:disabled{opacity:0.6;cursor:not-allowed}
+.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0;max-width:90%;text-align:center}
 .toast.show{transform:translate(-50%,0);opacity:1}
+.toast.error{background:var(--danger);color:#fff}
+.tip{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
 </style>
 </head>
 <body>
 <div id="toast" class="toast"></div>
-<h2>Create Post</h2>
+<h2>Create Reel</h2>
 
 <div class="card">
-<div class="drop" id="drop">Tap to select video<input type="file" id="file-input" accept="video/mp4,video/quicktime,video/mov" style="display:none"></div>
+<div class="drop" id="drop">
+  <b>Tap to select video</b>
+  <p class="tip">MP4 or MOV • Max 60s • Max 2MB</p>
+  <input type="file" id="file-input" accept="video/mp4,video/quicktime,video/mov" style="display:none">
+</div>
 <div class="progress"><div class="progress-bar" id="progress"></div></div>
 </div>
 
@@ -39,14 +48,35 @@ const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 let selectedFile=null;
 
-function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),4000)}
+function toast(msg, isError=false){
+  const t=document.getElementById('toast');
+  t.innerText=msg;
+  t.className='toast '+(isError?'error':'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),5000)
+}
 
 document.getElementById('drop').onclick=()=>document.getElementById('file-input').click();
-document.getElementById('file-input').onchange=e=>{selectedFile=e.target.files[0]; if(selectedFile){document.getElementById('details-step').style.display='block'; toast('File selected: '+selectedFile.name)}}
+document.getElementById('file-input').onchange=e=>{
+  selectedFile=e.target.files[0]; 
+  if(selectedFile){
+    // SIZE CHECK
+    if(selectedFile.size > 2*1024*1024){
+      toast('Video too big! Max 2MB. Yours: '+(selectedFile.size/1024/1024).toFixed(1)+'MB', true);
+      selectedFile=null;
+      return;
+    }
+    document.getElementById('details-step').style.display='block'; 
+    toast('File selected: '+selectedFile.name+' - '+ (selectedFile.size/1024/1024).toFixed(2)+'MB')
+  }
+}
 
 async function submitPost(){
+if(!selectedFile) return toast('Please select a video first', true);
+
 const btn = document.getElementById('publish-btn');
-btn.disabled=true; btn.innerText='Step 1: Getting Upload URL...';
+btn.disabled=true; 
+btn.innerText='Step 1: Getting Upload URL...';
 toast('Step 1: Calling /create-intent');
 
 const fileExt=selectedFile.name.split('.').pop();
@@ -56,28 +86,39 @@ const caption=document.getElementById('caption').value;
 
 try {
   // STEP 1: INTENT
-  const res1=await fetch(API+'/api/post/create-intent',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({fileExtension:fileExt,contentType,postType:'reel',caption})});
+  const res1=await fetch(API+'/api/post/create-intent',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+    body:JSON.stringify({fileExtension:fileExt,contentType,postType:'reel',caption})
+  });
   const d1=await res1.json();
-  toast('Step 1 Result: '+res1.status+' '+ (d1.error||'OK'));
+  toast('Step 1: '+res1.status+' '+ (d1.error||'OK'));
   if(!res1.ok) throw new Error('Intent failed: '+d1.error);
+  
   btn.innerText='Step 2: Uploading to B2...';
-  toast('Step 2: Uploading '+selectedFile.size+' bytes to B2');
+  toast('Step 2: Uploading '+ (selectedFile.size/1024/1024).toFixed(2)+'MB to B2');
 
   // STEP 2: UPLOAD TO B2
   await uploadFile(d1.uploadUrl,selectedFile);
   toast('Step 2 Success: Uploaded to B2');
   btn.innerText='Step 3: Activating Post...';
+  toast('Step 3: Calling /post/create');
 
   // STEP 3: ACTIVATE
-  const res3=await fetch(API+'/api/post/create',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({postId:d1.postId,objectKey:d1.objectKey,title})});
+  const res3=await fetch(API+'/api/post/create',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+    body:JSON.stringify({postId:d1.postId,objectKey:d1.objectKey,title,caption})
+  });
   const d3=await res3.json();
-  toast('Step 3 Result: '+res3.status+' '+ (d3.message||d3.error));
+  toast('Step 3: '+res3.status+' '+ (d3.message||d3.error));
   if(!res3.ok) throw new Error('Create failed: '+d3.error);
 
   toast('DONE! Post Published 🎉');
   setTimeout(()=>location.href='index.html',2000);
 } catch(err) {
-  toast('ERROR: '+err.message);
+  console.error(err);
+  toast('ERROR: '+err.message, true);
   btn.disabled=false; btn.innerText='Publish Post';
 }
 }
@@ -85,19 +126,32 @@ try {
 async function uploadFile(url,file){
   return new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();
+    xhr.timeout = 90000; // 90s timeout for slow network
+    
     xhr.upload.onprogress=e=>{
-      if(e.lengthComputable) document.getElementById('progress').style.width=(e.loaded/e.total*100)+'%'
+      if(e.lengthComputable){
+        let percent = (e.loaded/e.total*100).toFixed(0);
+        document.getElementById('progress').style.width=percent+'%';
+        if(percent % 10 === 0) toast('Uploading: '+percent+'%') // toast every 10%
+      }
     }
+    
     xhr.onload=()=>{
-      toast('B2 Upload HTTP: '+xhr.status); 
-      xhr.status>=200 && xhr.status<300 
-        ? resolve() 
-        : reject(new Error('B2 Upload failed '+xhr.status + ' ' + xhr.responseText)) // FIXED
+      toast('B2 Response: '+xhr.status); 
+      if(xhr.status>=200 && xhr.status<300) resolve();
+      else reject(new Error('B2 Upload failed '+xhr.status + '. ' + xhr.responseText.slice(0,100)))
     };
+    
     xhr.onerror=()=>{
-      toast('B2 CORS/Network Error. Check B2 CORS');
-      reject(new Error('Network error'))
+      toast('B2 Network/CORS Error. Check B2 CORS settings!', true);
+      reject(new Error('Network error - B2 blocked request'))
     };
+    
+    xhr.ontimeout=()=>{
+      toast('B2 Timeout. File too big or slow network', true);
+      reject(new Error('Upload timeout'))
+    };
+
     xhr.open('PUT',url);
     xhr.setRequestHeader('Content-Type', file.type);
     xhr.send(file);
