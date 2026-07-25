@@ -109,7 +109,7 @@ let feedData=[];
 let currentPost=null;
 let searchTimer=null;
 const userCache={};
-const followLocks={}; // anti-spam
+const followLocks={};
 
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 
@@ -117,8 +117,9 @@ async function api(path,opt={}){
   try{
     const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
     if(res.status===401) location.href='auth.html';
-    if(res.status>=400) return {error: await res.text()};
-    return res.json();
+    const data = await res.json().catch(()=>({}));
+    if(res.status>=400) return {error: data.error || 'Request failed'};
+    return data;
   }catch{ toast('Network error'); return {error:'network'} }
 }
 
@@ -260,24 +261,25 @@ async function toggleFollow(userId,btn){
   const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});
 
   if(res.error){
-    btn.innerText=oldText;
-    toast(res.error);
+    btn.innerText=oldText; // rollback on backend 500
+    toast(res.error || 'Failed');
   }
-  setTimeout(()=>{btn.disabled=false; delete followLocks[userId]},2000); // 2s cooldown
+  setTimeout(()=>{btn.disabled=false; delete followLocks[userId]},2000);
 }
 
 async function sendGift(userId){
-  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId})});
+  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId, giftType:'RUBY'})}); // backend needs giftType
   if(res.success) toast('Gift sent!');
+  else toast(res.error);
 }
 
 function boostPost(id){location.href=`post.html?boost=${id}`}
 function toggleSound(btn){const video=btn.closest('.reel').querySelector('video');video.muted=!video.muted;toast(video.muted?'Muted':'Unmuted')}
 
 async function sharePost(postId){
-  const url=`${location.origin}/post.html?id=${postId}`;
+  const url=`${location.origin}/index.html`; // backend has no single post page
   if(navigator.share){
-    try{ await navigator.share({title:'GolViral Post', url}) }catch{}
+    try{ await navigator.share({title:'GolViral', text:'Check this on GolViral', url}) }catch{}
   } else {
     navigator.clipboard.writeText(url);
     toast('Link copied');
