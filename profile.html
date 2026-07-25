@@ -21,8 +21,8 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800;margin-top:8px;margin-right:4px}
 .badge.verified{background:var(--blue);color:#fff}
 .badge.creator{background:var(--purple);color:#fff}
-.stats{display:flex;justify-content:space-around;margin:20px 0}
-.stat{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;padding:12px;border-radius:16px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);flex:1;margin:0 4px}
+.stats{display:flex;justify-content:space-around;margin:20px 0;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;padding:12px;border-radius:16px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);flex:1;margin:0 4px;min-width:22%}
 .stat b{font-size:18px;color:var(--green)}
 .tabs{display:flex;gap:8px;padding:0 12px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
@@ -38,6 +38,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;margin-bottom:10px;outline:none}
 .input:focus{border-color:var(--green)}
 .btn{background:var(--gradient);color:#000;border:none;padding:12px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:16px}
+.btn[disabled]{opacity:0.5;pointer-events:none}
 .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
 .progress{height:10px;background:var(--card);border-radius:10px;overflow:hidden;margin:8px 0}
 .progress-bar{height:100%;background:var(--gradient);border-radius:10px;transition:0.3s}
@@ -48,6 +49,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .toast.show{transform:translate(-50%,0);opacity:1}
 .gift-card{display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;margin-bottom:10px;cursor:pointer;border:2px solid transparent;transition:0.2s}
 .gift-card:hover{border-color:var(--green);transform:translateY(-2px)}
+.copy-box{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);padding:10px;border-radius:12px;margin-top:8px;font-size:12px;word-break:break-all}
 </style>
 </head>
 <body>
@@ -62,13 +64,33 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 <div class="profile">
 <div class="avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"></div>
 <h2 id="username-display" style="margin:8px 0"></h2>
+<p id="joined-date" style="color:var(--muted);font-size:12px;margin-bottom:8px"></p>
 <div id="badges"></div>
+
 <div class="stats">
 <div class="stat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><b id="posts">0</b><span>Posts</span></div>
 <div class="stat"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><b id="followers">0</b><span>Followers</span></div>
+<div class="stat"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3"/><path d="M21 16v5h-5M15 15l6 6"/></svg><b id="following">0</b><span>Following</span></div>
 <div class="stat"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><b id="likes">0</b><span>Likes</span></div>
 </div>
+
+<div class="stat" style="margin-top:8px;width:100%"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><b id="views">0</b><span>Total Views</span></div>
+
 <button id="follow-btn" class="btn" onclick="toggleFollow()">Follow</button>
+
+<!-- LINKS BOX -->
+<div id="links-box" style="display:none;margin-top:16px;text-align:left">
+  <b>Your Links</b>
+  <div class="copy-box">
+    <div><div style="font-size:10px;color:var(--muted)">Profile Link</div><span id="profile-link"></span></div>
+    <svg onclick="copyLink('profile-link')" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+  </div>
+  <div class="copy-box" style="margin-top:8px">
+    <div><div style="font-size:10px;color:var(--muted)">Referral Link</div><span id="referral-link"></span></div>
+    <svg onclick="copyLink('referral-link')" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+  </div>
+</div>
+
 </div>
 
 <div class="tabs">
@@ -99,6 +121,7 @@ if(!TOKEN) location.href='auth.html';
 const profileId=new URLSearchParams(location.search).get('id')||localStorage.userId;
 const isSelf=profileId===localStorage.userId;
 let pendingWithdraw=null;
+let followLock=false;
 
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 async function api(path,opt={}){try{const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});if(res.status===401)location.href='auth.html';return res.json()}catch{toast('Network error');return {}}}
@@ -112,16 +135,32 @@ document.getElementById('username').innerText='@'+u.username;
 document.getElementById('username-display').innerText=u.username;
 document.getElementById('posts').innerText=u.totalPosts||0;
 document.getElementById('followers').innerText=u.followers||0;
+document.getElementById('following').innerText=u.following||0;
 document.getElementById('likes').innerText=u.totalLikes||0;
+document.getElementById('views').innerText=u.totalViews||0;
+
+const date = new Date(u.createdAt).toLocaleDateString('en-US',{month:'short', year:'numeric'});
+document.getElementById('joined-date').innerText = `Joined ${date}`;
 
 let badges='';
 if(u.isVerified) badges+=`<span class="badge verified">Verified</span>`;
 if(u.dmUnlocked) badges+=`<span class="badge creator">Creator</span>`;
 document.getElementById('badges').innerHTML=badges;
 
-if(!isSelf)document.getElementById('follow-btn').innerText=u.isFollowing?'Unfollow':'Follow';
-else document.getElementById('follow-btn').style.display='none';
+if(isSelf){
+  document.getElementById('links-box').style.display='block';
+  document.getElementById('profile-link').innerText=u.profileLink;
+  document.getElementById('referral-link').innerText=u.referralLink;
+  document.getElementById('follow-btn').style.display='none';
+}else{
+  document.getElementById('follow-btn').innerText=u.isFollowing?'Unfollow':'Follow';
+}
 loadPosts();
+}
+
+function copyLink(id){
+  navigator.clipboard.writeText(document.getElementById(id).innerText);
+  toast('Copied');
 }
 
 async function loadPosts(){
@@ -144,12 +183,14 @@ async function loadWallet(){
 const w=await api('/api/wallet');
 const cap=getPercent(w.dailyCapProgress); const days=getPercent(w.daysProgress); const foll=getPercent(w.followersProgress);
 document.getElementById('tab-wallet').innerHTML=`
+<div class="card wallet"><b>Status: ${w.monetized? '✅ Monetized' : '❌ Not Monetized'}</b></div>
 <div class="card wallet"><b>Free Credits: ${w.freeCredits}</b></div>
 <div class="card wallet"><b>Cash Balance: ₦${w.cashBalance}</b></div>
 <div class="card wallet">
 <p>Daily Cap ${w.dailyCapProgress}</p><div class="progress"><div class="progress-bar" style="width:${cap}%"></div></div>
 <p>Days to Monetize ${w.daysProgress}</p><div class="progress"><div class="progress-bar" style="width:${days}%"></div></div>
 <p>Followers ${w.followersProgress}</p><div class="progress"><div class="progress-bar" style="width:${foll}%"></div></div>
+<p>Referrals Left: ${w.refsLeft}/5</p>
 </div>
 <div class="card wallet">
 <button class="btn" onclick="deposit(1500)">Deposit ₦1500 = 15,000 pts</button>
@@ -160,22 +201,18 @@ document.getElementById('tab-wallet').innerHTML=`
 <p style="margin-bottom:8px;font-weight:800">Withdraw Cash</p>
 <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Min: 50,000 pts = ₦5000</p>
 <input class="input" id="withdraw-amount" type="number" placeholder="Amount in Points">
-
 <select class="input" id="withdraw-method" onchange="toggleWithdrawFields()">
   <option value="BANK">Bank Transfer - Naira</option>
   <option value="USDT">USDT TRC20 - $10 / $100 only</option>
 </select>
-
 <div id="bank-fields">
   <input class="input" id="bank-name" placeholder="Bank Name e.g GTBank">
   <input class="input" id="account-number" placeholder="Account Number">
   <input class="input" id="account-name" placeholder="Account Name">
 </div>
-
 <div id="usdt-fields" style="display:none">
   <input class="input" id="usdt-address" placeholder="TRC20 Address starts with T">
 </div>
-
 <button class="btn" onclick="requestWithdraw()">Request Withdraw</button>
 </div>`;
 }
@@ -190,11 +227,9 @@ async function deposit(amount){const d=await api('/api/deposit/init',{method:'PO
 async function unlockDM(){const d=await api('/api/dm/init',{method:'POST'});if(d.selarLink)window.open(d.selarLink)}
 
 async function requestWithdraw(){
-const amount=document.getElementById('withdraw-amount').value; 
-const method=document.getElementById('withdraw-method').value; 
-
+const amount=document.getElementById('withdraw-amount').value;
+const method=document.getElementById('withdraw-method').value;
 if(Number(amount) < 50000) return toast('Min withdrawal is 50,000 pts');
-
 let targetDetails = {};
 if(method==='BANK'){
   const bankName=document.getElementById('bank-name').value;
@@ -208,7 +243,6 @@ if(method==='BANK'){
   if(Number(amount)!==120000 && Number(amount)!==12000000) return toast('USDT only 120k or 12M pts');
   targetDetails = usdt;
 }
-
 pendingWithdraw={amountPoints:Number(amount),method,targetDetails};
 const res=await api('/api/wallet/withdraw',{method:'POST',body:JSON.stringify(pendingWithdraw)});
 if(res.authChallenge)document.getElementById('otp-modal').classList.add('active');
@@ -234,9 +268,8 @@ document.getElementById('tab-gifts').innerHTML=`
 <svg viewBox="0 0 24 24" style="color:#3b82f6"><path d="M2 9l10 13L22 9"/></svg><div><b>DIAMOND</b><p style="color:var(--muted)">₦15000 - 1000pts x 100 gifts</p></div></div>`;
 }
 async function buyGift(type){const d=await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});if(d.selarLink)window.open(d.selarLink)}
-window.sendGift=async(userId,giftType='RUBY')=>{const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId,giftType})});if(res.success)toast('Gift Sent!')}
 
-// SUPPORT
+// SUPPORT - FIXED
 async function loadSupport(){
 document.getElementById('tab-support').innerHTML=`
 <div class="card support"><input class="input" id="support-subject" placeholder="Subject">
@@ -244,20 +277,41 @@ document.getElementById('tab-support').innerHTML=`
 <button class="btn" onclick="sendSupport()">Send Ticket</button></div>
 <div id="tickets"></div>`;
 const t=await api('/api/support/my');
-document.getElementById('tickets').innerHTML=(t||[]).map(x=>`<div class="card support"><b>${x.subject}</b><p style="color:${x.status==='RESOLVED'?'var(--green)':'var(--orange)'}">${x.status}</p></div>`).join('');
+document.getElementById('tickets').innerHTML=(t||[]).map(x=>`
+  <div class="card support">
+    <b>${x.subject}</b>
+    <p style="color:var(--muted);font-size:12px;margin:4px 0">You: ${x.message}</p>
+    ${x.reply?`<p style="color:var(--green);margin-top:8px"><b>Admin:</b> ${x.reply}</p>`:''}
+    <p style="color:${x.status==='RESOLVED'?'var(--green)':'var(--orange)'};margin-top:8px">${x.status}</p>
+  </div>
+`).join('');
 }
+
 async function sendSupport(){
 const subject=document.getElementById('support-subject').value;
 const message=document.getElementById('support-msg').value;
+if(!subject ||!message) return toast('Fill all fields');
 await api('/api/support/send',{method:'POST',body:JSON.stringify({subject,message})});
 toast('Ticket sent');loadSupport();
 }
 
-// FOLLOW
+// FOLLOW - ANTI SPAM
 async function toggleFollow(){
+if(followLock) return;
+followLock=true;
 const btn=document.getElementById('follow-btn');
-if(btn.innerText==='Follow'){await api('/api/follow',{method:'POST',body:JSON.stringify({followingId:profileId})});btn.innerText='Unfollow';toast('Following')}
-else{await api('/api/unfollow',{method:'POST',body:JSON.stringify({followingId:profileId})});btn.innerText='Follow';toast('Unfollowed')}
+btn.disabled=true;
+const isFollowing=btn.innerText==='Unfollow';
+btn.innerText=isFollowing?'Follow':'Unfollow';
+
+const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:profileId})});
+if(res.error){
+  btn.innerText=isFollowing?'Unfollow':'Follow';
+  toast(res.error);
+}else{
+  toast(isFollowing?'Unfollowed':'Following');
+}
+setTimeout(()=>{btn.disabled=false; followLock=false},2000);
 }
 
 function logout(){localStorage.clear();location.href='auth.html'}
