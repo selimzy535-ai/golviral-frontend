@@ -30,7 +30,7 @@ h2{margin-bottom:16px}
 <div class="card">
 <div class="drop" id="drop">
   <b>Tap to select video</b>
-  <p class="tip">MP4 or MOV • Max 60s • Max 2MB</p>
+  <p class="tip">MP4 or MOV • Max 60s • Max 10MB</p>
   <input type="file" id="file-input" accept="video/mp4,video/quicktime,video/mov" style="display:none">
 </div>
 <div class="progress"><div class="progress-bar" id="progress"></div></div>
@@ -47,6 +47,7 @@ const API='https://golviral-api.onrender.com';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 let selectedFile=null;
+let objectKey='', contentType='';
 
 function toast(msg, isError=false){
   const t=document.getElementById('toast');
@@ -58,15 +59,15 @@ function toast(msg, isError=false){
 
 document.getElementById('drop').onclick=()=>document.getElementById('file-input').click();
 document.getElementById('file-input').onchange=e=>{
-  selectedFile=e.target.files[0]; 
+  selectedFile=e.target.files[0];
   if(selectedFile){
-    // SIZE CHECK
-    if(selectedFile.size > 2*1024*1024){
-      toast('Video too big! Max 2MB. Yours: '+(selectedFile.size/1024/1024).toFixed(1)+'MB', true);
+    // SIZE CHECK - Increased to 10MB for proxy
+    if(selectedFile.size > 10*1024*1024){
+      toast('Video too big! Max 10MB. Yours: '+(selectedFile.size/1024/1024).toFixed(1)+'MB', true);
       selectedFile=null;
       return;
     }
-    document.getElementById('details-step').style.display='block'; 
+    document.getElementById('details-step').style.display='block';
     toast('File selected: '+selectedFile.name+' - '+ (selectedFile.size/1024/1024).toFixed(2)+'MB')
   }
 }
@@ -75,17 +76,17 @@ async function submitPost(){
 if(!selectedFile) return toast('Please select a video first', true);
 
 const btn = document.getElementById('publish-btn');
-btn.disabled=true; 
+btn.disabled=true;
 btn.innerText='Step 1: Getting Upload URL...';
 toast('Step 1: Calling /create-intent');
 
 const fileExt=selectedFile.name.split('.').pop();
-const contentType=selectedFile.type;
+contentType=selectedFile.type;
 const title=document.getElementById('title').value;
 const caption=document.getElementById('caption').value;
 
 try {
-  // STEP 1: INTENT
+  // STEP 1: INTENT - still needed to get postId and objectKey
   const res1=await fetch(API+'/api/post/create-intent',{
     method:'POST',
     headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
@@ -94,12 +95,14 @@ try {
   const d1=await res1.json();
   toast('Step 1: '+res1.status+' '+ (d1.error||'OK'));
   if(!res1.ok) throw new Error('Intent failed: '+d1.error);
-  
-  btn.innerText='Step 2: Uploading to B2...';
-  toast('Step 2: Uploading '+ (selectedFile.size/1024/1024).toFixed(2)+'MB to B2');
 
-  // STEP 2: UPLOAD TO B2
-  await uploadFile(d1.uploadUrl,selectedFile);
+  objectKey = d1.objectKey; // save for step 2
+
+  btn.innerText='Step 2: Uploading via Server...';
+  toast('Step 2: Uploading '+ (selectedFile.size/1024/1024).toFixed(2)+'MB to your server');
+
+  // STEP 2: UPLOAD TO BACKEND -> B2
+  await uploadFile(d1.postId, selectedFile);
   toast('Step 2 Success: Uploaded to B2');
   btn.innerText='Step 3: Activating Post...';
   toast('Step 3: Calling /post/create');
@@ -123,11 +126,17 @@ try {
 }
 }
 
-async function uploadFile(url,file){
+async function uploadFile(postId, file){
   return new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();
-    xhr.timeout = 90000; // 90s timeout for slow network
-    
+    xhr.timeout = 120000; // 2min timeout for server upload
+
+    const formData = new FormData();
+    formData.append('video', file);
+    formData.append('postId', postId);
+    formData.append('objectKey', objectKey);
+    formData.append('contentType', contentType);
+
     xhr.upload.onprogress=e=>{
       if(e.lengthComputable){
         let percent = (e.loaded/e.total*100).toFixed(0);
@@ -135,26 +144,26 @@ async function uploadFile(url,file){
         if(percent % 10 === 0) toast('Uploading: '+percent+'%') // toast every 10%
       }
     }
-    
+
     xhr.onload=()=>{
-      toast('B2 Response: '+xhr.status); 
+      toast('Server Response: '+xhr.status);
       if(xhr.status>=200 && xhr.status<300) resolve();
-      else reject(new Error('B2 Upload failed '+xhr.status + '. ' + xhr.responseText.slice(0,100)))
+      else reject(new Error('Upload failed '+xhr.status + '. ' + xhr.responseText.slice(0,100)))
     };
-    
+
     xhr.onerror=()=>{
-      toast('B2 Network/CORS Error. Check B2 CORS settings!', true);
-      reject(new Error('Network error - B2 blocked request'))
+      toast('Network Error to server', true);
+      reject(new Error('Network error'))
     };
-    
+
     xhr.ontimeout=()=>{
-      toast('B2 Timeout. File too big or slow network', true);
+      toast('Upload Timeout. File too big or slow network', true);
       reject(new Error('Upload timeout'))
     };
 
-    xhr.open('PUT',url);
-    xhr.setRequestHeader('Content-Type', file.type);
-    xhr.send(file);
+    xhr.open('POST', API+'/api/post/upload-video');
+    xhr.setRequestHeader('Authorization', 'Bearer '+TOKEN);
+    xhr.send(formData);
   });
 }
 </script>
