@@ -3,10 +3,8 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GolViral - Create</title>
-
-<!-- NEW: FFMPEG WASM FOR BROWSER CONVERSION -->
+<!-- FFMPEG WASM FOR BROWSER CONVERSION -->
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
-
 <style>
 :root{--bg:#050505;--card:#0f0f0f;--accent:#00ff88;--text:#fff;--muted:#888;--border:#1f1f1f;--danger:#ff4444;--gradient:linear-gradient(135deg,#00ff88,#3b82f6)}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
@@ -30,33 +28,31 @@ h2{margin-bottom:16px}
 <body>
 <div id="toast" class="toast"></div>
 <h2>Create Reel</h2>
-
 <div class="card">
-<div class="drop" id="drop">
-  <b>Tap to select video</b>
-  <p class="tip">MP4 or MOV • Max 60s • Max 10MB • Will auto-convert to MP4</p>
-  <input type="file" id="file-input" accept="video/*" style="display:none">
+  <div class="drop" id="drop">
+    <b>Tap to select video</b>
+    <p class="tip">MP4 or MOV • Max 60s • Max 10MB • Will auto-convert to MP4</p>
+    <input type="file" id="file-input" accept="video/*" style="display:none">
+  </div>
+  <div class="progress"><div class="progress-bar" id="progress"></div></div>
 </div>
-<div class="progress"><div class="progress-bar" id="progress"></div></div>
-</div>
-
 <div class="card" id="details-step" style="display:none">
-<input class="input" id="title" placeholder="Title">
-<textarea class="input" id="caption" placeholder="Caption"></textarea>
-<button class="btn" id="publish-btn" onclick="submitPost()">Publish Post</button>
+  <input class="input" id="title" placeholder="Title">
+  <textarea class="input" id="caption" placeholder="Caption"></textarea>
+  <button class="btn" id="publish-btn" onclick="submitPost()">Publish Post</button>
 </div>
-
 <script>
 const API='https://golviral-api.onrender.com';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
+
 let selectedFile=null;
 let objectKey='', contentType='';
 
-// NEW: FFMPEG SETUP
+// FFMPEG SETUP
 const { createFFmpeg, fetchFile } = FFmpeg;
 const ffmpeg = createFFmpeg({
-  log: true,
+  log: false,
   corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/ffmpeg-core.js'
 });
 
@@ -65,15 +61,16 @@ function toast(msg, isError=false){
   t.innerText=msg;
   t.className='toast '+(isError?'error':'');
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),5000)
+  setTimeout(()=>t.classList.remove('show'),4000)
 }
 
 document.getElementById('drop').onclick=()=>document.getElementById('file-input').click();
+
 document.getElementById('file-input').onchange=e=>{
   selectedFile=e.target.files[0];
   if(selectedFile){
-    if(selectedFile.size > 10*1024*1024){
-      toast('Video too big! Max 10MB. Yours: '+(selectedFile.size/1024/1024).toFixed(1)+'MB', true);
+    if(selectedFile.size > 20*1024*1024){ // Allow bigger input, check after conversion
+      toast('Original file too big! Max 20MB input. Yours: '+(selectedFile.size/1024/1024).toFixed(1)+'MB', true);
       selectedFile=null;
       return;
     }
@@ -82,113 +79,123 @@ document.getElementById('file-input').onchange=e=>{
   }
 }
 
-// NEW: CONVERT FUNCTION
+// CONVERT FUNCTION WITH FALLBACK
 async function convertToMp4(file) {
-  toast('Step 1.5: Loading video converter...');
-  if(!ffmpeg.isLoaded()) {
-    await ffmpeg.load();
-    toast('Converter loaded. Converting to MP4...');
+  try {
+    toast('Step 1.5: Loading converter... This is 25MB download');
+    if(!ffmpeg.isLoaded()) {
+      await ffmpeg.load();
+      toast('Converter loaded. Converting to MP4...');
+    }
+    const ext = file.name.split('.').pop();
+    const inputName = 'input.' + ext;
+    const outputName = 'output.mp4';
+
+    ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+
+    // Convert for iPhone: H264 + AAC + faststart
+    await ffmpeg.run('-i', inputName, '-vcodec', 'libx264', '-acodec', 'aac', '-movflags', '+faststart', '-preset', 'ultrafast', '-crf', '28', outputName);
+
+    const data = ffmpeg.FS('readFile', outputName);
+    const mp4File = new File([data.buffer], file.name.replace(/\.[^/.]+$/, ".mp4"), { type: 'video/mp4' });
+
+    // Cleanup
+    ffmpeg.FS('unlink', inputName);
+    ffmpeg.FS('unlink', outputName);
+
+    toast('Conversion done! New size: '+ (mp4File.size/1024/1024).toFixed(2)+'MB');
+    return mp4File;
+
+  } catch(e) {
+    console.error('FFMPEG Error', e);
+    toast('Converter failed. Uploading original file', true);
+    return file; // fallback
   }
-
-  const inputName = 'input.' + file.name.split('.').pop();
-  const outputName = 'output.mp4';
-
-  ffmpeg.FS('writeFile', inputName, await fetchFile(file));
-
-  // Convert for iPhone: H264 + AAC + faststart
-  await ffmpeg.run('-i', inputName, '-vcodec', 'libx264', '-acodec', 'aac', '-movflags', '+faststart', '-preset', 'ultrafast', outputName);
-
-  const data = ffmpeg.FS('readFile', outputName);
-  const mp4File = new File([data.buffer], file.name.replace(/\.[^/.]+$/, ".mp4"), { type: 'video/mp4' });
-
-  // Cleanup
-  ffmpeg.FS('unlink', inputName);
-  ffmpeg.FS('unlink', outputName);
-
-  toast('Conversion done! New size: '+ (mp4File.size/1024/1024).toFixed(2)+'MB');
-  return mp4File;
 }
 
 async function submitPost(){
-if(!selectedFile) return toast('Please select a video first', true);
+  if(!selectedFile) return toast('Please select a video first', true);
+  const btn = document.getElementById('publish-btn');
+  btn.disabled=true;
+  btn.innerText='Step 1: Getting Upload URL...';
+  toast('Step 1: Calling /create-intent');
 
-const btn = document.getElementById('publish-btn');
-btn.disabled=true;
-btn.innerText='Step 1: Getting Upload URL...';
-toast('Step 1: Calling /create-intent');
+  let fileToUpload = selectedFile;
+  contentType = 'video/mp4';
 
-let fileToUpload = selectedFile;
-contentType = 'video/mp4'; // Force mp4 after conversion
+  try {
+    // STEP 1: INTENT
+    const res1=await fetch(API+'/api/post/create-intent',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify({fileExtension:'mp4',contentType,postType:'reel',caption:document.getElementById('caption').value})
+    });
+    const d1=await res1.json();
+    if(!res1.ok) throw new Error('Intent failed: '+d1.error);
+    objectKey = d1.objectKey;
+    toast('Step 1: OK');
 
-try {
-  // STEP 1: INTENT
-  const res1=await fetch(API+'/api/post/create-intent',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-    body:JSON.stringify({fileExtension:'mp4',contentType,postType:'reel',caption:document.getElementById('caption').value})
-  });
-  const d1=await res1.json();
-  toast('Step 1: '+res1.status+' '+ (d1.error||'OK'));
-  if(!res1.ok) throw new Error('Intent failed: '+d1.error);
+    // STEP 1.5: CONVERT TO MP4
+    fileToUpload = await convertToMp4(selectedFile);
 
-  objectKey = d1.objectKey;
+    // CHECK SIZE AFTER CONVERSION
+    if(fileToUpload.size > 10*1024*1024){
+      toast('Video too big after conversion! Max 10MB. Yours: '+(fileToUpload.size/1024/1024).toFixed(1)+'MB', true);
+      btn.disabled=false; btn.innerText='Publish Post';
+      return;
+    }
 
-  // STEP 1.5: CONVERT TO MP4
-  fileToUpload = await convertToMp4(selectedFile);
+    btn.innerText='Step 2: Uploading to Server...';
+    toast('Step 2: Uploading '+ (fileToUpload.size/1024/1024).toFixed(2)+'MB');
 
-  btn.innerText='Step 2: Uploading via Server...';
-  toast('Step 2: Uploading '+ (fileToUpload.size/1024/1024).toFixed(2)+'MB to your server');
+    // STEP 2: UPLOAD TO BACKEND -> B2
+    await uploadFile(d1.postId, fileToUpload);
+    toast('Step 2 Success: Uploaded to B2');
 
-  // STEP 2: UPLOAD TO BACKEND -> B2
-  await uploadFile(d1.postId, fileToUpload);
-  toast('Step 2 Success: Uploaded to B2');
-  btn.innerText='Step 3: Activating Post...';
-  toast('Step 3: Calling /post/create');
+    btn.innerText='Step 3: Activating Post...';
+    toast('Step 3: Calling /post/create');
 
-  // STEP 3: ACTIVATE
-  const res3=await fetch(API+'/api/post/create',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-    body:JSON.stringify({postId:d1.postId,objectKey:d1.objectKey,title:document.getElementById('title').value,caption:document.getElementById('caption').value})
-  });
-  const d3=await res3.json();
-  toast('Step 3: '+res3.status+' '+ (d3.message||d3.error));
-  if(!res3.ok) throw new Error('Create failed: '+d3.error);
+    // STEP 3: ACTIVATE
+    const res3=await fetch(API+'/api/post/create',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify({postId:d1.postId,objectKey:d1.objectKey,title:document.getElementById('title').value,caption:document.getElementById('caption').value})
+    });
+    const d3=await res3.json();
+    if(!res3.ok) throw new Error('Create failed: '+d3.error);
 
-  toast('DONE! Post Published 🎉');
-  setTimeout(()=>location.href='index.html',2000);
-} catch(err) {
-  console.error(err);
-  toast('ERROR: '+err.message, true);
-  btn.disabled=false; btn.innerText='Publish Post';
-}
+    toast('DONE! Post Published 🎉');
+    setTimeout(()=>location.href='index.html',1500);
+
+  } catch(err) {
+    console.error(err);
+    toast('ERROR: '+err.message, true);
+    btn.disabled=false;
+    btn.innerText='Publish Post';
+  }
 }
 
 async function uploadFile(postId, file){
   return new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();
     xhr.timeout = 120000;
-
     const formData = new FormData();
     formData.append('video', file);
     formData.append('postId', postId);
     formData.append('objectKey', objectKey);
-    formData.append('contentType', 'video/mp4'); // Force mp4
+    formData.append('contentType', 'video/mp4');
 
     xhr.upload.onprogress=e=>{
       if(e.lengthComputable){
         let percent = (e.loaded/e.total*100).toFixed(0);
         document.getElementById('progress').style.width=percent+'%';
-        if(percent % 10 === 0) toast('Uploading: '+percent+'%')
+        if(percent % 20 === 0) toast('Uploading: '+percent+'%')
       }
     }
-
     xhr.onload=()=>{
-      toast('Server Response: '+xhr.status);
       if(xhr.status>=200 && xhr.status<300) resolve();
       else reject(new Error('Upload failed '+xhr.status + '. ' + xhr.responseText.slice(0,100)))
     };
-
     xhr.onerror=()=>{toast('Network Error to server', true); reject(new Error('Network error'))};
     xhr.ontimeout=()=>{toast('Upload Timeout. File too big or slow network', true); reject(new Error('Upload timeout'))};
 
