@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GolViral - Create</title>
+
+<!-- NEW: FFMPEG WASM FOR BROWSER CONVERSION -->
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
+
 <style>
 :root{--bg:#050505;--card:#0f0f0f;--accent:#00ff88;--text:#fff;--muted:#888;--border:#1f1f1f;--danger:#ff4444;--gradient:linear-gradient(135deg,#00ff88,#3b82f6)}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
@@ -30,8 +34,8 @@ h2{margin-bottom:16px}
 <div class="card">
 <div class="drop" id="drop">
   <b>Tap to select video</b>
-  <p class="tip">MP4 or MOV • Max 60s • Max 10MB</p>
-  <input type="file" id="file-input" accept="video/mp4,video/quicktime,video/mov" style="display:none">
+  <p class="tip">MP4 or MOV • Max 60s • Max 10MB • Will auto-convert to MP4</p>
+  <input type="file" id="file-input" accept="video/*" style="display:none">
 </div>
 <div class="progress"><div class="progress-bar" id="progress"></div></div>
 </div>
@@ -49,6 +53,13 @@ if(!TOKEN) location.href='auth.html';
 let selectedFile=null;
 let objectKey='', contentType='';
 
+// NEW: FFMPEG SETUP
+const { createFFmpeg, fetchFile } = FFmpeg;
+const ffmpeg = createFFmpeg({
+  log: true,
+  corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/ffmpeg-core.js'
+});
+
 function toast(msg, isError=false){
   const t=document.getElementById('toast');
   t.innerText=msg;
@@ -61,7 +72,6 @@ document.getElementById('drop').onclick=()=>document.getElementById('file-input'
 document.getElementById('file-input').onchange=e=>{
   selectedFile=e.target.files[0];
   if(selectedFile){
-    // SIZE CHECK - Increased to 10MB for proxy
     if(selectedFile.size > 10*1024*1024){
       toast('Video too big! Max 10MB. Yours: '+(selectedFile.size/1024/1024).toFixed(1)+'MB', true);
       selectedFile=null;
@@ -72,6 +82,33 @@ document.getElementById('file-input').onchange=e=>{
   }
 }
 
+// NEW: CONVERT FUNCTION
+async function convertToMp4(file) {
+  toast('Step 1.5: Loading video converter...');
+  if(!ffmpeg.isLoaded()) {
+    await ffmpeg.load();
+    toast('Converter loaded. Converting to MP4...');
+  }
+
+  const inputName = 'input.' + file.name.split('.').pop();
+  const outputName = 'output.mp4';
+
+  ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+
+  // Convert for iPhone: H264 + AAC + faststart
+  await ffmpeg.run('-i', inputName, '-vcodec', 'libx264', '-acodec', 'aac', '-movflags', '+faststart', '-preset', 'ultrafast', outputName);
+
+  const data = ffmpeg.FS('readFile', outputName);
+  const mp4File = new File([data.buffer], file.name.replace(/\.[^/.]+$/, ".mp4"), { type: 'video/mp4' });
+
+  // Cleanup
+  ffmpeg.FS('unlink', inputName);
+  ffmpeg.FS('unlink', outputName);
+
+  toast('Conversion done! New size: '+ (mp4File.size/1024/1024).toFixed(2)+'MB');
+  return mp4File;
+}
+
 async function submitPost(){
 if(!selectedFile) return toast('Please select a video first', true);
 
@@ -80,29 +117,30 @@ btn.disabled=true;
 btn.innerText='Step 1: Getting Upload URL...';
 toast('Step 1: Calling /create-intent');
 
-const fileExt=selectedFile.name.split('.').pop();
-contentType=selectedFile.type;
-const title=document.getElementById('title').value;
-const caption=document.getElementById('caption').value;
+let fileToUpload = selectedFile;
+contentType = 'video/mp4'; // Force mp4 after conversion
 
 try {
-  // STEP 1: INTENT - still needed to get postId and objectKey
+  // STEP 1: INTENT
   const res1=await fetch(API+'/api/post/create-intent',{
     method:'POST',
     headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-    body:JSON.stringify({fileExtension:fileExt,contentType,postType:'reel',caption})
+    body:JSON.stringify({fileExtension:'mp4',contentType,postType:'reel',caption:document.getElementById('caption').value})
   });
   const d1=await res1.json();
   toast('Step 1: '+res1.status+' '+ (d1.error||'OK'));
   if(!res1.ok) throw new Error('Intent failed: '+d1.error);
 
-  objectKey = d1.objectKey; // save for step 2
+  objectKey = d1.objectKey;
+
+  // STEP 1.5: CONVERT TO MP4
+  fileToUpload = await convertToMp4(selectedFile);
 
   btn.innerText='Step 2: Uploading via Server...';
-  toast('Step 2: Uploading '+ (selectedFile.size/1024/1024).toFixed(2)+'MB to your server');
+  toast('Step 2: Uploading '+ (fileToUpload.size/1024/1024).toFixed(2)+'MB to your server');
 
   // STEP 2: UPLOAD TO BACKEND -> B2
-  await uploadFile(d1.postId, selectedFile);
+  await uploadFile(d1.postId, fileToUpload);
   toast('Step 2 Success: Uploaded to B2');
   btn.innerText='Step 3: Activating Post...';
   toast('Step 3: Calling /post/create');
@@ -111,7 +149,7 @@ try {
   const res3=await fetch(API+'/api/post/create',{
     method:'POST',
     headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-    body:JSON.stringify({postId:d1.postId,objectKey:d1.objectKey,title,caption})
+    body:JSON.stringify({postId:d1.postId,objectKey:d1.objectKey,title:document.getElementById('title').value,caption:document.getElementById('caption').value})
   });
   const d3=await res3.json();
   toast('Step 3: '+res3.status+' '+ (d3.message||d3.error));
@@ -129,19 +167,19 @@ try {
 async function uploadFile(postId, file){
   return new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();
-    xhr.timeout = 120000; // 2min timeout for server upload
+    xhr.timeout = 120000;
 
     const formData = new FormData();
     formData.append('video', file);
     formData.append('postId', postId);
     formData.append('objectKey', objectKey);
-    formData.append('contentType', contentType);
+    formData.append('contentType', 'video/mp4'); // Force mp4
 
     xhr.upload.onprogress=e=>{
       if(e.lengthComputable){
         let percent = (e.loaded/e.total*100).toFixed(0);
         document.getElementById('progress').style.width=percent+'%';
-        if(percent % 10 === 0) toast('Uploading: '+percent+'%') // toast every 10%
+        if(percent % 10 === 0) toast('Uploading: '+percent+'%')
       }
     }
 
@@ -151,15 +189,8 @@ async function uploadFile(postId, file){
       else reject(new Error('Upload failed '+xhr.status + '. ' + xhr.responseText.slice(0,100)))
     };
 
-    xhr.onerror=()=>{
-      toast('Network Error to server', true);
-      reject(new Error('Network error'))
-    };
-
-    xhr.ontimeout=()=>{
-      toast('Upload Timeout. File too big or slow network', true);
-      reject(new Error('Upload timeout'))
-    };
+    xhr.onerror=()=>{toast('Network Error to server', true); reject(new Error('Network error'))};
+    xhr.ontimeout=()=>{toast('Upload Timeout. File too big or slow network', true); reject(new Error('Upload timeout'))};
 
     xhr.open('POST', API+'/api/post/upload-video');
     xhr.setRequestHeader('Authorization', 'Bearer '+TOKEN);
