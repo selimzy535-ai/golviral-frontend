@@ -27,11 +27,12 @@ main{height:calc(100dvh - var(--nav) - var(--top));overflow-y:auto;scroll-snap-t
 .nav-btn.active{color:var(--accent)}
 .fab{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--gradient);box-shadow:0 0 20px rgba(0,255,136,0.4);border:none;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:9}
 .reel{height:calc(100dvh - var(--nav) - var(--top));scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end}
-.reel video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.reel video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
 .reel.story{background:linear-gradient(135deg,#1a1a1a,#0f0f0f)}
 .reel.novel{background:linear-gradient(135deg,#1a0a2e,#0f0f0f)}
 .actions{position:absolute;right:10px;bottom:80px;display:flex;flex-direction:column;gap:18px}
 .action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;cursor:pointer}
+.action-btn[disabled]{opacity:0.4;pointer-events:none}
 svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(10px);display:none;z-index:200}
 .modal.active{display:block}
@@ -41,8 +42,13 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 .input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;outline:none}
 .input:focus{border-color:var(--accent)}
 .btn{background:var(--gradient);color:#000;border:none;padding:8px 14px;border-radius:12px;font-weight:800;cursor:pointer;width:auto;font-size:12px}
+.btn[disabled]{opacity:0.5;pointer-events:none}
 .toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
 .toast.show{transform:translate(-50%,0);opacity:1}
+
+/* NEW: tap to play overlay for iPhone */
+.play-overlay{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,0.3);z-index:5;cursor:pointer}
+.play-overlay svg{width:80px;height:80px;fill:var(--accent);stroke:none}
 </style>
 </head>
 <body>
@@ -107,6 +113,7 @@ let feedData=[];
 let currentPost=null;
 let searchTimer=null;
 const userCache={};
+const followLocks={};
 
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 
@@ -114,7 +121,9 @@ async function api(path,opt={}){
   try{
     const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
     if(res.status===401) location.href='auth.html';
-    return res.json();
+    const data = await res.json().catch(()=>({}));
+    if(res.status>=400) return {error: data.error || 'Request failed'};
+    return data;
   }catch{ toast('Network error'); return {} }
 }
 
@@ -126,7 +135,7 @@ async function getUser(id){
 }
 
 async function getSignedUrl(key,shard){
-  const d=await api(`/api/media/sign?key=${key}&shard=${shard}`);
+  const d=await api(`/api/media/sign?key=${key}&shard=${shard||0}`);
   return d.url;
 }
 
@@ -146,10 +155,10 @@ async function renderFeed(posts,type){
   container.innerHTML='';
   if(!posts || posts.length===0){container.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>'; return}
 
-  container.style.overflowY='scroll'; // all types now scroll like reels
+  container.style.overflowY='scroll';
   for(const p of posts){
     if(p.type==='reel') container.appendChild(await createReel(p));
-    else container.appendChild(await createTextReel(p)); // novel/story now full screen
+    else container.appendChild(await createTextReel(p));
   }
   setupReelObserver();
 }
@@ -161,13 +170,16 @@ async function createReel(p){
   div.dataset.creator=p.userId;
 
   const user=await getUser(p.userId);
+  const isMe = p.userId === USER_ID;
 
+  // CHANGE 1: added webkit-playsinline + play overlay
   div.innerHTML=`
-    <video muted loop playsinline data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video>
+    <video muted loop playsinline webkit-playsinline preload="metadata" data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video>
+    <div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
     <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username||p.userId}</b>
-        <button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>
+        ${!isMe? `<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>` : ''}
       </div>
       <p>${p.caption||''}</p>
       ${p.externalLink && p.isBoosted? `<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ''}
@@ -175,12 +187,12 @@ async function createReel(p){
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div>
       <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>
-      <div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
+      ${!isMe? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
+      <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
       <div class="action-btn" onclick="boostPost('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
       <div class="action-btn" onclick="toggleSound(this)"><svg viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div>
     </div>`;
 
-  // double tap to like
   let lastTap=0;
   div.ontouchend=e=>{const now=Date.now();if(now-lastTap<300) likePost(p.id,p.userId,div.querySelector('.action-btn'));lastTap=now;}
   return div;
@@ -193,6 +205,7 @@ async function createTextReel(p){
   div.dataset.creator=p.userId;
 
   const user=await getUser(p.userId);
+  const isMe = p.userId === USER_ID;
 
   div.innerHTML=`
     <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px">
@@ -203,28 +216,50 @@ async function createTextReel(p){
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div>
       <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>
-      <div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
+      ${!isMe? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
+      <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
     </div>`;
 
-  // double tap to open reader
   let lastTap=0;
   div.ontouchend=e=>{const now=Date.now();if(now-lastTap<300) openReader(p.id);lastTap=now;}
   return div;
+}
+
+// CHANGE 2: new manual play function for iPhone
+function manualPlay(overlay){
+  const video = overlay.parentElement.querySelector('video');
+  video.play();
+  overlay.style.display = 'none';
 }
 
 function setupReelObserver(){
   const obs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       const video=e.target.querySelector('video');
+      const overlay=e.target.querySelector('.play-overlay');
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
       if(e.intersectionRatio>0.7){
         if(video &&!video.src){
-          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{video.src=url;video.play()});
-        } else if(video){ video.play(); }
+          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{
+            if(url){
+              video.src=url;
+              // CHANGE 3: try autoplay, if fails show tap button
+              video.play().catch(()=>{
+                overlay.style.display = 'flex';
+                toast('Tap to play')
+              });
+            }
+          });
+        } else if(video){
+          video.play().catch(()=>{
+            if(overlay) overlay.style.display = 'flex';
+          });
+        }
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
       }else{
         if(video) video.pause();
+        if(overlay) overlay.style.display = 'none';
       }
     });
   },{threshold:0.7});
@@ -232,25 +267,41 @@ function setupReelObserver(){
 }
 
 async function likePost(postId,creatorId,btn){
+  if(btn.dataset.locked) return;
+  btn.dataset.locked=1;
   const span=document.getElementById(`like-${postId}`);
   span.innerText=parseInt(span.innerText)+1;
   btn.style.color='var(--pink)';
   await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})});
+  setTimeout(()=>delete btn.dataset.locked,1000);
 }
 
 async function toggleFollow(userId,btn){
+  if(followLocks[userId]) return;
+  followLocks[userId]=true;
+  btn.disabled=true;
   const isFollowing=btn.innerText==='Following';
+  const oldText=btn.innerText;
   btn.innerText=isFollowing?'Follow':'Following';
-  await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});
+  const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});
+  if(res.error){ btn.innerText=oldText; toast(res.error); }
+  setTimeout(()=>{btn.disabled=false; delete followLocks[userId]},2000);
 }
 
 async function sendGift(userId){
-  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId})});
+  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId, giftType:'RUBY'})});
   if(res.success) toast('Gift sent!');
+  else toast(res.error);
 }
 
 function boostPost(id){location.href=`post.html?boost=${id}`}
 function toggleSound(btn){const video=btn.closest('.reel').querySelector('video');video.muted=!video.muted;toast(video.muted?'Muted':'Unmuted')}
+
+async function sharePost(){
+  const url=`${location.origin}/index.html`;
+  navigator.clipboard.writeText(url);
+  toast('App link copied');
+}
 
 async function openComments(postId,creatorId){
   currentPost={postId,creatorId};
