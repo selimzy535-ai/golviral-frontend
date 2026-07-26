@@ -120,7 +120,7 @@ async function api(path,opt={}){
     const data = await res.json().catch(()=>({}));
     if(res.status>=400) return {error: data.error || 'Request failed'};
     return data;
-  }catch{ toast('Network error'); return {error:'network'} }
+  }catch{ toast('Network error'); return {} }
 }
 
 async function getUser(id){
@@ -131,10 +131,7 @@ async function getUser(id){
 }
 
 async function getSignedUrl(key,shard){
-  if(!key) return null;
-  console.log('[SIGN REQUEST]', key, shard);
-  const d=await api(`/api/media/sign?key=${key}&shard=${shard}`);
-  if(d.error) console.error('[SIGN ERROR]', d.error);
+  const d=await api(`/api/media/sign?key=${key}&shard=${shard||0}`); // FIX: default to 0 if null
   return d.url;
 }
 
@@ -142,7 +139,6 @@ async function loadFeed(type,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   feedData=await api('/api/feed');
-  console.log('[FEED LOADED]', feedData.length, 'posts');
 
   const typeMap = {ForYou:'all', Reels:'reel', Novels:'novel', Stories:'story'};
   const targetType = typeMap[type];
@@ -171,14 +167,13 @@ async function createReel(p){
 
   const user=await getUser(p.userId);
   const isMe = p.userId === USER_ID;
-  const followBtn =!isMe? `<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>` : '';
 
   div.innerHTML=`
-    <video muted loop playsinline preload="metadata" data-key="${p.mediaUrl||''}" data-shard="${p.b2Shard||0}"></video>
+    <video muted loop playsinline preload="metadata" data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video>
     <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username||p.userId}</b>
-        ${followBtn}
+        ${!isMe? `<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>` : ''}
       </div>
       <p>${p.caption||''}</p>
       ${p.externalLink && p.isBoosted? `<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ''}
@@ -186,8 +181,8 @@ async function createReel(p){
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div>
       <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>
-      <div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
-      <div class="action-btn" onclick="sharePost('${p.id}')"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+      ${!isMe? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
+      <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
       <div class="action-btn" onclick="boostPost('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
       <div class="action-btn" onclick="toggleSound(this)"><svg viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div>
     </div>`;
@@ -216,7 +211,7 @@ async function createTextReel(p){
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div>
       <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>
       ${!isMe? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
-      <div class="action-btn" onclick="sharePost('${p.id}')"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+      <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
     </div>`;
 
   let lastTap=0;
@@ -230,18 +225,9 @@ function setupReelObserver(){
       const video=e.target.querySelector('video');
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
-      if(!video) return;
-
       if(e.intersectionRatio>0.7){
-        if(!video.src && video.dataset.key){
-          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{
-            if(url){
-              video.src=url;
-              video.play().catch(err=>console.log('play error', err))
-            } else {
-              toast('Video failed to load');
-            }
-          });
+        if(video &&!video.src){
+          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{if(url){video.src=url;video.play().catch(()=>{})}});
         } else if(video){ video.play().catch(()=>{}); }
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
       }else{
@@ -270,12 +256,12 @@ async function toggleFollow(userId,btn){
   const oldText=btn.innerText;
   btn.innerText=isFollowing?'Follow':'Following';
   const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});
-  if(res.error){ btn.innerText=oldText; toast(res.error || 'Failed'); }
+  if(res.error){ btn.innerText=oldText; toast(res.error); }
   setTimeout(()=>{btn.disabled=false; delete followLocks[userId]},2000);
 }
 
 async function sendGift(userId){
-  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId, giftType:'RUBY'})});
+  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId, giftType:'RUBY'})}); // added giftType
   if(res.success) toast('Gift sent!');
   else toast(res.error);
 }
@@ -283,7 +269,7 @@ async function sendGift(userId){
 function boostPost(id){location.href=`post.html?boost=${id}`}
 function toggleSound(btn){const video=btn.closest('.reel').querySelector('video');video.muted=!video.muted;toast(video.muted?'Muted':'Unmuted')}
 
-async function sharePost(postId){
+async function sharePost(){
   const url=`${location.origin}/index.html`;
   navigator.clipboard.writeText(url);
   toast('App link copied');
