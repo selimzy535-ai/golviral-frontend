@@ -27,7 +27,7 @@ main{height:calc(100dvh - var(--nav) - var(--top));overflow-y:auto;scroll-snap-t
 .nav-btn.active{color:var(--accent)}
 .fab{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--gradient);box-shadow:0 0 20px rgba(0,255,136,0.4);border:none;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:9}
 .reel{height:calc(100dvh - var(--nav) - var(--top));scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end}
-.reel video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.reel video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
 .reel.story{background:linear-gradient(135deg,#1a1a1a,#0f0f0f)}
 .reel.novel{background:linear-gradient(135deg,#1a0a2e,#0f0f0f)}
 .actions{position:absolute;right:10px;bottom:80px;display:flex;flex-direction:column;gap:18px}
@@ -131,7 +131,10 @@ async function getUser(id){
 }
 
 async function getSignedUrl(key,shard){
+  if(!key) return null;
+  console.log('[SIGN REQUEST]', key, shard);
   const d=await api(`/api/media/sign?key=${key}&shard=${shard}`);
+  if(d.error) console.error('[SIGN ERROR]', d.error);
   return d.url;
 }
 
@@ -139,6 +142,7 @@ async function loadFeed(type,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   feedData=await api('/api/feed');
+  console.log('[FEED LOADED]', feedData.length, 'posts');
 
   const typeMap = {ForYou:'all', Reels:'reel', Novels:'novel', Stories:'story'};
   const targetType = typeMap[type];
@@ -170,7 +174,7 @@ async function createReel(p){
   const followBtn =!isMe? `<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>` : '';
 
   div.innerHTML=`
-    <video muted loop playsinline data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video>
+    <video muted loop playsinline preload="metadata" data-key="${p.mediaUrl||''}" data-shard="${p.b2Shard||0}"></video>
     <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username||p.userId}</b>
@@ -226,10 +230,19 @@ function setupReelObserver(){
       const video=e.target.querySelector('video');
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
+      if(!video) return;
+
       if(e.intersectionRatio>0.7){
-        if(video &&!video.src){
-          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{video.src=url;video.play()});
-        } else if(video){ video.play(); }
+        if(!video.src && video.dataset.key){
+          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{
+            if(url){
+              video.src=url;
+              video.play().catch(err=>console.log('play error', err))
+            } else {
+              toast('Video failed to load');
+            }
+          });
+        } else if(video){ video.play().catch(()=>{}); }
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
       }else{
         if(video) video.pause();
@@ -253,22 +266,16 @@ async function toggleFollow(userId,btn){
   if(followLocks[userId]) return;
   followLocks[userId]=true;
   btn.disabled=true;
-
   const isFollowing=btn.innerText==='Following';
   const oldText=btn.innerText;
   btn.innerText=isFollowing?'Follow':'Following';
-
   const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});
-
-  if(res.error){
-    btn.innerText=oldText; // rollback on backend 500
-    toast(res.error || 'Failed');
-  }
+  if(res.error){ btn.innerText=oldText; toast(res.error || 'Failed'); }
   setTimeout(()=>{btn.disabled=false; delete followLocks[userId]},2000);
 }
 
 async function sendGift(userId){
-  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId, giftType:'RUBY'})}); // backend needs giftType
+  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId, giftType:'RUBY'})});
   if(res.success) toast('Gift sent!');
   else toast(res.error);
 }
@@ -277,13 +284,9 @@ function boostPost(id){location.href=`post.html?boost=${id}`}
 function toggleSound(btn){const video=btn.closest('.reel').querySelector('video');video.muted=!video.muted;toast(video.muted?'Muted':'Unmuted')}
 
 async function sharePost(postId){
-  const url=`${location.origin}/index.html`; // backend has no single post page
-  if(navigator.share){
-    try{ await navigator.share({title:'GolViral', text:'Check this on GolViral', url}) }catch{}
-  } else {
-    navigator.clipboard.writeText(url);
-    toast('Link copied');
-  }
+  const url=`${location.origin}/index.html`;
+  navigator.clipboard.writeText(url);
+  toast('App link copied');
 }
 
 async function openComments(postId,creatorId){
