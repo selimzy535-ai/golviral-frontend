@@ -1,5 +1,4 @@
-
-const CACHE_NAME = 'golviral-v2';
+const CACHE_NAME = 'golviral-v3'; // bumped version so it updates
 const APP_BASE_URL = 'https://selimzy535-ai.github.io/golviral-frontend';
 const API_URL = 'https://golviral-api.onrender.com';
 
@@ -31,29 +30,30 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// FETCH: NetworkFirst for API, CacheFirst for media, StaleWhileRevalidate for shell
+// FETCH: FIXED - Don't cache POST/PUT and don't cache uploads
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+  const method = event.request.method;
 
-  // 1. API Calls: Network First
-  if (url.origin === API_URL) {
-    event.respondWith(
-      fetch(event.request)
-        .then(res => {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
-          return res;
-        })
-        .catch(() => caches.match(event.request))
-    );
-    return;
+  // 0. CRITICAL FIX: BYPASS SW FOR POST, PUT, DELETE, B2, FFMPEG
+  // This fixes "FetchEvent.respondWith returned null" and ffmpeg upload
+  if (
+    method !== 'GET' || 
+    url.origin === API_URL ||
+    url.hostname.includes('backblazeb2.com') ||
+    url.pathname.includes('/ffmpeg-core.js') ||
+    url.pathname.includes('/ffmpeg.wasm')
+  ) {
+    return event.respondWith(fetch(event.request)); // network only, no cache
   }
 
-  // 2. Images & Videos: Cache First
+  // 1. Images & Videos from B2/CDN: Cache First
   if (event.request.destination === 'image' || event.request.destination === 'video') {
     event.respondWith(
       caches.match(event.request).then(cached => 
         cached || fetch(event.request).then(res => {
+          // Don't cache B2 videos to avoid stale black screens
+          if(url.hostname.includes('backblazeb2.com')) return res;
           const resClone = res.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
           return res;
@@ -63,7 +63,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 3. App Shell: Stale While Revalidate
+  // 2. App Shell: Stale While Revalidate
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request).then(networkResponse => {
@@ -71,9 +71,7 @@ self.addEventListener('fetch', event => {
           cache.put(event.request, networkResponse.clone());
         });
         return networkResponse;
-      }).catch(() => {
-        // Network failure fallback handled by cached response below if available
-      });
+      }).catch(() => {});
 
       return cached || fetchPromise;
     })
