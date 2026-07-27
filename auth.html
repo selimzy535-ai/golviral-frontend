@@ -361,7 +361,7 @@ function urlBase64ToUint8Array(base64String) {
 async function requestPush(){
   try {
     const reg=await navigator.serviceWorker.register('/sw.js');
-    const vapidKey = 'BEl0YourPublicKeyHere';
+    const vapidKey = 'BFUBvjiKFi8pBUDFUskcOw6uv4LRa4IXp_cvpphDtanmon2u4YfIzeEOGNB4q0eEIBR3ZZfjKyTL1i6WBL5h7zs';
     const convertedKey = urlBase64ToUint8Array(vapidKey);
     const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:convertedKey});
     await fetch(API+'/api/push/subscribe',{method:'POST',headers:{'Authorization':'Bearer '+localStorage.token,'Content-Type':'application/json'},body:JSON.stringify({subscription:sub})});
