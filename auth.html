@@ -84,7 +84,6 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   </form>
 </main>
 
-<!-- BOT MODAL -->
 <div id="bot-modal" class="modal">
   <div class="glass-modal">
     <h3 style="margin-bottom:12px">Verify You Are Human</h3>
@@ -94,7 +93,6 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   </div>
 </div>
 
-<!-- OTP MODAL -->
 <div id="otp-modal" class="modal">
   <div class="glass-modal">
     <h3 style="margin-bottom:12px">Reset Password</h3>
@@ -104,7 +102,6 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   </div>
 </div>
 
-<!-- ONBOARD SURVEY MODAL -->
 <div id="onboard-modal" class="modal">
   <div class="glass-modal">
     <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
@@ -146,7 +143,7 @@ function toast(msg){
   const t=document.getElementById('toast');
   t.innerText=msg;
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000)
+  setTimeout(()=>t.classList.remove('show'),3000);
 }
 
 // ===== CAPTCHA SYSTEM =====
@@ -188,13 +185,15 @@ async function botChallenge(){
     const res=await fetch(API+'/api/bot-challenge',{method:'POST',headers:{'Content-Type':'application/json'}});
     const data=await res.json();
     botToken=data.token;
-    const parts = data.question.split(' ');
-    const a = parseInt(parts[0]);
-    const b = parseInt(parts[2]);
-    const op = parts[1];
-    if(op==='+') mathAnswer = a+b;
-    if(op==='-') mathAnswer = a-b;
-    if(op==='*') mathAnswer = a*b;
+    if(data.question){
+      const parts = data.question.split(' ');
+      const a = parseInt(parts[0]);
+      const b = parseInt(parts[2]);
+      const op = parts[1];
+      if(op==='+') mathAnswer = a+b;
+      if(op==='-') mathAnswer = a-b;
+      if(op==='*') mathAnswer = a*b;
+    }
     captchaText = generateCaptcha(7);
     const img = renderGlitchCaptcha(captchaText);
     document.getElementById('bot-question').innerHTML = `
@@ -202,27 +201,33 @@ async function botChallenge(){
       <p style="font-size:12px;color:var(--muted);margin-top:8px">Type the 7 characters above</p>
     `;
     document.getElementById('bot-modal').classList.add('active');
-  }catch{toast('Bot check failed')}
+  }catch(err){
+    toast('Bot check failed');
+  }
 }
 
 async function verifyBot(){
   const userInput=document.getElementById('bot-answer').value.trim().toUpperCase();
-  if(userInput!== captchaText){
+  if(userInput !== captchaText){
     toast('Captcha incorrect. Try again');
     botChallenge();
     return;
   }
-  const res=await fetch(API+'/api/bot-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:botToken,answer:mathAnswer})});
-  const data=await res.json();
-  if(data.passToken){
-    document.getElementById('bot-modal').classList.remove('active');
-    document.getElementById('bot-answer').value='';
-    if(pendingData.type==='login') doLogin(pendingData, data.passToken);
-    if(pendingData.type==='signup') doSignup(pendingData, data.passToken);
-    if(pendingData.type==='forgot') doForgot(pendingData, data.passToken);
-  }else {
-    toast('Verification failed');
-    botChallenge();
+  try {
+    const res=await fetch(API+'/api/bot-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:botToken,answer:mathAnswer})});
+    const data=await res.json();
+    if(data.passToken){
+      document.getElementById('bot-modal').classList.remove('active');
+      document.getElementById('bot-answer').value='';
+      if(pendingData.type==='login') doLogin(pendingData, data.passToken);
+      if(pendingData.type==='signup') doSignup(pendingData, data.passToken);
+      if(pendingData.type==='forgot') doForgot(pendingData, data.passToken);
+    }else {
+      toast('Verification failed');
+      botChallenge();
+    }
+  } catch(err) {
+    toast('Verification network error');
   }
 }
 
@@ -272,13 +277,26 @@ async function doForgot(d,passToken){
 async function submitReset(){
   const otp=document.getElementById('otp-code').value;
   const newPass=document.getElementById('new-pass').value;
-  await fetch(API+'/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingData.email,otp,newPassword:newPass})});
-  toast('Password Reset');
-  document.getElementById('otp-modal').classList.remove('active');
-  showTab('login', document.querySelectorAll('.tab')[0])
+  if(!pendingData || !pendingData.email) {
+    toast('Session expired. Please try again.');
+    return;
+  }
+  try {
+    const res = await fetch(API+'/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingData.email,otp,newPassword:newPass})});
+    const data = await res.json();
+    if(res.ok && !data.error){
+      toast('Password Reset Successfully');
+      document.getElementById('otp-modal').classList.remove('active');
+      showTab('login', document.querySelectorAll('.tab')[0]);
+    } else {
+      toast(data.error || 'Password Reset Failed');
+    }
+  } catch(err) {
+    toast('Network Error');
+  }
 }
 
-// ===== SURVEY LOGIC - FIXED =====
+// ===== SURVEY LOGIC =====
 function startSurvey(){
   surveyStep=0;
   surveyData={};
@@ -311,12 +329,12 @@ function renderQuestion(){
 
 function toggleChip(el,id){
   el.classList.toggle('active');
-  const selected=document.querySelectorAll(`#q-${id}.chip.active`).length; // FIXED
+  const selected=document.querySelectorAll(`#q-${id} .chip.active`).length;
   if(selected>3) el.classList.remove('active');
 }
 
 function selectRadio(el,id,val){
-  document.querySelectorAll(`#q-${id}.radio-option`).forEach(r=>r.classList.remove('active')); // FIXED
+  document.querySelectorAll(`#q-${id} .radio-option`).forEach(r=>r.classList.remove('active'));
   el.classList.add('active');
   surveyData[id]=val;
 }
@@ -324,7 +342,7 @@ function selectRadio(el,id,val){
 function nextQuestion(){
   const q=surveyQuestions[surveyStep];
   if(q.type==='chips'){
-    surveyData[q.id]=[...document.querySelectorAll(`#q-${q.id}.chip.active`)].map(c=>c.innerText); // FIXED
+    surveyData[q.id]=[...document.querySelectorAll(`#q-${q.id} .chip.active`)].map(c=>c.innerText);
     if(surveyData[q.id].length===0){toast('Pick at least 1');return}
   }else if(q.type==='radio'){
     if(!surveyData[q.id]){toast('Select an option');return}
@@ -344,7 +362,7 @@ async function finishOnboard(){
   await requestPush();
   document.getElementById('onboard-modal').classList.remove('active');
   toast('Profile Setup Complete');
-  setTimeout(()=>window.location.href='index.html',1000)
+  setTimeout(()=>window.location.href='index.html',1000);
 }
 
 function urlBase64ToUint8Array(base64String) {
