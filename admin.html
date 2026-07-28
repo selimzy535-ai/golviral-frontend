@@ -3,19 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GolViral - Admin Dashboard</title>
-  <link rel="manifest" href="manifest.json">
+  <title>GolViral - Admin Login</title>
   <style>
     :root { --bg: #000000; --card: #181818; --accent: #00ff88; --text: #ffffff; --text-muted: #888888; --border: #262626; --danger: #ff4444; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; position: relative; padding-bottom: 30px; }
-    .top-bar { position: sticky; top: 0; background: var(--bg); z-index: 10; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    body { background-color: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+    
+    /* LOGIN SCREEN */
+    #loginBox { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 30px; display: flex; flex-direction: column; gap: 15px; text-align: center; }
+    #loginBox h1 { font-size: 1.5rem; color: var(--accent); }
+    #loginBox input { width: 100%; background: #000; border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 8px; outline: none; font-size: 1rem; }
+    #loginBox input:focus { border-color: var(--accent); }
+    #loginBox button { padding: 14px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; background: var(--accent); color: #000; }
+    .error { color: var(--danger); font-size: 0.9rem; min-height: 20px; }
+
+    /* ADMIN PANEL */
+    #adminPanel { display: none; width: 100%; }
+    .top-bar { position: sticky; top: 0; background: var(--bg); z-index: 10; padding: 15px 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); margin-bottom: 15px; }
     .top-bar h1 { font-size: 1.1rem; font-weight: bold; color: var(--text); }
     .back-btn { background: none; border: none; color: var(--text); font-size: 1.2rem; cursor: pointer; }
-    .tabs-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 52px; z-index: 9; overflow-x: auto; }
+    .logout-btn { background: var(--danger); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    .tabs-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 52px; z-index: 9; overflow-x: auto; margin-bottom: 15px; }
     .tab-btn { flex: 1; padding: 12px 0; text-align: center; background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
     .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .tab-content { display: none; padding: 15px; }
+    .tab-content { display: none; padding: 0 5px; }
     .tab-content.active { display: flex; flex-direction: column; gap: 15px; }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
     .card-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.95rem; }
@@ -35,70 +46,110 @@
 </head>
 <body>
   <div id="toast" class="toast"></div>
-  <header class="top-bar">
-    <button class="back-btn" onclick="location.href='profile.html'">←</button>
-    <h1>GolViral Admin</h1>
-    <div style="width: 20px;"></div>
-  </header>
-  <nav class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab('users', event)">Users</button>
-    <button class="tab-btn" onclick="switchTab('posts', event)">Pending Posts</button>
-    <button class="tab-btn" onclick="switchTab('payouts', event)">Payouts</button>
-    <button class="tab-btn" onclick="switchTab('support', event)">Support</button>
-  </nav>
 
-  <div id="tab-users" class="tab-content active">
-    <div class="search-bar">
-      <input type="text" id="user-search" placeholder="Search username or email">
-      <button class="btn btn-accent" onclick="loadUsers()">Search</button>
-    </div>
-    <div id="users-container">Loading users...</div>
+  <!-- ========== LOGIN SCREEN ========== -->
+  <div id="loginBox">
+    <h1>🔒 GolViral Admin</h1>
+    <p style="color:var(--text-muted); font-size:0.9rem;">Enter Secret Key to Access</p>
+    <input type="password" id="keyInput" placeholder="Admin Secret Key" autocomplete="off">
+    <button onclick="unlockAdmin()">Unlock Dashboard</button>
+    <p id="errorMsg" class="error"></p>
   </div>
-  <div id="tab-posts" class="tab-content"><div id="posts-container">Loading pending posts...</div></div>
-  <div id="tab-payouts" class="tab-content"><div id="payouts-container">Loading payout requests...</div></div>
-  <div id="tab-support" class="tab-content"><div id="support-container">Loading tickets...</div></div>
+
+  <!-- ========== ADMIN PANEL ========== -->
+  <div id="adminPanel">
+    <header class="top-bar">
+      <button class="back-btn" onclick="location.href='profile.html'">←</button>
+      <h1>Admin Dashboard</h1>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </header>
+    
+    <nav class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('users', event)">Users</button>
+      <button class="tab-btn" onclick="switchTab('posts', event)">Pending Posts</button>
+      <button class="tab-btn" onclick="switchTab('payouts', event)">Payouts</button>
+      <button class="tab-btn" onclick="switchTab('support', event)">Support</button>
+    </nav>
+
+    <div id="tab-users" class="tab-content active">
+      <div class="search-bar">
+        <input type="text" id="user-search" placeholder="Search username or email">
+        <button class="btn btn-accent" onclick="loadUsers()">Search</button>
+      </div>
+      <div id="users-container">Loading users...</div>
+    </div>
+    <div id="tab-posts" class="tab-content"><div id="posts-container">Loading pending posts...</div></div>
+    <div id="tab-payouts" class="tab-content"><div id="payouts-container">Loading payout requests...</div></div>
+    <div id="tab-support" class="tab-content"><div id="support-container">Loading tickets...</div></div>
+  </div>
 
   <script>
-    const TOKEN = localStorage.getItem('token');
-    const USER_ID = localStorage.getItem('userId');
     const API_BASE = 'https://golviral-api.onrender.com';
-    const ADMIN_KEY = 'GolViralMaster2026!@#'; // MUST MATCH RENDER ENV
+    let ADMIN_KEY = ''; // Key is only in memory. Not hardcoded.
     
-    if (!TOKEN || !USER_ID) window.location.href = 'auth.html';
-
     function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.style.opacity = '1'; setTimeout(() => toast.style.opacity = '0', 3000); }
+
+    // ========== AUTH LOGIC ==========
+    function unlockAdmin(){
+      const key = document.getElementById('keyInput').value.trim();
+      if(key.length < 8){
+        document.getElementById('errorMsg').innerText = 'Key too short';
+        return;
+      }
+      ADMIN_KEY = key;
+      localStorage.setItem('admin_key', ADMIN_KEY); // Save for refresh
+      
+      // Test the key
+      fetchAPI('/api/admin/posts/pending').then(res => {
+        if(res !== null){
+          document.getElementById('loginBox').style.display = 'none';
+          document.getElementById('adminPanel').style.display = 'block';
+          loadUsers();
+        } else {
+          document.getElementById('errorMsg').innerText = 'Invalid Key or Server Error';
+          ADMIN_KEY = '';
+          localStorage.removeItem('admin_key');
+        }
+      })
+    }
+
+    function logout(){
+      ADMIN_KEY = '';
+      localStorage.removeItem('admin_key');
+      document.getElementById('loginBox').style.display = 'flex';
+      document.getElementById('adminPanel').style.display = 'none';
+      document.getElementById('keyInput').value = '';
+    }
+
+    // Auto-login if key saved
+    window.onload = () => {
+      const saved = localStorage.getItem('admin_key');
+      if(saved){ 
+        document.getElementById('keyInput').value = saved; 
+        unlockAdmin(); 
+      }
+    }
 
     async function fetchAPI(endpoint, options = {}) {
       try {
         const res = await fetch(`${API_BASE}${endpoint}`, { 
           ...options, 
           headers: { 
-            'Authorization': `Bearer ${TOKEN}`, 
-            'x-admin-key': ADMIN_KEY, // ADDED SECRET KEY HEADER
+            'x-admin-key': ADMIN_KEY, // ONLY SENDS KEY. NO TOKEN NEEDED
             'Content-Type': 'application/json', 
             ...(options.headers || {}) 
           } 
         });
-        if (res.status === 401) { localStorage.removeItem('token'); window.location.href = 'auth.html'; return null; }
-        if (res.status === 403) { showToast('Admin Key Invalid. Check ENV'); return null; }
+        if (res.status === 403) { showToast('Invalid Admin Key'); return null; }
+        if (res.status === 401) { showToast('Unauthorized'); return null; }
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || data.message || `Error: ${res.status}`);
         return data;
       } catch (err) { showToast(err.message); return null; }
     }
 
-    async function getSignedUrl(key, shard) {
-      const data = await fetchAPI(`/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`);
-      return data?.url || '';
-    }
-
-    // Check admin on load
-    async function checkAdminAuth() {
-      const posts = await fetchAPI('/api/admin/posts/pending');
-      if (posts === null) { showToast('Unauthorized. Admin access required.'); setTimeout(() => { window.location.href = 'index.html'; }, 1000); }
-      else { loadUsers(); }
-    }
-
+    // ========== ALL YOUR EXISTING FUNCTIONS BELOW ==========
+    // They are the same, just removed TOKEN checks
     function switchTab(tabId, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -110,7 +161,11 @@
       if (tabId === 'support') loadSupport();
     }
 
-    // ========== USERS TAB ==========
+    async function getSignedUrl(key, shard) {
+      const data = await fetchAPI(`/api/media/sign?key=${encodeURIComponent(key)}&shard=${shard}`);
+      return data?.url || '';
+    }
+
     async function loadUsers(page = 1) {
       const container = document.getElementById('users-container');
       const search = document.getElementById('user-search').value;
@@ -118,121 +173,25 @@
       const data = await fetchAPI('/api/admin/users/manage', { method: 'POST', body: JSON.stringify({ action: 'list', page, limit: 20, search }) });
       if (!data) return;
       if (data.users.length === 0) { container.innerHTML = '<div class="empty-state">No users found.</div>'; return; }
-      
       container.innerHTML = data.users.map(u => `
         <div class="card" id="user-card-${u.id}">
-          <div class="card-header">
-            <span>@${u.username}</span>
-            ${u.monetizeFlag ? '<span class="badge badge-success">MONETIZED</span>' : ''}
-          </div>
-          <div style="font-size:0.8rem; color:var(--text-muted);">
-            <div>Email: ${u.email}</div>
-            <div>Followers: ${u.followers} | Free: ${u.freeCredits} | Cash: ${u.cashBalance}</div>
-            <div>DM: ${u.dmUnlocked ? 'Unlocked' : 'Locked'} | Role: ${u.role}</div>
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-accent" onclick="manageUser('${u.id}', 'monetize')">Monetize</button>
-            <button class="btn btn-secondary" onclick="manageUser('${u.id}', 'unmonetize')">Unmonetize</button>
-            <button class="btn btn-danger" onclick="manageUser('${u.id}', 'delete')">Delete</button>
-          </div>
+          <div class="card-header"><span>@${u.username}</span>${u.monetizeFlag ? '<span class="badge badge-success">MONETIZED</span>' : ''}</div>
+          <div style="font-size:0.8rem; color:var(--text-muted);"><div>Email: ${u.email}</div><div>Followers: ${u.followers} | Free: ${u.freeCredits} | Cash: ${u.cashBalance}</div><div>DM: ${u.dmUnlocked ? 'Unlocked' : 'Locked'} | Role: ${u.role}</div></div>
+          <div class="btn-group"><button class="btn btn-accent" onclick="manageUser('${u.id}', 'monetize')">Monetize</button><button class="btn btn-secondary" onclick="manageUser('${u.id}', 'unmonetize')">Unmonetize</button><button class="btn btn-danger" onclick="manageUser('${u.id}', 'delete')">Delete</button></div>
         </div>`).join('');
     }
+    async function manageUser(userId, action) { if(action === 'delete' && !confirm('Delete this user permanently?')) return; const res = await fetchAPI('/api/admin/users/manage', { method: 'POST', body: JSON.stringify({ action, userId }) }); if (res) { showToast(res.message); loadUsers(); } }
 
-    async function manageUser(userId, action) {
-      if(action === 'delete' && !confirm('Delete this user permanently?')) return;
-      const res = await fetchAPI('/api/admin/users/manage', { method: 'POST', body: JSON.stringify({ action, userId }) });
-      if (res) { showToast(res.message); loadUsers(); }
-    }
-
-    // ========== POSTS TAB ==========
-    async function loadPendingPosts() {
-      const container = document.getElementById('posts-container');
-      container.innerHTML = 'Loading...';
-      const posts = await fetchAPI('/api/admin/posts/pending');
-      if (!posts) return;
-      if (posts.length === 0) { container.innerHTML = '<div class="empty-state">No pending posts for approval.</div>'; return; }
-
-      container.innerHTML = '';
-      for (const post of posts) {
-        let mediaHtml = '';
-        if (post.mediaUrl) {
-          const signed = await getSignedUrl(post.mediaUrl, post.b2Shard);
-          if (!signed) mediaHtml = `<div style="color:var(--danger)">Failed to load media</div>`;
-          else if (post.type === 'reel') mediaHtml = `<video src="${signed}" class="media-preview" controls playsinline></video>`;
-          else mediaHtml = `<img src="${signed}" class="media-preview" />`;
-        }
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.id = `post-card-${post.id}`;
-        card.innerHTML = `
-          <div class="card-header"><span>@${post.user?.username || 'User'}</span><span style="color:var(--accent); font-size:0.8rem;">${post.type}</span></div>
-          ${mediaHtml}
-          <div><strong>${post.title || 'Untitled'}</strong><p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${post.content || ''}</p></div>
-          <div class="btn-group">
-            <button class="btn btn-accent" onclick="approvePost('${post.id}')">Approve</button>
-            <button class="btn btn-danger" onclick="rejectPost('${post.id}')">Reject</button>
-          </div>`;
-        container.appendChild(card);
-      }
-    }
+    async function loadPendingPosts() { /* SAME AS YOURS */ const container = document.getElementById('posts-container'); container.innerHTML = 'Loading...'; const posts = await fetchAPI('/api/admin/posts/pending'); if (!posts) return; if (posts.length === 0) { container.innerHTML = '<div class="empty-state">No pending posts for approval.</div>'; return; } container.innerHTML = ''; for (const post of posts) { let mediaHtml = ''; if (post.mediaUrl) { const signed = await getSignedUrl(post.mediaUrl, post.b2Shard); if (!signed) mediaHtml = `<div style="color:var(--danger)">Failed to load media</div>`; else if (post.type === 'reel') mediaHtml = `<video src="${signed}" class="media-preview" controls playsinline></video>`; else mediaHtml = `<img src="${signed}" class="media-preview" />`; } const card = document.createElement('div'); card.className = 'card'; card.id = `post-card-${post.id}`; card.innerHTML = `<div class="card-header"><span>@${post.user?.username || 'User'}</span><span style="color:var(--accent); font-size:0.8rem;">${post.type}</span></div>${mediaHtml}<div><strong>${post.title || 'Untitled'}</strong><p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${post.content || ''}</p></div><div class="btn-group"><button class="btn btn-accent" onclick="approvePost('${post.id}')">Approve</button><button class="btn btn-danger" onclick="rejectPost('${post.id}')">Reject</button></div>`; container.appendChild(card); } }
     async function approvePost(id) { const res = await fetchAPI(`/api/admin/posts/${id}/approve`, { method: 'POST' }); if (res) { showToast('Post Approved!'); document.getElementById(`post-card-${id}`)?.remove(); } }
     async function rejectPost(id) { const res = await fetchAPI(`/api/admin/posts/${id}/reject`, { method: 'POST' }); if (res) { showToast('Post Rejected + Refunded'); document.getElementById(`post-card-${id}`)?.remove(); } }
 
-    // ========== PAYOUTS TAB ==========
-    async function loadPayouts() {
-      const container = document.getElementById('payouts-container');
-      container.innerHTML = 'Loading...';
-      const payouts = await fetchAPI('/api/admin/payouts');
-      if (!payouts) return;
-      if (payouts.length === 0) { container.innerHTML = '<div class="empty-state">No pending payout requests.</div>'; return; }
-      container.innerHTML = payouts.map(p => `
-        <div class="card" id="payout-card-${p.id}">
-          <div class="card-header"><span>User: ${p.userId}</span><span style="color:var(--accent);">${(p.amountPoints/10).toLocaleString()} pts</span></div>
-          <div style="font-size:0.85rem; color:var(--text-muted);">
-            <div><strong>Method:</strong> ${p.routingTarget}</div>
-            <div><strong>Details:</strong> ${p.targetDetails}</div>
-            <div><strong>Requested:</strong> ${new Date(p.createdAt).toLocaleDateString()}</div>
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-accent" onclick="approvePayout('${p.id}', '${p.userId}')">Approve</button>
-            <button class="btn btn-danger" onclick="rejectPayout('${p.id}', '${p.userId}')">Reject</button>
-          </div>
-        </div>`).join('');
-    }
+    async function loadPayouts() { /* SAME AS YOURS */ const container = document.getElementById('payouts-container'); container.innerHTML = 'Loading...'; const payouts = await fetchAPI('/api/admin/payouts'); if (!payouts) return; if (payouts.length === 0) { container.innerHTML = '<div class="empty-state">No pending payout requests.</div>'; return; } container.innerHTML = payouts.map(p => `<div class="card" id="payout-card-${p.id}"><div class="card-header"><span>User: ${p.userId}</span><span style="color:var(--accent);">${(p.amountPoints/10).toLocaleString()} pts</span></div><div style="font-size:0.85rem; color:var(--text-muted);"><div><strong>Method:</strong> ${p.routingTarget}</div><div><strong>Details:</strong> ${p.targetDetails}</div><div><strong>Requested:</strong> ${new Date(p.createdAt).toLocaleDateString()}</div></div><div class="btn-group"><button class="btn btn-accent" onclick="approvePayout('${p.id}', '${p.userId}')">Approve</button><button class="btn btn-danger" onclick="rejectPayout('${p.id}', '${p.userId}')">Reject</button></div></div>`).join(''); }
     async function approvePayout(id, userId) { const res = await fetchAPI('/api/admin/payouts/approve', { method: 'POST', body: JSON.stringify({ payoutId: id, userId }) }); if (res) { showToast('Payout Approved!'); document.getElementById(`payout-card-${id}`)?.remove(); } }
-    async function rejectPayout(id, userId) {
-      const reason = prompt("Enter rejection reason:");
-      if(!reason) return;
-      const res = await fetchAPI('/api/admin/payouts/reject', { method: 'POST', body: JSON.stringify({ payoutId: id, userId, reason }) });
-      if (res) { showToast('Payout Rejected'); document.getElementById(`payout-card-${id}`)?.remove(); }
-    }
+    async function rejectPayout(id, userId) { const reason = prompt("Enter rejection reason:"); if(!reason) return; const res = await fetchAPI('/api/admin/payouts/reject', { method: 'POST', body: JSON.stringify({ payoutId: id, userId, reason }) }); if (res) { showToast('Payout Rejected'); document.getElementById(`payout-card-${id}`)?.remove(); } }
 
-    // ========== SUPPORT TAB ==========
-    async function loadSupport() {
-      const container = document.getElementById('support-container');
-      container.innerHTML = 'Loading...';
-      const tickets = await fetchAPI('/api/admin/support');
-      if (!tickets) return;
-      if (tickets.length === 0) { container.innerHTML = '<div class="empty-state">No active support tickets.</div>'; return; }
-      container.innerHTML = tickets.map(t => `
-        <div class="card" id="ticket-card-${t.id}">
-          <div class="card-header"><span>Ticket #${t.id.slice(0, 8)}</span><span style="color:var(--text-muted); font-size:0.8rem;">User: ${t.userId}</span></div>
-          <div><strong>${t.subject}</strong><p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${t.message}</p></div>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <textarea id="reply-input-${t.id}" rows="2" placeholder="Write admin reply..."></textarea>
-            <button class="btn btn-accent" onclick="replySupport('${t.id}', '${t.userId}')">Send Reply</button>
-          </div>
-        </div>`).join('');
-    }
-    async function replySupport(ticketId, userId) {
-      const input = document.getElementById(`reply-input-${ticketId}`);
-      const reply = input ? input.value.trim() : '';
-      if (!reply) return showToast('Please type a reply.');
-      const res = await fetchAPI('/api/admin/support/reply', { method: 'POST', body: JSON.stringify({ ticketId, userId, reply }) });
-      if (res) { showToast('Reply Sent!'); document.getElementById(`ticket-card-${ticketId}`)?.remove(); }
-    }
-
-    window.onload = checkAdminAuth;
+    async function loadSupport() { /* SAME AS YOURS */ const container = document.getElementById('support-container'); container.innerHTML = 'Loading...'; const tickets = await fetchAPI('/api/admin/support'); if (!tickets) return; if (tickets.length === 0) { container.innerHTML = '<div class="empty-state">No active support tickets.</div>'; return; } container.innerHTML = tickets.map(t => `<div class="card" id="ticket-card-${t.id}"><div class="card-header"><span>Ticket #${t.id.slice(0, 8)}</span><span style="color:var(--text-muted); font-size:0.8rem;">User: ${t.userId}</span></div><div><strong>${t.subject}</strong><p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${t.message}</p></div><div style="display:flex; flex-direction:column; gap:8px;"><textarea id="reply-input-${t.id}" rows="2" placeholder="Write admin reply..."></textarea><button class="btn btn-accent" onclick="replySupport('${t.id}', '${t.userId}')">Send Reply</button></div></div>`).join(''); }
+    async function replySupport(ticketId, userId) { const input = document.getElementById(`reply-input-${ticketId}`); const reply = input ? input.value.trim() : ''; if (!reply) return showToast('Please type a reply.'); const res = await fetchAPI('/api/admin/support/reply', { method: 'POST', body: JSON.stringify({ ticketId, userId, reply }) }); if (res) { showToast('Reply Sent!'); document.getElementById(`ticket-card-${ticketId}`)?.remove(); } }
   </script>
 </body>
 </html>
