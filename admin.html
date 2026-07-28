@@ -62,14 +62,25 @@
     const TOKEN = localStorage.getItem('token');
     const USER_ID = localStorage.getItem('userId');
     const API_BASE = 'https://golviral-api.onrender.com';
+    const ADMIN_KEY = 'GolViralMaster2026!@#'; // MUST MATCH RENDER ENV
+    
     if (!TOKEN || !USER_ID) window.location.href = 'auth.html';
 
     function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.style.opacity = '1'; setTimeout(() => toast.style.opacity = '0', 3000); }
 
     async function fetchAPI(endpoint, options = {}) {
       try {
-        const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...(options.headers || {}) } });
+        const res = await fetch(`${API_BASE}${endpoint}`, { 
+          ...options, 
+          headers: { 
+            'Authorization': `Bearer ${TOKEN}`, 
+            'x-admin-key': ADMIN_KEY, // ADDED SECRET KEY HEADER
+            'Content-Type': 'application/json', 
+            ...(options.headers || {}) 
+          } 
+        });
         if (res.status === 401) { localStorage.removeItem('token'); window.location.href = 'auth.html'; return null; }
+        if (res.status === 403) { showToast('Admin Key Invalid. Check ENV'); return null; }
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || data.message || `Error: ${res.status}`);
         return data;
