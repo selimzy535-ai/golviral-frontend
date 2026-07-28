@@ -1,4 +1,4 @@
-const CACHE_NAME = 'golviral-v5'; // bumped so all users update
+const CACHE_NAME = 'golviral-v6'; // BUMPED
 const APP_BASE_URL = 'https://selimzy535-ai.github.io/golviral-frontend';
 const API_URL = 'https://golviral-api.onrender.com';
 
@@ -52,11 +52,13 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const method = event.request.method;
 
-  // 0. BYPASS: Uploads and API calls. Keep uploads fast
-  if (method !== 'GET') {
-    return event.respondWith(fetch(event.request));
-  }
-  if (url.origin === API_URL) {
+  // 0. BYPASS: All API calls, Admin page, and POST/PUT/DELETE
+  if (
+    method !== 'GET' ||
+    url.hostname.includes('onrender.com') || 
+    url.pathname.startsWith('/api/') ||
+    url.pathname.includes('admin.html')
+  ) {
     return event.respondWith(fetch(event.request));
   }
 
@@ -64,18 +66,18 @@ self.addEventListener('fetch', event => {
   if (event.request.destination === 'video' || url.pathname.includes('/media/') || url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)) {
     event.respondWith(
       caches.match(event.request).then(cached => {
-        if (cached) return cached; // play from cache instantly
+        if (cached) return cached;
 
         return fetch(event.request).then(networkRes => {
           if (networkRes.status === 200) {
             const resClone = networkRes.clone();
             caches.open(CACHE_NAME).then(cache => {
               cache.put(event.request, resClone);
-              cleanupOldVideos(); // cleanup in background
+              cleanupOldVideos();
             });
           }
           return networkRes;
-        }).catch(() => cached); // offline fallback
+        }).catch(() => cached);
       })
     );
     return;
