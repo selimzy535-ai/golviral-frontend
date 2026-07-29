@@ -68,7 +68,7 @@ const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 
 const params=new URLSearchParams(location.search);
-const toUserId=params.get('to');
+const toUserId=params.get('user') || params.get('to'); // FIX 1
 let socket=null; let currentChat=null; let typingTimer=null;
 
 function showScreen(s){
@@ -87,15 +87,15 @@ function initSocket(){
 socket=io(API,{auth:{token:TOKEN}});
 socket.on('connect',()=>console.log('socket connected'));
 socket.on('receive_message',data=>{if(data.senderId===currentChat)addBubble(data.text,'recv')});
-socket.on('typing',data=>{if(data.senderId===currentChat)showTyping()});
-socket.on('error',data=>{if(data?.message==='DM_LOCKED'||data?.error)showError()});
+socket.on('typing',data=>{if(data.from===currentChat)showTyping()}); // FIX: backend sends 'from'
+socket.on('error_msg',data=>{showError()}); // FIX 3
 socket.on('disconnect',()=>console.log('socket disconnected'));
 }
 
 // LOAD CHAT LIST
 async function loadChatList(){
-const res=await api('/api/messages');
-const chats=Array.isArray(res)?res:(res.chats||[]);
+const res=await api('/api/messages'); // NEEDS NEW BACKEND ROUTE
+const chats=res.chats||[];
 document.getElementById('chat-list').innerHTML=chats.map(c=>{
 const username=c.username||'User';
 const initial=username[0].toUpperCase();
@@ -119,7 +119,7 @@ document.getElementById('chat-avatar').innerText=validName[0].toUpperCase();
 showScreen('chat');
 const d=await api(`/api/messages/${userId}`);
 document.getElementById('chat-box').innerHTML='';
-const messages=Array.isArray(d)?d:(d.messages||[]);
+const messages=d||[];
 messages.forEach(m=>addBubble(m.text,m.senderId===localStorage.userId?'sent':'recv'));
 }
 
@@ -174,10 +174,8 @@ function closeError(){document.getElementById('dm-error').style.display='none'}
 // INIT
 initSocket();
 if(toUserId){
-api(`/api/search/users?q=${toUserId}`).then(u=>{
-const users=Array.isArray(u)?u:(u.users||[]);
-if(users.length>0) openChat(toUserId, users[0].username);
-else openChat(toUserId, 'User');
+api(`/api/user/${toUserId}`).then(u=>{ // FIX: use /api/user to get name
+openChat(toUserId, u.username);
 });
 }else{
 loadChatList();
