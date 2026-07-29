@@ -24,6 +24,8 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .stats{display:flex;justify-content:space-around;margin:20px 0;flex-wrap:wrap}
 .stat{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;padding:12px;border-radius:16px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);flex:1;margin:0 4px;min-width:22%}
 .stat b{font-size:18px;color:var(--green)}
+.profile-actions{display:flex;gap:8px;margin-top:16px} /* IG STYLE */
+.profile-actions.btn{flex:1}
 .tabs{display:flex;gap:8px;padding:0 12px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:14px 16px;color:var(--muted);cursor:pointer;display:flex;gap:6px;align-items:center;white-space:nowrap;font-weight:700;border-radius:12px 12px 0 0}
@@ -76,7 +78,11 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 
 <div class="stat" style="margin-top:8px;width:100%"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><b id="views">0</b><span>Total Views</span></div>
 
-<button id="follow-btn" class="btn" onclick="toggleFollow()">Follow</button>
+<!-- IG STYLE BUTTONS -->
+<div class="profile-actions">
+  <button id="follow-btn" class="btn" onclick="toggleFollow()">Follow</button>
+  <button id="message-btn" class="btn secondary" onclick="openChat()" style="display:none">Message</button>
+</div>
 
 <!-- LINKS BOX -->
 <div id="links-box" style="display:none;margin-top:16px;text-align:left">
@@ -151,9 +157,23 @@ if(isSelf){
   document.getElementById('links-box').style.display='block';
   document.getElementById('profile-link').innerText=u.profileLink;
   document.getElementById('referral-link').innerText=u.referralLink;
-  document.getElementById('follow-btn').style.display='none';
+  document.querySelector('.profile-actions').style.display='none'; // hide both buttons
 }else{
   document.getElementById('follow-btn').innerText=u.isFollowing?'Unfollow':'Follow';
+
+  // MESSAGE BUTTON LOGIC
+  const msgBtn = document.getElementById('message-btn');
+  msgBtn.style.display = 'block';
+  if(u.dmUnlocked || u.isVerified){
+    msgBtn.innerText = 'Message';
+    msgBtn.onclick = () => openChat(profileId);
+  } else {
+    msgBtn.innerText = 'Unlock DM';
+    msgBtn.onclick = async () => {
+      const d = await api('/api/dm/init',{method:'POST'});
+      if(d.selarLink) window.open(d.selarLink);
+    }
+  }
 }
 loadPosts();
 }
@@ -312,6 +332,11 @@ if(res.error){
   toast(isFollowing?'Unfollowed':'Following');
 }
 setTimeout(()=>{btn.disabled=false; followLock=false},2000);
+}
+
+function openChat(userId){
+  localStorage.chatWith = userId;
+  location.href = 'messages.html?user=' + userId;
 }
 
 function logout(){localStorage.clear();location.href='auth.html'}
