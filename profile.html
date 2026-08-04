@@ -22,10 +22,10 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .badge.verified{background:var(--blue);color:#fff}
 .badge.creator{background:var(--purple);color:#fff}
 .badge.kyc{background:var(--green);color:#000}
-.stats{display:flex;justify-content:space-around;margin:20px 0;flex-wrap:wrap}
+.stats{display:flex;justify-space:around;margin:20px 0;flex-wrap:wrap}
 .stat{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;padding:12px;border-radius:16px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);flex:1;margin:0 4px;min-width:22%}
 .stat b{font-size:18px;color:var(--green)}
-.profile-actions{display:flex;gap:8px;margin-top:16px} /* IG STYLE */
+.profile-actions{display:flex;gap:8px;margin-top:16px}
 .profile-actions.btn{flex:1}
 .tabs{display:flex;gap:8px;padding:0 12px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
@@ -155,7 +155,6 @@ document.getElementById('following').innerText=u.following||0;
 document.getElementById('likes').innerText=u.totalLikes||0;
 document.getElementById('views').innerText=u.totalViews||0;
 
-// Load Bio
 document.getElementById('bio-text').innerText = u.bio || '';
 
 const date = new Date(u.createdAt).toLocaleDateString('en-US',{month:'short', year:'numeric'});
@@ -170,14 +169,13 @@ if(isSelf){
   document.getElementById('links-box').style.display='block';
   document.getElementById('profile-link').innerText=u.profileLink;
   document.getElementById('referral-link').innerText=u.referralLink;
-  document.querySelector('.profile-actions').style.display='none'; // hide both buttons
-  document.getElementById('bio-editor').style.display='block'; // Show bio editor for self
+  document.querySelector('.profile-actions').style.display='none';
+  document.getElementById('bio-editor').style.display='block';
   document.getElementById('bio-input').value = u.bio || '';
-  loadKYCStatus(); // Load KYC verification state
+  loadKYCStatus();
 }else{
   document.getElementById('follow-btn').innerText=u.isFollowing?'Unfollow':'Follow';
 
-  // MESSAGE BUTTON LOGIC
   const msgBtn = document.getElementById('message-btn');
   msgBtn.style.display = 'block';
   if(u.dmUnlocked || u.isVerified){
@@ -315,7 +313,7 @@ document.getElementById('tab-gifts').innerHTML=`
 }
 async function buyGift(type){const d=await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});if(d.selarLink)window.open(d.selarLink)}
 
-// SUPPORT - FIXED
+// SUPPORT
 async function loadSupport(){
 document.getElementById('tab-support').innerHTML=`
 <div class="card support"><input class="input" id="support-subject" placeholder="Subject">
@@ -341,7 +339,7 @@ await api('/api/support/send',{method:'POST',body:JSON.stringify({subject,messag
 toast('Ticket sent');loadSupport();
 }
 
-// FOLLOW - ANTI SPAM
+// FOLLOW
 async function toggleFollow(){
 if(followLock) return;
 followLock=true;
@@ -367,9 +365,8 @@ function openChat(userId){
 
 function logout(){localStorage.clear();location.href='auth.html'}
 
-// ==================== NEW KYC & BIO FUNCTIONS ====================
+// ==================== KYC & BIO FUNCTIONS ====================
 
-// 1. Fetch KYC Status & Update Badges
 async function loadKYCStatus() {
   const kyc = await api('/api/profile/kyc-status');
   if (kyc) {
@@ -381,7 +378,6 @@ async function loadKYCStatus() {
   }
 }
 
-// 2. Save Bio Handler (POST /api/profile/bio)
 async function saveBio() {
   const bio = document.getElementById('bio-input').value;
   const res = await api('/api/profile/bio', {
@@ -396,7 +392,6 @@ async function saveBio() {
   }
 }
 
-// 3. Clear Bio Handler (DELETE /api/profile/bio)
 async function clearBio() {
   const res = await api('/api/profile/bio', { method: 'DELETE' });
   if (res.success) {
@@ -408,13 +403,12 @@ async function clearBio() {
   }
 }
 
-// 4. SHA-256 Hex Generator Helper (Guarantees exact 64-char string for backend validation)
 async function generateSHA256(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// 5. Open Dedicated KYC Verification Portal in a CLEAR NEW TAB
+// OPEN KYC PORTAL IN NEW TAB
 function openKYCPortal() {
   const kycWin = window.open("", "_blank");
   if (!kycWin) return toast("Please allow popups to open verification screen");
@@ -429,53 +423,70 @@ function openKYCPortal() {
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.min.js"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"><\/script>
 <style>
-:root{ --bg:#000;--card:#0a0a0a;--glass:rgba(10,10,10,0.8);--text:#fff;--muted:#888;--border:#1a1a1a;--green:#00ff88;--blue:#3b82f6;--pink:#ec4899;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7); }
+:root{ --bg:#000;--card:#0a0a0a;--glass:rgba(10,10,10,0.85);--text:#fff;--muted:#888;--border:#1a1a1a;--green:#00ff88;--blue:#3b82f6;--orange:#f97316;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7); }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
 body{background:var(--bg);color:var(--text);max-width:550px;margin:0 auto;padding:20px;min-height:100vh}
-.header{text-align:center;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:20px}
-.title{font-size:20px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:20px}
+.title{font-size:18px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px}
 .instruction{background:rgba(59,130,246,0.1);border-left:4px solid var(--blue);padding:12px;border-radius:8px;font-size:13px;line-height:1.5;margin-bottom:16px}
 .video-wrapper{position:relative;width:100%;aspect-ratio:4/3;background:#000;border-radius:12px;overflow:hidden;border:2px solid var(--border);margin-bottom:12px}
 video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#idVideo{transform:none}
 .overlay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:12px}
-.badge-status{background:rgba(0,0,0,0.85);color:var(--green);padding:8px 16px;border-radius:20px;font-size:13px;font-weight:800;border:1px solid var(--border)}
-.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:16px;margin-top:8px}
+.badge-status{background:rgba(0,0,0,0.9);color:var(--green);padding:10px 18px;border-radius:20px;font-size:13px;font-weight:800;border:1px solid var(--border);text-align:center}
+.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:15px;margin-top:8px}
+.btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
 .btn:disabled{opacity:0.4;cursor:not-allowed}
-.input-file{width:100%;padding:12px;background:var(--card);border:1px solid var(--border);color:#fff;border-radius:12px;font-size:13px}
+.btn-group{display:flex;gap:10px;margin-top:10px}
+.input-file{display:none}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="title">GOLVIRAL VERIFICATION PORTAL</div>
-  <p style="color:var(--muted);font-size:12px;margin-top:4px">Step-by-step Face Liveness & ID Document Verification</p>
+  <div class="title">GOLVIRAL VERIFICATION</div>
+  <button class="btn secondary" style="width:auto;padding:8px 14px;margin:0;font-size:12px;" onclick="window.close()">← Close & Back</button>
 </div>
 
 <div class="card">
   <h3 style="margin-bottom:8px">1. Human Face Liveness Check</h3>
   <div class="instruction">
-    <b>Instructions:</b><br>
-    • Position your face clearly in the camera.<br>
-    • When ready, click "Start Face Check" and slowly turn your head to the <b>LEFT</b> when prompted.
+    <b>Follow the 3 Liveness Prompts:</b><br>
+    • Step 1: Turn head <b>LEFT</b><br>
+    • Step 2: Turn head <b>RIGHT</b><br>
+    • Step 3: <b>BLINK</b> your eyes clearly
   </div>
   <div class="video-wrapper">
     <video id="webcam" autoplay muted playsinline></video>
-    <div class="overlay"><div id="faceStatus" class="badge-status">Initializing AI Camera...</div></div>
+    <div class="overlay"><div id="faceStatus" class="badge-status">Checking Status...</div></div>
   </div>
-  <button id="startFaceBtn" class="btn" onclick="runFaceLiveness()" disabled>Start Face Check</button>
+  <button id="startFaceBtn" class="btn" onclick="runFaceLiveness()" disabled>Start Face Liveness Check</button>
 </div>
 
 <div class="card">
   <h3 style="margin-bottom:8px">2. Flat ID Document Verification</h3>
   <div class="instruction">
-    <b>Instructions:</b><br>
-    • Snap a clear, flat photo of your ID Card, Driver's License, or Passport.<br>
-    • Do NOT hold it near your face. Lay it flat on a table.<br>
-    • Upload the document below for automatic OCR hashing.
+    <b>Instructions:</b> Lay your ID Card flat on a clear surface. Ensure all text and document numbers are visible without camera flash glare.
   </div>
-  <input type="file" accept="image/*" class="input-file" onchange="processIDSnap(this)">
-  <div id="ocrStatus" style="font-size:12px;color:var(--muted);margin-top:10px">Status: Waiting for document upload...</div>
+
+  <div id="idCameraContainer" style="display:none;margin-bottom:12px;">
+    <div class="video-wrapper">
+      <video id="idVideo" autoplay muted playsinline></video>
+      <div class="overlay"><div class="badge-status" style="color:#fff">Align ID flat in camera frame</div></div>
+    </div>
+    <button class="btn" onclick="captureAndProcessID()">📸 Capture & Scan ID Photo</button>
+    <button class="btn secondary" onclick="stopIDCamera()">Cancel Camera</button>
+  </div>
+
+  <input type="file" id="idFileInput" accept="image/*" class="input-file" onchange="processIDFile(this)">
+  
+  <div class="btn-group">
+    <button class="btn secondary" onclick="document.getElementById('idFileInput').click()">📁 Upload ID File</button>
+    <button class="btn secondary" onclick="startIDCamera()">📷 Open Camera to Snap</button>
+  </div>
+  
+  <div id="ocrStatus" style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center;">Status: Waiting for document capture...</div>
 </div>
 
 <script>
@@ -485,21 +496,59 @@ let video = document.getElementById('webcam');
 let faceStatus = document.getElementById('faceStatus');
 let startFaceBtn = document.getElementById('startFaceBtn');
 let ocrStatus = document.getElementById('ocrStatus');
-let detectorOptions, modelsLoaded = false, isScanning = false;
 
-// Initialize Face API Engine
+let faceStream = null, idStream = null;
+let detectorOptions, modelsLoaded = false, isScanning = false;
+let livenessStep = 1; // 1: Look Left, 2: Look Right, 3: Blink
+
+// Close Face Camera Stream Immediately
+function stopFaceCamera() {
+  if (faceStream) {
+    faceStream.getTracks().forEach(track => track.stop());
+    faceStream = null;
+  }
+  video.srcObject = null;
+}
+
+// Initial KYC Check
+async function checkExistingKYC() {
+  try {
+    const res = await fetch(API + '/api/profile/kyc-status', {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    const kyc = await res.json();
+
+    if (kyc.faceVerified) {
+      faceStatus.innerText = "✓ Face Already Verified!";
+      startFaceBtn.disabled = true;
+      startFaceBtn.innerText = "Face Verified";
+      stopFaceCamera();
+    } else {
+      initAI();
+    }
+
+    if (kyc.idVerified) {
+      ocrStatus.innerText = "✓ ID Document Already Verified!";
+    }
+  } catch(e) {
+    initAI();
+  }
+}
+
+// Initialize AI Models & Face Cam
 async function initAI() {
   try {
+    faceStatus.innerText = "Loading Liveness Detector...";
     const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model';
     await Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
       faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL)
     ]);
     detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 });
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 480, height: 360 } });
-    video.srcObject = stream;
+    faceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 480, height: 360 } });
+    video.srcObject = faceStream;
     modelsLoaded = true;
-    faceStatus.innerText = "Camera Ready";
+    faceStatus.innerText = "Camera Ready. Click Start Below";
     startFaceBtn.disabled = false;
   } catch(e) {
     faceStatus.innerText = "Camera / AI Load Error";
@@ -511,58 +560,125 @@ async function generateSHA256(str) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Helper EAR for Blink Detection
+function getEAR(eye) {
+  const p2_p6 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
+  const p3_p5 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
+  const p1_p4 = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
+  return (p2_p6 + p3_p5) / (2.0 * p1_p4);
+}
+
 async function runFaceLiveness() {
   if(!modelsLoaded || isScanning) return;
   isScanning = true;
+  livenessStep = 1;
   startFaceBtn.disabled = true;
-  faceStatus.innerText = "Look into camera & turn head LEFT...";
+  faceStatus.innerText = "Step 1/3: Turn Head LEFT 👈";
   scanLoop();
 }
 
 async function scanLoop() {
   if(!isScanning) return;
   const detection = await faceapi.detectSingleFace(video, detectorOptions).withFaceLandmarks(true);
+  
   if(detection) {
     const noseX = detection.landmarks.getNose()[3].x;
     const jaw = detection.landmarks.getJawOutline();
     const ratio = (noseX - jaw[0].x) / (jaw[16].x - jaw[0].x);
 
-    if(ratio < 0.38) { // Turn left detected
-      isScanning = false;
-      faceStatus.innerText = "Hashing Face Vector...";
-      const rawDescriptor = JSON.stringify(detection.landmarks.positions);
-      const faceHash = await generateSHA256(rawDescriptor);
+    // STEP 1: TURN LEFT
+    if(livenessStep === 1 && ratio < 0.38) {
+      livenessStep = 2;
+      faceStatus.innerText = "Step 2/3: Turn Head RIGHT 👉";
+    }
+    // STEP 2: TURN RIGHT
+    else if(livenessStep === 2 && ratio > 0.62) {
+      livenessStep = 3;
+      faceStatus.innerText = "Step 3/3: BLINK Your Eyes 😉";
+    }
+    // STEP 3: BLINK EYES
+    else if(livenessStep === 3) {
+      const leftEye = detection.landmarks.getLeftEye();
+      const rightEye = detection.landmarks.getRightEye();
+      const ear = (getEAR(leftEye) + getEAR(rightEye)) / 2.0;
 
-      const res = await fetch(API + '/api/profile/face-verify', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ faceHash })
-      });
-      const data = await res.json();
-      if(res.ok) {
-        faceStatus.innerText = "✓ Face Verified!";
-        alert("Face Verification Successful!");
-      } else {
-        faceStatus.innerText = "❌ " + (data.error || "Failed");
-        startFaceBtn.disabled = false;
+      if(ear < 0.22) { // Blink detected
+        isScanning = false;
+        faceStatus.innerText = "Verifying & Hashing Face...";
+        
+        const rawDescriptor = JSON.stringify(detection.landmarks.positions);
+        const faceHash = await generateSHA256(rawDescriptor);
+
+        const res = await fetch(API + '/api/profile/face-verify', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ faceHash })
+        });
+        const data = await res.json();
+
+        if(res.ok) {
+          faceStatus.innerText = "✓ Face Verified!";
+          stopFaceCamera(); // Close camera on success
+          alert("Face Liveness Verification Successful!");
+        } else {
+          faceStatus.innerText = "❌ " + (data.error || "Failed");
+          startFaceBtn.disabled = false;
+        }
+        return;
       }
-      return;
     }
   }
   requestAnimationFrame(scanLoop);
 }
 
-async function processIDSnap(input) {
+// Open Camera for ID Photo Snap
+async function startIDCamera() {
+  const container = document.getElementById('idCameraContainer');
+  container.style.display = 'block';
+  try {
+    idStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    document.getElementById('idVideo').srcObject = idStream;
+  } catch(e) {
+    alert("Unable to access rear camera.");
+  }
+}
+
+function stopIDCamera() {
+  if(idStream) {
+    idStream.getTracks().forEach(t => t.stop());
+    idStream = null;
+  }
+  document.getElementById('idCameraContainer').style.display = 'none';
+}
+
+async function captureAndProcessID() {
+  const idVideo = document.getElementById('idVideo');
+  const canvas = document.createElement('canvas');
+  canvas.width = idVideo.videoWidth || 640;
+  canvas.height = idVideo.videoHeight || 480;
+  canvas.getContext('2d').drawImage(idVideo, 0, 0, canvas.width, canvas.height);
+  
+  stopIDCamera();
+  runOCR(canvas);
+}
+
+async function processIDFile(input) {
   const file = input.files[0];
   if(!file) return;
-  ocrStatus.innerText = "Reading ID document with OCR scanner...";
+  runOCR(file);
+}
+
+// Perform Tesseract OCR Analysis
+async function runOCR(imageSource) {
+  ocrStatus.innerText = "Reading ID Document with OCR Engine...";
   try {
     const worker = await Tesseract.createWorker('eng');
-    const ret = await worker.recognize(file);
+    const ret = await worker.recognize(imageSource);
     await worker.terminate();
-    
+
     const text = ret.data.text;
     const matches = text.match(/[A-Z0-9]{8,14}/g);
+
     if(matches && matches.length > 0) {
       const idHash = await generateSHA256(matches[0]);
       ocrStatus.innerText = "Submitting ID Hash to server...";
@@ -573,6 +689,7 @@ async function processIDSnap(input) {
         body: JSON.stringify({ idHash })
       });
       const data = await res.json();
+
       if(res.ok) {
         ocrStatus.innerText = "✓ ID Verified Successfully!";
         alert("ID Document Verification Successful!");
@@ -580,14 +697,14 @@ async function processIDSnap(input) {
         ocrStatus.innerText = "❌ " + (data.error || "Verification failed");
       }
     } else {
-      ocrStatus.innerText = "❌ Could not find valid ID numbers. Snap a clearer picture.";
+      ocrStatus.innerText = "❌ No clear ID text found. Try capturing in better light.";
     }
   } catch(err) {
-    ocrStatus.innerText = "❌ Error processing image.";
+    ocrStatus.innerText = "❌ Error processing document image.";
   }
 }
 
-window.onload = initAI;
+window.onload = checkExistingKYC;
 <\/script>
 </body>
 </html>
@@ -602,5 +719,3 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/golviral-fro
 </script>
 </body>
 </html>
-
-
