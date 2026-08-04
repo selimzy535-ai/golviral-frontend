@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -191,6 +192,51 @@ async function api(path,opt={}){try{const res=await fetch(API+path,{...opt,heade
 
 function getPercent(str){if(!str)return 0;const [a,b]=str.split('/').map(Number);return b?Math.min(100,Math.round(a/b*100)):0}
 
+// REAL LOCAL STORAGE DAILY SCORE ENGINE
+function getAndSaveDailyScores(uid, currentViews, currentLikes) {
+  const key = `golviral_daily_scores_${uid}`;
+  let history = [];
+  try {
+    history = JSON.parse(localStorage.getItem(key)) || [];
+  } catch(e) { history = []; }
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const dayName = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+
+  const existingIdx = history.findIndex(item => item.date === todayStr);
+  if (existingIdx !== -1) {
+    history[existingIdx].views = currentViews;
+    history[existingIdx].likes = currentLikes;
+  } else {
+    history.push({
+      date: todayStr,
+      day: dayName,
+      views: currentViews,
+      likes: currentLikes
+    });
+  }
+
+  // Keep last 7 days of real user data
+  if (history.length > 7) {
+    history = history.slice(-7);
+  }
+
+  // Compute actual relative trends (up/down)
+  history = history.map((item, index) => {
+    let trend = 'up';
+    if (index > 0) {
+      const prev = history[index - 1];
+      const prevScore = (prev.views || 0) + (prev.likes || 0);
+      const currScore = (item.views || 0) + (item.likes || 0);
+      trend = currScore >= prevScore ? 'up' : 'down';
+    }
+    return { ...item, trend };
+  });
+
+  localStorage.setItem(key, JSON.stringify(history));
+  return history;
+}
+
 // LOAD PROFILE
 async function loadProfile(){
 const u=await api(`/api/user/${profileId}`);
@@ -200,6 +246,9 @@ document.getElementById('followers').innerText=u.followers||0;
 document.getElementById('following').innerText=u.following||0;
 document.getElementById('likes').innerText=u.totalLikes||0;
 document.getElementById('views').innerText=u.totalViews||0;
+
+// Save current views & likes to local storage daily array
+getAndSaveDailyScores(profileId, u.totalViews || 0, u.totalLikes || 0);
 
 document.getElementById('bio-text').innerText = u.bio || '';
 const date = new Date(u.createdAt).toLocaleDateString('en-US',{month:'short', year:'numeric'});
@@ -257,28 +306,20 @@ if(tab==='gifts')loadGifts();
 if(tab==='support')loadSupport();
 }
 
-// DAILY ENGAGEMENT GRAPH & ANALYTICS TABLE
+// DYNAMIC DAILY ANALYTICS GRAPH & TABLE FROM REAL USERS LOCALSTORAGE
 async function loadAnalytics(){
   const u = await api(`/api/user/${profileId}`);
-  const dailyScores = u.dailyScoreTrend || [
-    { day: 'Mon', views: 120, likes: 15, trend: 'up' },
-    { day: 'Tue', views: 240, likes: 35, trend: 'up' },
-    { day: 'Wed', views: 180, likes: 20, trend: 'down' },
-    { day: 'Thu', views: 310, likes: 45, trend: 'up' },
-    { day: 'Fri', views: 450, likes: 80, trend: 'up' },
-    { day: 'Sat', views: 390, likes: 60, trend: 'down' },
-    { day: 'Sun', views: u.totalViews || 520, likes: u.totalLikes || 95, trend: 'up' }
-  ];
+  const dailyScores = getAndSaveDailyScores(profileId, u.totalViews || 0, u.totalLikes || 0);
 
-  const maxViews = Math.max(...dailyScores.map(s=>s.views), 1);
-  const latestTrend = dailyScores[dailyScores.length - 1].trend;
+  const maxViews = Math.max(...dailyScores.map(s => s.views), 1);
+  const latestTrend = dailyScores.length > 0 ? dailyScores[dailyScores.length - 1].trend : 'up';
 
   document.getElementById('tab-analytics').innerHTML = `
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
         <h4 style="font-size:15px">Daily Score & Engagement</h4>
-        <p style="font-size:11px;color:var(--muted)">Performance trends over recent days</p>
+        <p style="font-size:11px;color:var(--muted)">Real local storage tracked metrics</p>
       </div>
       <span class="trend-pill ${latestTrend === 'up' ? 'trend-up' : 'trend-down'}">
         <svg class="icon-inline" viewBox="0 0 24 24"><polyline points="${latestTrend==='up'?'23 6 13.5 15.5 8.5 10.5 1 18':'23 18 13.5 8.5 8.5 13.5 1 6'}"/></svg>
@@ -288,13 +329,13 @@ async function loadAnalytics(){
 
     <div class="graph-container">
       <div class="graph-header">
-        <span>Daily Engagement Metrics</span>
-        <span style="color:var(--green);font-weight:700">Views & Likes</span>
+        <span>Daily Views & Likes History</span>
+        <span style="color:var(--green);font-weight:700">Actual Scores</span>
       </div>
       <div class="graph-bars">
         ${dailyScores.map(item => `
           <div class="bar-column">
-            <div class="bar" style="height:${Math.max(10, Math.round((item.views / maxViews) * 100))}%;"></div>
+            <div class="bar" style="height:${Math.max(8, Math.round((item.views / maxViews) * 100))}%;"></div>
             <span class="bar-label">${item.day}</span>
           </div>
         `).join('')}
@@ -305,9 +346,9 @@ async function loadAnalytics(){
       <thead>
         <tr style="border-bottom:1px solid var(--border);color:var(--muted);">
           <th style="padding:8px 4px">Day</th>
-          <th style="padding:8px 4px">Daily Views</th>
-          <th style="padding:8px 4px">Daily Likes</th>
-          <th style="padding:8px 4px">Score Status</th>
+          <th style="padding:8px 4px">Real Views</th>
+          <th style="padding:8px 4px">Real Likes</th>
+          <th style="padding:8px 4px">Daily Score</th>
         </tr>
       </thead>
       <tbody>
@@ -318,7 +359,7 @@ async function loadAnalytics(){
             <td style="padding:8px 4px">${row.likes}</td>
             <td style="padding:8px 4px">
               <span class="trend-pill ${row.trend === 'up' ? 'trend-up' : 'trend-down'}" style="padding:2px 6px;font-size:10px;">
-                ${row.trend === 'up' ? '▲ High' : '▼ Low'}
+                ${row.trend === 'up' ? '▲ Up' : '▼ Down'}
               </span>
             </td>
           </tr>
@@ -698,7 +739,6 @@ function getEAR(eye) {
 function runRandomFaceLiveness() {
   if(!modelsLoaded || isScanning) return;
   
-  // Shuffle available liveness checks
   randomizedPrompts = [...POSSIBLE_ACTIONS].sort(() => Math.random() - 0.5);
   currentStepIndex = 0;
   isScanning = true;
@@ -739,7 +779,6 @@ async function scanLoop() {
     if (passedStep) {
       currentStepIndex++;
       if (currentStepIndex >= randomizedPrompts.length) {
-        // Complete Verification
         isScanning = false;
         faceStatus.innerText = "Validating Face Data...";
         
