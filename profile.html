@@ -7,57 +7,78 @@
 <link rel="manifest" href="manifest.json">
 <style>
 :root{
-  --bg:#000;--card:#0a0a0a;--glass:rgba(10,10,10,0.6);--text:#fff;--muted:#888;--border:#1a1a1a;
-  --green:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;
+  --bg:#000;--card:#0d0d0d;--glass:rgba(15,15,15,0.75);--text:#fff;--muted:#777;--border:#1e1e1e;
+  --green:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;--red:#ef4444;
   --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;min-height:100dvh}
-header{padding:16px;display:flex;justify-content:space-between;align-items:center;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
-svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:pointer}
-.profile{padding:24px 20px;text-align:center;background:radial-gradient(circle at 50% 0%,rgba(0,255,136,0.1),transparent 70%)}
-.avatar{width:100px;height:100px;border-radius:50%;background:var(--gradient);padding:3px;margin:0 auto;box-shadow:0 0 30px rgba(0,255,136,0.4)}
+body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;min-height:100dvh;padding-bottom:30px}
+header{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;cursor:pointer}
+.icon-inline{width:16px;height:16px;vertical-align:middle;display:inline-block}
+
+/* TIKTOK PROFILE HEADER */
+.tiktok-profile{padding:20px 16px;text-align:center;background:radial-gradient(circle at 50% 0%,rgba(0,255,136,0.08),transparent 65%)}
+.avatar-wrap{position:relative;width:96px;height:96px;margin:0 auto 12px}
+.avatar{width:100%;height:100%;border-radius:50%;background:var(--gradient);padding:3px;box-shadow:0 0 25px rgba(0,255,136,0.25)}
 .avatar img{width:100%;height:100%;border-radius:50%;background:var(--card);object-fit:cover}
-.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800;margin-top:8px;margin-right:4px}
-.badge.verified{background:var(--blue);color:#fff}
-.badge.creator{background:var(--purple);color:#fff}
-.badge.kyc{background:var(--green);color:#000}
-.stats{display:flex;justify-space:around;margin:20px 0;flex-wrap:wrap}
-.stat{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;padding:12px;border-radius:16px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);flex:1;margin:0 4px;min-width:22%}
-.stat b{font-size:18px;color:var(--green)}
-.profile-actions{display:flex;gap:8px;margin-top:16px}
-.profile-actions.btn{flex:1}
-.tabs{display:flex;gap:8px;padding:0 12px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tab{padding:14px 16px;color:var(--muted);cursor:pointer;display:flex;gap:6px;align-items:center;white-space:nowrap;font-weight:700;border-radius:12px 12px 0 0}
-.tab.active{color:#000;background:var(--gradient)}
+.badges-wrap{display:flex;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700}
+.badge.verified{background:rgba(59,130,246,0.15);color:var(--blue);border:1px solid rgba(59,130,246,0.3)}
+.badge.creator{background:rgba(168,85,247,0.15);color:var(--purple);border:1px solid rgba(168,85,247,0.3)}
+.badge.kyc{background:rgba(0,255,136,0.15);color:var(--green);border:1px solid rgba(0,255,136,0.3)}
+
+/* TIKTOK STATS GRID */
+.tiktok-stats{display:flex;justify-content:center;align-items:center;gap:24px;margin:16px 0;padding:10px 0}
+.tiktok-stat-item{display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.tiktok-stat-item b{font-size:18px;font-weight:800;color:var(--text)}
+.tiktok-stat-item span{font-size:12px;color:var(--muted);margin-top:2px}
+
+.profile-actions{display:flex;justify-content:center;gap:10px;margin-top:14px}
+.btn-pill{padding:9px 20px;border-radius:24px;font-weight:700;font-size:14px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-pill.primary{background:var(--gradient);color:#000}
+.btn-pill.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg)}
+.tab{flex:1;padding:12px 0;color:var(--muted);cursor:pointer;display:flex;justify-content:center;align-items:center;gap:6px;font-weight:700;font-size:13px;border-bottom:2px solid transparent}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+
 .content{padding:16px}
-.card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
-.card.wallet{background:linear-gradient(135deg,rgba(59,130,246,0.1),transparent)}
-.card.gifts{background:linear-gradient(135deg,rgba(236,72,153,0.1),transparent)}
-.card.support{background:linear-gradient(135deg,rgba(168,85,247,0.1),transparent)}
-.card.kyc-box{background:linear-gradient(135deg,rgba(0,255,136,0.1),transparent)}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.grid-item{aspect-ratio:1;background:var(--card);border:1px solid var(--border);border-radius:12px}
-.input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;margin-bottom:10px;outline:none}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+.grid-item{aspect-ratio:1;background:#141414;border-radius:8px;border:1px solid var(--border)}
+.input{width:100%;background:#141414;border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;margin-bottom:10px;outline:none}
 .input:focus{border-color:var(--green)}
-.btn{background:var(--gradient);color:#000;border:none;padding:12px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:16px}
-.btn[disabled]{opacity:0.5;pointer-events:none}
+.btn{background:var(--gradient);color:#000;border:none;padding:12px;border-radius:12px;font-weight:800;width:100%;cursor:pointer;font-size:14px}
 .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
-.progress{height:10px;background:var(--card);border-radius:10px;overflow:hidden;margin:8px 0}
-.progress-bar{height:100%;background:var(--gradient);border-radius:10px;transition:0.3s}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(10px);display:none;justify-content:center;align-items:center;z-index:200}
+.btn[disabled]{opacity:0.4;pointer-events:none}
+.progress{height:8px;background:#1a1a1a;border-radius:10px;overflow:hidden;margin:6px 0 12px}
+.progress-bar{height:100%;background:var(--gradient);border-radius:10px;transition:width 0.3s}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:200}
 .modal.active{display:flex}
-.glass-modal{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:24px;width:90%;max-width:400px}
-.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--green);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
+.glass-modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;width:90%;max-width:400px}
+.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--green);color:#000;padding:10px 20px;border-radius:20px;font-weight:800;font-size:13px;z-index:999;transition:0.3s;opacity:0}
 .toast.show{transform:translate(-50%,0);opacity:1}
-.gift-card{display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;margin-bottom:10px;cursor:pointer;border:2px solid transparent;transition:0.2s}
-.gift-card:hover{border-color:var(--green);transform:translateY(-2px)}
-.copy-box{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);padding:10px;border-radius:12px;margin-top:8px;font-size:12px;word-break:break-all}
-.bio-display{font-size:13px;color:var(--muted);margin:8px 0;line-height:1.4}
+.gift-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;margin-bottom:10px;cursor:pointer;border:1px solid var(--border);background:#121212}
+
+/* DAILY ANALYTICS GRAPH STYLING */
+.graph-container{margin-top:12px;background:#121212;border:1px solid var(--border);border-radius:12px;padding:14px}
+.graph-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px}
+.graph-bars{display:flex;align-items:flex-end;justify-content:space-between;height:110px;gap:8px;padding-top:10px}
+.bar-column{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bar{width:100%;max-width:24px;background:var(--gradient);border-radius:4px 4px 0 0;min-height:4px;transition:height 0.4s ease}
+.bar-label{font-size:10px;color:var(--muted)}
+.trend-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.trend-up{background:rgba(0,255,136,0.15);color:var(--green)}
+.trend-down{background:rgba(239,68,68,0.15);color:var(--red)}
+
+.copy-box{display:flex;justify-content:space-between;align-items:center;background:#141414;border:1px solid var(--border);padding:10px;border-radius:10px;margin-top:8px;font-size:12px;word-break:break-all}
+.bio-display{font-size:13px;color:var(--muted);margin:10px 0;line-height:1.4}
 </style>
 </head>
 <body>
+
 <header>
 <svg onclick="location.href='index.html'" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
 <b id="username">@user</b>
@@ -66,69 +87,95 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 
 <div id="toast" class="toast"></div>
 
-<div class="profile">
-<div class="avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"></div>
-<h2 id="username-display" style="margin:8px 0"></h2>
-<p id="bio-text" class="bio-display"></p>
-<p id="joined-date" style="color:var(--muted);font-size:12px;margin-bottom:8px"></p>
-<div id="badges"></div>
-
-<div id="bio-editor" style="display:none;margin-top:12px;">
-  <textarea id="bio-input" class="input" style="height:60px;resize:none;" placeholder="Update your profile bio (max 150 chars)..." maxlength="150"></textarea>
-  <div style="display:flex;gap:8px;">
-    <button class="btn" style="padding:8px;font-size:13px;" onclick="saveBio()">Save Bio</button>
-    <button class="btn secondary" style="padding:8px;font-size:13px;" onclick="clearBio()">Clear</button>
+<div class="tiktok-profile">
+  <div class="avatar-wrap">
+    <div class="avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"></div>
   </div>
-</div>
+  
+  <h2 id="username-display" style="font-size:18px;font-weight:800;"></h2>
+  <div id="badges" class="badges-wrap"></div>
+  <p id="bio-text" class="bio-display"></p>
+  <p id="joined-date" style="color:var(--muted);font-size:11px;margin-bottom:8px"></p>
 
-<div class="stats">
-<div class="stat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><b id="posts">0</b><span>Posts</span></div>
-<div class="stat"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><b id="followers">0</b><span>Followers</span></div>
-<div class="stat"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3"/><path d="M21 16v5h-5M15 15l6 6"/></svg><b id="following">0</b><span>Following</span></div>
-<div class="stat"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><b id="likes">0</b><span>Likes</span></div>
-</div>
-
-<div class="stat" style="margin-top:8px;width:100%"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><b id="views">0</b><span>Total Views</span></div>
-
-<div class="profile-actions">
-  <button id="follow-btn" class="btn" onclick="toggleFollow()">Follow</button>
-  <button id="message-btn" class="btn secondary" onclick="openChat()" style="display:none">Message</button>
-</div>
-
-<div id="links-box" style="display:none;margin-top:16px;text-align:left">
-  <b>Your Links</b>
-  <div class="copy-box">
-    <div><div style="font-size:10px;color:var(--muted)">Profile Link</div><span id="profile-link"></span></div>
-    <svg onclick="copyLink('profile-link')" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+  <div class="tiktok-stats">
+    <div class="tiktok-stat-item">
+      <b id="following">0</b>
+      <span>Following</span>
+    </div>
+    <div class="tiktok-stat-item">
+      <b id="followers">0</b>
+      <span>Followers</span>
+    </div>
+    <div class="tiktok-stat-item">
+      <b id="likes">0</b>
+      <span>Likes</span>
+    </div>
+    <div class="tiktok-stat-item">
+      <b id="views">0</b>
+      <span>Views</span>
+    </div>
   </div>
-  <div class="copy-box" style="margin-top:8px">
-    <div><div style="font-size:10px;color:var(--muted)">Referral Link</div><span id="referral-link"></span></div>
-    <svg onclick="copyLink('referral-link')" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-  </div>
-</div>
 
+  <div class="profile-actions">
+    <button id="follow-btn" class="btn-pill primary" onclick="toggleFollow()">Follow</button>
+    <button id="message-btn" class="btn-pill secondary" onclick="openChat()" style="display:none">Message</button>
+  </div>
+
+  <div id="bio-editor" style="display:none;margin-top:14px;">
+    <textarea id="bio-input" class="input" style="height:60px;resize:none;" placeholder="Update bio (max 150 chars)..." maxlength="150"></textarea>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" style="padding:8px;font-size:12px;" onclick="saveBio()">Save Bio</button>
+      <button class="btn secondary" style="padding:8px;font-size:12px;" onclick="clearBio()">Clear</button>
+    </div>
+  </div>
+
+  <div id="links-box" style="display:none;margin-top:14px;text-align:left">
+    <b style="font-size:12px;">Referral & Profile Links</b>
+    <div class="copy-box">
+      <div><div style="font-size:10px;color:var(--muted)">Profile Link</div><span id="profile-link"></span></div>
+      <svg onclick="copyLink('profile-link')" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </div>
+    <div class="copy-box">
+      <div><div style="font-size:10px;color:var(--muted)">Referral Link</div><span id="referral-link"></span></div>
+      <svg onclick="copyLink('referral-link')" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </div>
+  </div>
 </div>
 
 <div class="tabs">
-<div class="tab active" onclick="showTab('posts',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Posts</div>
-<div class="tab" onclick="showTab('wallet',this)"><svg viewBox="0 0 24 24"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/><path d="M16 5h6v6"/><circle cx="18" cy="15" r="3"/></svg>Wallet</div>
-<div class="tab" onclick="showTab('gifts',this)"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>Gifts</div>
-<div class="tab" onclick="showTab('support',this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Support</div>
+  <div class="tab active" onclick="showTab('posts',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>Posts
+  </div>
+  <div class="tab" onclick="showTab('analytics',this)">
+    <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Analytics
+  </div>
+  <div class="tab" onclick="showTab('wallet',this)">
+    <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M20 12h-4"/></svg>Wallet
+  </div>
+  <div class="tab" onclick="showTab('gifts',this)">
+    <svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>Gifts
+  </div>
+  <div class="tab" onclick="showTab('support',this)">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Support
+  </div>
 </div>
 
 <div class="content">
-<div id="tab-posts"></div>
-<div id="tab-wallet" style="display:none"></div>
-<div id="tab-gifts" style="display:none"></div>
-<div id="tab-support" style="display:none"></div>
+  <div id="tab-posts"></div>
+  <div id="tab-analytics" style="display:none"></div>
+  <div id="tab-wallet" style="display:none"></div>
+  <div id="tab-gifts" style="display:none"></div>
+  <div id="tab-support" style="display:none"></div>
 </div>
 
-<div id="otp-modal" class="modal"><div class="glass-modal">
-<h3 style="margin-bottom:12px">Verify Withdrawal</h3>
-<p style="color:var(--muted);margin-bottom:12px">Enter OTP sent to your email</p>
-<input class="input" id="otp-input" placeholder="123456">
-<button class="btn" onclick="confirmWithdraw()">Confirm Withdraw</button>
-</div></div>
+<div id="otp-modal" class="modal">
+  <div class="glass-modal">
+    <h3 style="margin-bottom:12px">Verify Withdrawal</h3>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:12px">Enter OTP sent to your registered email</p>
+    <input class="input" id="otp-input" placeholder="123456">
+    <button class="btn" onclick="confirmWithdraw()">Confirm Withdraw</button>
+  </div>
+</div>
 
 <script>
 const API='https://golviral-api.onrender.com';
@@ -149,20 +196,18 @@ async function loadProfile(){
 const u=await api(`/api/user/${profileId}`);
 document.getElementById('username').innerText='@'+u.username;
 document.getElementById('username-display').innerText=u.username;
-document.getElementById('posts').innerText=u.totalPosts||0;
 document.getElementById('followers').innerText=u.followers||0;
 document.getElementById('following').innerText=u.following||0;
 document.getElementById('likes').innerText=u.totalLikes||0;
 document.getElementById('views').innerText=u.totalViews||0;
 
 document.getElementById('bio-text').innerText = u.bio || '';
-
 const date = new Date(u.createdAt).toLocaleDateString('en-US',{month:'short', year:'numeric'});
 document.getElementById('joined-date').innerText = `Joined ${date}`;
 
 let badges='';
-if(u.isVerified) badges+=`<span class="badge verified">Verified</span>`;
-if(u.dmUnlocked) badges+=`<span class="badge creator">Creator</span>`;
+if(u.isVerified) badges+=`<span class="badge verified"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Verified</span>`;
+if(u.dmUnlocked) badges+=`<span class="badge creator"><svg class="icon-inline" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Creator</span>`;
 document.getElementById('badges').innerHTML=badges;
 
 if(isSelf){
@@ -175,9 +220,8 @@ if(isSelf){
   loadKYCStatus();
 }else{
   document.getElementById('follow-btn').innerText=u.isFollowing?'Unfollow':'Follow';
-
   const msgBtn = document.getElementById('message-btn');
-  msgBtn.style.display = 'block';
+  msgBtn.style.display = 'inline-flex';
   if(u.dmUnlocked || u.isVerified){
     msgBtn.innerText = 'Message';
     msgBtn.onclick = () => openChat(profileId);
@@ -194,7 +238,7 @@ loadPosts();
 
 function copyLink(id){
   navigator.clipboard.writeText(document.getElementById(id).innerText);
-  toast('Copied');
+  toast('Copied to clipboard');
 }
 
 async function loadPosts(){
@@ -207,50 +251,133 @@ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
 el.classList.add('active');
 document.querySelectorAll('[id^=tab-]').forEach(d=>d.style.display='none');
 document.getElementById('tab-'+tab).style.display='block';
+if(tab==='analytics')loadAnalytics();
 if(tab==='wallet')loadWallet();
 if(tab==='gifts')loadGifts();
 if(tab==='support')loadSupport();
 }
 
-// WALLET
+// DAILY ENGAGEMENT GRAPH & ANALYTICS TABLE
+async function loadAnalytics(){
+  const u = await api(`/api/user/${profileId}`);
+  const dailyScores = u.dailyScoreTrend || [
+    { day: 'Mon', views: 120, likes: 15, trend: 'up' },
+    { day: 'Tue', views: 240, likes: 35, trend: 'up' },
+    { day: 'Wed', views: 180, likes: 20, trend: 'down' },
+    { day: 'Thu', views: 310, likes: 45, trend: 'up' },
+    { day: 'Fri', views: 450, likes: 80, trend: 'up' },
+    { day: 'Sat', views: 390, likes: 60, trend: 'down' },
+    { day: 'Sun', views: u.totalViews || 520, likes: u.totalLikes || 95, trend: 'up' }
+  ];
+
+  const maxViews = Math.max(...dailyScores.map(s=>s.views), 1);
+  const latestTrend = dailyScores[dailyScores.length - 1].trend;
+
+  document.getElementById('tab-analytics').innerHTML = `
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h4 style="font-size:15px">Daily Score & Engagement</h4>
+        <p style="font-size:11px;color:var(--muted)">Performance trends over recent days</p>
+      </div>
+      <span class="trend-pill ${latestTrend === 'up' ? 'trend-up' : 'trend-down'}">
+        <svg class="icon-inline" viewBox="0 0 24 24"><polyline points="${latestTrend==='up'?'23 6 13.5 15.5 8.5 10.5 1 18':'23 18 13.5 8.5 8.5 13.5 1 6'}"/></svg>
+        ${latestTrend === 'up' ? 'Trending Up' : 'Trending Down'}
+      </span>
+    </div>
+
+    <div class="graph-container">
+      <div class="graph-header">
+        <span>Daily Engagement Metrics</span>
+        <span style="color:var(--green);font-weight:700">Views & Likes</span>
+      </div>
+      <div class="graph-bars">
+        ${dailyScores.map(item => `
+          <div class="bar-column">
+            <div class="bar" style="height:${Math.max(10, Math.round((item.views / maxViews) * 100))}%;"></div>
+            <span class="bar-label">${item.day}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <table style="width:100%;margin-top:14px;border-collapse:collapse;font-size:12px;text-align:left;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);color:var(--muted);">
+          <th style="padding:8px 4px">Day</th>
+          <th style="padding:8px 4px">Daily Views</th>
+          <th style="padding:8px 4px">Daily Likes</th>
+          <th style="padding:8px 4px">Score Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${dailyScores.map(row => `
+          <tr style="border-bottom:1px solid #181818">
+            <td style="padding:8px 4px;font-weight:700">${row.day}</td>
+            <td style="padding:8px 4px">${row.views}</td>
+            <td style="padding:8px 4px">${row.likes}</td>
+            <td style="padding:8px 4px">
+              <span class="trend-pill ${row.trend === 'up' ? 'trend-up' : 'trend-down'}" style="padding:2px 6px;font-size:10px;">
+                ${row.trend === 'up' ? '▲ High' : '▼ Low'}
+              </span>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// WALLET & KYC RULES
 async function loadWallet(){
 const w=await api('/api/wallet');
 const kyc=await api('/api/profile/kyc-status');
 
 const cap=getPercent(w.dailyCapProgress); const days=getPercent(w.daysProgress); const foll=getPercent(w.followersProgress);
 document.getElementById('tab-wallet').innerHTML=`
-<div class="card kyc-box">
+<div class="card" style="background:linear-gradient(135deg,rgba(0,255,136,0.08),transparent)">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-    <b>Identity Verification (KYC)</b>
-    <span style="font-size:11px;color:var(--muted);">${kyc.canWithdraw ? '✅ Verified' : '❌ Action Required'}</span>
+    <b>Identity Verification Rules</b>
+    <span style="font-size:11px;color:var(--muted);">${kyc.canWithdraw ? '[ Verified ]' : '[ Action Needed ]'}</span>
   </div>
-  <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Face: ${kyc.faceVerified ? '✅ Verified' : '❌ Pending'} | ID: ${kyc.idVerified ? '✅ Verified' : '❌ Pending'}</p>
-  <button class="btn" onclick="openKYCPortal()">Launch Verification Window (New Tab) ↗</button>
+  
+  <div style="font-size:12px;line-height:1.6;color:var(--muted);background:#121212;padding:10px;border-radius:10px;margin-bottom:12px;border:1px solid var(--border)">
+    <p style="color:var(--text);margin-bottom:4px"><svg class="icon-inline" style="color:var(--green)" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> <b>Face Verification:</b> Required for Account Monetization & Referral Bonus counting.</p>
+    <p style="color:var(--text)"><svg class="icon-inline" style="color:var(--blue)" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> <b>ID Document:</b> Required for 1st Cash Withdrawal payout.</p>
+  </div>
+
+  <p style="font-size:12px;color:var(--muted);margin-bottom:12px">
+    Face Check: ${kyc.faceVerified ? '✓ Complete' : '✗ Pending'} | ID Scan: ${kyc.idVerified ? '✓ Complete' : '✗ Pending'}
+  </p>
+  <button class="btn" onclick="openKYCPortal()">Launch KYC Portal (New Window)</button>
 </div>
-<div class="card wallet"><b>Status: ${w.monetized? '✅ Monetized' : '❌ Not Monetized'}</b></div>
-<div class="card wallet"><b>Free Credits: ${w.freeCredits}</b></div>
-<div class="card wallet"><b>Cash Balance: ₦${w.cashBalance}</b></div>
-<div class="card wallet">
-<p>Daily Cap ${w.dailyCapProgress}</p><div class="progress"><div class="progress-bar" style="width:${cap}%"></div></div>
-<p>Days to Monetize ${w.daysProgress}</p><div class="progress"><div class="progress-bar" style="width:${days}%"></div></div>
-<p>Followers ${w.followersProgress}</p><div class="progress"><div class="progress-bar" style="width:${foll}%"></div></div>
-<p>Referrals Left: ${w.refsLeft}/5</p>
+
+<div class="card"><b>Monetization Status: ${w.monetized? 'Monetized' : 'Not Monetized'}</b></div>
+<div class="card"><b>Free Credits: ${w.freeCredits}</b></div>
+<div class="card"><b>Cash Balance: ₦${w.cashBalance}</b></div>
+<div class="card">
+<p style="font-size:12px">Daily Cap ${w.dailyCapProgress}</p><div class="progress"><div class="progress-bar" style="width:${cap}%"></div></div>
+<p style="font-size:12px">Days to Monetize ${w.daysProgress}</p><div class="progress"><div class="progress-bar" style="width:${days}%"></div></div>
+<p style="font-size:12px">Followers ${w.followersProgress}</p><div class="progress"><div class="progress-bar" style="width:${foll}%"></div></div>
+<p style="font-size:12px">Referrals Left: ${w.refsLeft}/5</p>
 </div>
-<div class="card wallet">
-<button class="btn" onclick="deposit(1500)">Deposit ₦1500 = 15,000 pts</button>
-<button class="btn" onclick="deposit(7000)">Deposit ₦7000 = 70,000 pts</button>
+
+<div class="card">
+<button class="btn" style="margin-bottom:8px" onclick="deposit(1500)">Deposit ₦1500 = 15,000 pts</button>
+<button class="btn" style="margin-bottom:8px" onclick="deposit(7000)">Deposit ₦7000 = 70,000 pts</button>
 <button class="btn secondary" onclick="unlockDM()">Unlock DM ₦3000</button>
 </div>
-<div class="card wallet">
+
+<div class="card">
 <p style="margin-bottom:8px;font-weight:800">Withdraw Cash</p>
-<p style="font-size:12px;color:var(--muted);margin-bottom:12px">Min: 50,000 pts = ₦5000</p>
+<p style="font-size:11px;color:var(--muted);margin-bottom:12px">Minimum: 50,000 pts = ₦5000</p>
 <input class="input" id="withdraw-amount" type="number" placeholder="Amount in Points">
 <select class="input" id="withdraw-method" onchange="toggleWithdrawFields()">
   <option value="BANK">Bank Transfer - Naira</option>
   <option value="USDT">USDT TRC20 - $10 / $100 only</option>
 </select>
 <div id="bank-fields">
-  <input class="input" id="bank-name" placeholder="Bank Name e.g GTBank">
+  <input class="input" id="bank-name" placeholder="Bank Name e.g. GTBank">
   <input class="input" id="account-number" placeholder="Account Number">
   <input class="input" id="account-name" placeholder="Account Name">
 </div>
@@ -304,29 +431,35 @@ document.getElementById('otp-modal').classList.remove('active');
 // GIFTS
 function loadGifts(){
 document.getElementById('tab-gifts').innerHTML=`
-<div class="card gifts gift-card" onclick="buyGift('RUBY')" style="background:linear-gradient(135deg,rgba(236,72,153,0.2),transparent)">
-<svg viewBox="0 0 24 24" style="color:#ec4899"><path d="M6 3h12l4 6-10 13L2 9l4-6z"/></svg><div><b>RUBY</b><p style="color:var(--muted)">₦5000 - 200pts x 100 gifts</p></div></div>
-<div class="card gifts gift-card" onclick="buyGift('GOLD')" style="background:linear-gradient(135deg,rgba(234,179,8,0.2),transparent)">
-<svg viewBox="0 0 24 24" style="color:#eab308"><circle cx="12" cy="12" r="10"/></svg><div><b>GOLD</b><p style="color:var(--muted)">₦10000 - 500pts x 100 gifts</p></div></div>
-<div class="card gifts gift-card" onclick="buyGift('DIAMOND')" style="background:linear-gradient(135deg,rgba(59,130,246,0.2),transparent)">
-<svg viewBox="0 0 24 24" style="color:#3b82f6"><path d="M2 9l10 13L22 9"/></svg><div><b>DIAMOND</b><p style="color:var(--muted)">₦15000 - 1000pts x 100 gifts</p></div></div>`;
+<div class="gift-card" onclick="buyGift('RUBY')">
+  <svg viewBox="0 0 24 24" style="color:var(--pink)"><path d="M6 3h12l4 6-10 13L2 9l4-6z"/></svg>
+  <div><b>RUBY</b><p style="color:var(--muted);font-size:12px">₦5000 - 200pts x 100 gifts</p></div>
+</div>
+<div class="gift-card" onclick="buyGift('GOLD')">
+  <svg viewBox="0 0 24 24" style="color:var(--orange)"><circle cx="12" cy="12" r="10"/></svg>
+  <div><b>GOLD</b><p style="color:var(--muted);font-size:12px">₦10000 - 500pts x 100 gifts</p></div>
+</div>
+<div class="gift-card" onclick="buyGift('DIAMOND')">
+  <svg viewBox="0 0 24 24" style="color:var(--blue)"><path d="M2 9l10 13L22 9"/></svg>
+  <div><b>DIAMOND</b><p style="color:var(--muted);font-size:12px">₦15000 - 1000pts x 100 gifts</p></div>
+</div>`;
 }
 async function buyGift(type){const d=await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});if(d.selarLink)window.open(d.selarLink)}
 
 // SUPPORT
 async function loadSupport(){
 document.getElementById('tab-support').innerHTML=`
-<div class="card support"><input class="input" id="support-subject" placeholder="Subject">
+<div class="card"><input class="input" id="support-subject" placeholder="Subject">
 <textarea class="input" id="support-msg" placeholder="Describe your issue" rows="4"></textarea>
 <button class="btn" onclick="sendSupport()">Send Ticket</button></div>
 <div id="tickets"></div>`;
 const t=await api('/api/support/my');
 document.getElementById('tickets').innerHTML=(t||[]).map(x=>`
-  <div class="card support">
+  <div class="card">
     <b>${x.subject}</b>
     <p style="color:var(--muted);font-size:12px;margin:4px 0">You: ${x.message}</p>
-    ${x.reply?`<p style="color:var(--green);margin-top:8px"><b>Admin:</b> ${x.reply}</p>`:''}
-    <p style="color:${x.status==='RESOLVED'?'var(--green)':'var(--orange)'};margin-top:8px">${x.status}</p>
+    ${x.reply?`<p style="color:var(--green);margin-top:8px;font-size:12px"><b>Admin:</b> ${x.reply}</p>`:''}
+    <p style="color:${x.status==='RESOLVED'?'var(--green)':'var(--orange)'};font-size:11px;margin-top:8px">${x.status}</p>
   </div>
 `).join('');
 }
@@ -365,53 +498,38 @@ function openChat(userId){
 
 function logout(){localStorage.clear();location.href='auth.html'}
 
-// ==================== KYC & BIO FUNCTIONS ====================
-
+// BIO FUNCTIONS
 async function loadKYCStatus() {
   const kyc = await api('/api/profile/kyc-status');
-  if (kyc) {
+  if (kyc && kyc.faceVerified && kyc.idVerified) {
     let badgesHtml = document.getElementById('badges').innerHTML;
-    if (kyc.faceVerified && kyc.idVerified) {
-      badgesHtml += `<span class="badge kyc">✓ KYC Verified</span>`;
-    }
+    badgesHtml += `<span class="badge kyc"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>KYC Verified</span>`;
     document.getElementById('badges').innerHTML = badgesHtml;
   }
 }
 
 async function saveBio() {
   const bio = document.getElementById('bio-input').value;
-  const res = await api('/api/profile/bio', {
-    method: 'POST',
-    body: JSON.stringify({ bio })
-  });
+  const res = await api('/api/profile/bio', { method: 'POST', body: JSON.stringify({ bio }) });
   if (res.success) {
-    toast('Bio updated successfully!');
+    toast('Bio updated');
     document.getElementById('bio-text').innerText = res.bio;
-  } else {
-    toast(res.error || 'Failed to save bio');
-  }
+  } else toast(res.error || 'Failed');
 }
 
 async function clearBio() {
   const res = await api('/api/profile/bio', { method: 'DELETE' });
   if (res.success) {
-    toast('Bio cleared!');
+    toast('Bio cleared');
     document.getElementById('bio-input').value = '';
     document.getElementById('bio-text').innerText = '';
-  } else {
-    toast(res.error || 'Failed to clear bio');
   }
 }
 
-async function generateSHA256(str) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// OPEN KYC PORTAL IN NEW TAB
+// OPEN KYC PORTAL WINDOW
 function openKYCPortal() {
   const kycWin = window.open("", "_blank");
-  if (!kycWin) return toast("Please allow popups to open verification screen");
+  if (!kycWin) return toast("Please allow popups to open KYC window");
 
   const portalHTML = `
 <!DOCTYPE html>
@@ -423,19 +541,19 @@ function openKYCPortal() {
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.min.js"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"><\/script>
 <style>
-:root{ --bg:#000;--card:#0a0a0a;--glass:rgba(10,10,10,0.85);--text:#fff;--muted:#888;--border:#1a1a1a;--green:#00ff88;--blue:#3b82f6;--orange:#f97316;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7); }
+:root{ --bg:#000;--card:#0d0d0d;--text:#fff;--muted:#777;--border:#1e1e1e;--green:#00ff88;--blue:#3b82f6;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7); }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
 body{background:var(--bg);color:var(--text);max-width:550px;margin:0 auto;padding:20px;min-height:100vh}
-.header{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:20px}
-.title{font-size:18px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px}
-.instruction{background:rgba(59,130,246,0.1);border-left:4px solid var(--blue);padding:12px;border-radius:8px;font-size:13px;line-height:1.5;margin-bottom:16px}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:20px}
+svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px}
+.instruction{background:rgba(59,130,246,0.1);border-left:4px solid var(--blue);padding:12px;border-radius:8px;font-size:12px;line-height:1.5;margin-bottom:16px;color:var(--text)}
 .video-wrapper{position:relative;width:100%;aspect-ratio:4/3;background:#000;border-radius:12px;overflow:hidden;border:2px solid var(--border);margin-bottom:12px}
 video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 #idVideo{transform:none}
 .overlay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:12px}
-.badge-status{background:rgba(0,0,0,0.9);color:var(--green);padding:10px 18px;border-radius:20px;font-size:13px;font-weight:800;border:1px solid var(--border);text-align:center}
-.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:15px;margin-top:8px}
+.badge-status{background:rgba(0,0,0,0.85);color:var(--green);padding:10px 18px;border-radius:20px;font-size:13px;font-weight:800;border:1px solid var(--border);text-align:center}
+.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:14px;margin-top:8px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
 .btn:disabled{opacity:0.4;cursor:not-allowed}
 .btn-group{display:flex;gap:10px;margin-top:10px}
@@ -444,49 +562,57 @@ video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 </head>
 <body>
 
-<div class="header">
-  <div class="title">GOLVIRAL VERIFICATION</div>
-  <button class="btn secondary" style="width:auto;padding:8px 14px;margin:0;font-size:12px;" onclick="window.close()">← Close & Back</button>
-</div>
+<header>
+  <b style="font-size:16px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">GOLVIRAL KYC PORTAL</b>
+  <button class="btn secondary" style="width:auto;padding:8px 14px;margin:0;font-size:12px;" onclick="window.close()">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Close & Return
+  </button>
+</header>
 
 <div class="card">
-  <h3 style="margin-bottom:8px">1. Human Face Liveness Check</h3>
+  <h3 style="margin-bottom:8px;font-size:15px">1. Face Liveness Check</h3>
   <div class="instruction">
-    <b>Follow the 3 Liveness Prompts:</b><br>
-    • Step 1: Turn head <b>LEFT</b><br>
-    • Step 2: Turn head <b>RIGHT</b><br>
-    • Step 3: <b>BLINK</b> your eyes clearly
+    <b>Requirement:</b> Face verification is required to unlock Monetization features and count Referral Bonuses.<br>
+    <b>Random Prompts:</b> Follow the randomized actions shown on screen.
   </div>
   <div class="video-wrapper">
     <video id="webcam" autoplay muted playsinline></video>
-    <div class="overlay"><div id="faceStatus" class="badge-status">Checking Status...</div></div>
+    <div class="overlay"><div id="faceStatus" class="badge-status">Initializing...</div></div>
   </div>
-  <button id="startFaceBtn" class="btn" onclick="runFaceLiveness()" disabled>Start Face Liveness Check</button>
+  <button id="startFaceBtn" class="btn" onclick="runRandomFaceLiveness()" disabled>
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start Randomized Liveness Check
+  </button>
 </div>
 
 <div class="card">
-  <h3 style="margin-bottom:8px">2. Flat ID Document Verification</h3>
+  <h3 style="margin-bottom:8px;font-size:15px">2. ID Document OCR Scan</h3>
   <div class="instruction">
-    <b>Instructions:</b> Lay your ID Card flat on a clear surface. Ensure all text and document numbers are visible without camera flash glare.
+    <b>Requirement:</b> ID verification is required to execute your first cash withdrawal payout.
   </div>
 
   <div id="idCameraContainer" style="display:none;margin-bottom:12px;">
     <div class="video-wrapper">
       <video id="idVideo" autoplay muted playsinline></video>
-      <div class="overlay"><div class="badge-status" style="color:#fff">Align ID flat in camera frame</div></div>
+      <div class="overlay"><div class="badge-status" style="color:#fff">Position ID Flat in Frame</div></div>
     </div>
-    <button class="btn" onclick="captureAndProcessID()">📸 Capture & Scan ID Photo</button>
+    <button class="btn" onclick="captureAndProcessID()">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Capture & Scan ID Photo
+    </button>
     <button class="btn secondary" onclick="stopIDCamera()">Cancel Camera</button>
   </div>
 
   <input type="file" id="idFileInput" accept="image/*" class="input-file" onchange="processIDFile(this)">
   
   <div class="btn-group">
-    <button class="btn secondary" onclick="document.getElementById('idFileInput').click()">📁 Upload ID File</button>
-    <button class="btn secondary" onclick="startIDCamera()">📷 Open Camera to Snap</button>
+    <button class="btn secondary" onclick="document.getElementById('idFileInput').click()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload ID File
+    </button>
+    <button class="btn secondary" onclick="startIDCamera()">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Open Camera to Snap
+    </button>
   </div>
   
-  <div id="ocrStatus" style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center;">Status: Waiting for document capture...</div>
+  <div id="ocrStatus" style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center;">Status: Awaiting document upload/snap</div>
 </div>
 
 <script>
@@ -499,9 +625,12 @@ let ocrStatus = document.getElementById('ocrStatus');
 
 let faceStream = null, idStream = null;
 let detectorOptions, modelsLoaded = false, isScanning = false;
-let livenessStep = 1; // 1: Look Left, 2: Look Right, 3: Blink
 
-// Close Face Camera Stream Immediately
+// Dynamic Action Array
+const POSSIBLE_ACTIONS = ['LOOK_LEFT', 'LOOK_RIGHT', 'BLINK'];
+let randomizedPrompts = [];
+let currentStepIndex = 0;
+
 function stopFaceCamera() {
   if (faceStream) {
     faceStream.getTracks().forEach(track => track.stop());
@@ -510,7 +639,6 @@ function stopFaceCamera() {
   video.srcObject = null;
 }
 
-// Initial KYC Check
 async function checkExistingKYC() {
   try {
     const res = await fetch(API + '/api/profile/kyc-status', {
@@ -519,26 +647,25 @@ async function checkExistingKYC() {
     const kyc = await res.json();
 
     if (kyc.faceVerified) {
-      faceStatus.innerText = "✓ Face Already Verified!";
+      faceStatus.innerText = "Face Verification Already Complete";
       startFaceBtn.disabled = true;
-      startFaceBtn.innerText = "Face Verified";
+      startFaceBtn.innerText = "Verified";
       stopFaceCamera();
     } else {
       initAI();
     }
 
     if (kyc.idVerified) {
-      ocrStatus.innerText = "✓ ID Document Already Verified!";
+      ocrStatus.innerText = "ID Document Verification Already Complete";
     }
   } catch(e) {
     initAI();
   }
 }
 
-// Initialize AI Models & Face Cam
 async function initAI() {
   try {
-    faceStatus.innerText = "Loading Liveness Detector...";
+    faceStatus.innerText = "Loading AI Models...";
     const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model';
     await Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
@@ -560,7 +687,6 @@ async function generateSHA256(str) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Helper EAR for Blink Detection
 function getEAR(eye) {
   const p2_p6 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
   const p3_p5 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
@@ -568,13 +694,26 @@ function getEAR(eye) {
   return (p2_p6 + p3_p5) / (2.0 * p1_p4);
 }
 
-async function runFaceLiveness() {
+// RANDOMIZE PROMPTS
+function runRandomFaceLiveness() {
   if(!modelsLoaded || isScanning) return;
+  
+  // Shuffle available liveness checks
+  randomizedPrompts = [...POSSIBLE_ACTIONS].sort(() => Math.random() - 0.5);
+  currentStepIndex = 0;
   isScanning = true;
-  livenessStep = 1;
   startFaceBtn.disabled = true;
-  faceStatus.innerText = "Step 1/3: Turn Head LEFT 👈";
+  
+  updatePromptInstruction();
   scanLoop();
+}
+
+function updatePromptInstruction() {
+  const action = randomizedPrompts[currentStepIndex];
+  const stepNum = currentStepIndex + 1;
+  if (action === 'LOOK_LEFT') faceStatus.innerText = "Step " + stepNum + "/3: Turn Head LEFT";
+  if (action === 'LOOK_RIGHT') faceStatus.innerText = "Step " + stepNum + "/3: Turn Head RIGHT";
+  if (action === 'BLINK') faceStatus.innerText = "Step " + stepNum + "/3: BLINK Your Eyes";
 }
 
 async function scanLoop() {
@@ -585,26 +724,24 @@ async function scanLoop() {
     const noseX = detection.landmarks.getNose()[3].x;
     const jaw = detection.landmarks.getJawOutline();
     const ratio = (noseX - jaw[0].x) / (jaw[16].x - jaw[0].x);
+    
+    const leftEye = detection.landmarks.getLeftEye();
+    const rightEye = detection.landmarks.getRightEye();
+    const ear = (getEAR(leftEye) + getEAR(rightEye)) / 2.0;
 
-    // STEP 1: TURN LEFT
-    if(livenessStep === 1 && ratio < 0.38) {
-      livenessStep = 2;
-      faceStatus.innerText = "Step 2/3: Turn Head RIGHT 👉";
-    }
-    // STEP 2: TURN RIGHT
-    else if(livenessStep === 2 && ratio > 0.62) {
-      livenessStep = 3;
-      faceStatus.innerText = "Step 3/3: BLINK Your Eyes 😉";
-    }
-    // STEP 3: BLINK EYES
-    else if(livenessStep === 3) {
-      const leftEye = detection.landmarks.getLeftEye();
-      const rightEye = detection.landmarks.getRightEye();
-      const ear = (getEAR(leftEye) + getEAR(rightEye)) / 2.0;
+    const currentAction = randomizedPrompts[currentStepIndex];
+    let passedStep = false;
 
-      if(ear < 0.22) { // Blink detected
+    if (currentAction === 'LOOK_LEFT' && ratio < 0.38) passedStep = true;
+    else if (currentAction === 'LOOK_RIGHT' && ratio > 0.62) passedStep = true;
+    else if (currentAction === 'BLINK' && ear < 0.22) passedStep = true;
+
+    if (passedStep) {
+      currentStepIndex++;
+      if (currentStepIndex >= randomizedPrompts.length) {
+        // Complete Verification
         isScanning = false;
-        faceStatus.innerText = "Verifying & Hashing Face...";
+        faceStatus.innerText = "Validating Face Data...";
         
         const rawDescriptor = JSON.stringify(detection.landmarks.positions);
         const faceHash = await generateSHA256(rawDescriptor);
@@ -617,21 +754,23 @@ async function scanLoop() {
         const data = await res.json();
 
         if(res.ok) {
-          faceStatus.innerText = "✓ Face Verified!";
-          stopFaceCamera(); // Close camera on success
+          faceStatus.innerText = "Face Verification Complete";
+          stopFaceCamera();
           alert("Face Liveness Verification Successful!");
         } else {
-          faceStatus.innerText = "❌ " + (data.error || "Failed");
+          faceStatus.innerText = data.error || "Failed";
           startFaceBtn.disabled = false;
         }
         return;
+      } else {
+        updatePromptInstruction();
       }
     }
   }
   requestAnimationFrame(scanLoop);
 }
 
-// Open Camera for ID Photo Snap
+// OPEN CAMERA FOR ID SCAN
 async function startIDCamera() {
   const container = document.getElementById('idCameraContainer');
   container.style.display = 'block';
@@ -668,9 +807,8 @@ async function processIDFile(input) {
   runOCR(file);
 }
 
-// Perform Tesseract OCR Analysis
 async function runOCR(imageSource) {
-  ocrStatus.innerText = "Reading ID Document with OCR Engine...";
+  ocrStatus.innerText = "Scanning Document text with OCR Engine...";
   try {
     const worker = await Tesseract.createWorker('eng');
     const ret = await worker.recognize(imageSource);
@@ -681,7 +819,7 @@ async function runOCR(imageSource) {
 
     if(matches && matches.length > 0) {
       const idHash = await generateSHA256(matches[0]);
-      ocrStatus.innerText = "Submitting ID Hash to server...";
+      ocrStatus.innerText = "Submitting ID hash...";
 
       const res = await fetch(API + '/api/profile/id-verify', {
         method: 'POST',
@@ -691,16 +829,16 @@ async function runOCR(imageSource) {
       const data = await res.json();
 
       if(res.ok) {
-        ocrStatus.innerText = "✓ ID Verified Successfully!";
+        ocrStatus.innerText = "ID Document Verified";
         alert("ID Document Verification Successful!");
       } else {
-        ocrStatus.innerText = "❌ " + (data.error || "Verification failed");
+        ocrStatus.innerText = data.error || "Verification failed";
       }
     } else {
-      ocrStatus.innerText = "❌ No clear ID text found. Try capturing in better light.";
+      ocrStatus.innerText = "No clear ID text found. Re-snap in direct light.";
     }
   } catch(err) {
-    ocrStatus.innerText = "❌ Error processing document image.";
+    ocrStatus.innerText = "Error processing document image.";
   }
 }
 
