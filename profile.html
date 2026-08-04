@@ -21,6 +21,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800;margin-top:8px;margin-right:4px}
 .badge.verified{background:var(--blue);color:#fff}
 .badge.creator{background:var(--purple);color:#fff}
+.badge.kyc{background:var(--green);color:#000}
 .stats{display:flex;justify-content:space-around;margin:20px 0;flex-wrap:wrap}
 .stat{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;padding:12px;border-radius:16px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);flex:1;margin:0 4px;min-width:22%}
 .stat b{font-size:18px;color:var(--green)}
@@ -35,6 +36,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .card.wallet{background:linear-gradient(135deg,rgba(59,130,246,0.1),transparent)}
 .card.gifts{background:linear-gradient(135deg,rgba(236,72,153,0.1),transparent)}
 .card.support{background:linear-gradient(135deg,rgba(168,85,247,0.1),transparent)}
+.card.kyc-box{background:linear-gradient(135deg,rgba(0,255,136,0.1),transparent)}
 .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
 .grid-item{aspect-ratio:1;background:var(--card);border:1px solid var(--border);border-radius:12px}
 .input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;margin-bottom:10px;outline:none}
@@ -52,6 +54,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .gift-card{display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;margin-bottom:10px;cursor:pointer;border:2px solid transparent;transition:0.2s}
 .gift-card:hover{border-color:var(--green);transform:translateY(-2px)}
 .copy-box{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);padding:10px;border-radius:12px;margin-top:8px;font-size:12px;word-break:break-all}
+.bio-display{font-size:13px;color:var(--muted);margin:8px 0;line-height:1.4}
 </style>
 </head>
 <body>
@@ -66,8 +69,17 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 <div class="profile">
 <div class="avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"></div>
 <h2 id="username-display" style="margin:8px 0"></h2>
+<p id="bio-text" class="bio-display"></p>
 <p id="joined-date" style="color:var(--muted);font-size:12px;margin-bottom:8px"></p>
 <div id="badges"></div>
+
+<div id="bio-editor" style="display:none;margin-top:12px;">
+  <textarea id="bio-input" class="input" style="height:60px;resize:none;" placeholder="Update your profile bio (max 150 chars)..." maxlength="150"></textarea>
+  <div style="display:flex;gap:8px;">
+    <button class="btn" style="padding:8px;font-size:13px;" onclick="saveBio()">Save Bio</button>
+    <button class="btn secondary" style="padding:8px;font-size:13px;" onclick="clearBio()">Clear</button>
+  </div>
+</div>
 
 <div class="stats">
 <div class="stat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><b id="posts">0</b><span>Posts</span></div>
@@ -78,13 +90,11 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 
 <div class="stat" style="margin-top:8px;width:100%"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><b id="views">0</b><span>Total Views</span></div>
 
-<!-- IG STYLE BUTTONS -->
 <div class="profile-actions">
   <button id="follow-btn" class="btn" onclick="toggleFollow()">Follow</button>
   <button id="message-btn" class="btn secondary" onclick="openChat()" style="display:none">Message</button>
 </div>
 
-<!-- LINKS BOX -->
 <div id="links-box" style="display:none;margin-top:16px;text-align:left">
   <b>Your Links</b>
   <div class="copy-box">
@@ -145,6 +155,9 @@ document.getElementById('following').innerText=u.following||0;
 document.getElementById('likes').innerText=u.totalLikes||0;
 document.getElementById('views').innerText=u.totalViews||0;
 
+// Load Bio
+document.getElementById('bio-text').innerText = u.bio || '';
+
 const date = new Date(u.createdAt).toLocaleDateString('en-US',{month:'short', year:'numeric'});
 document.getElementById('joined-date').innerText = `Joined ${date}`;
 
@@ -158,6 +171,9 @@ if(isSelf){
   document.getElementById('profile-link').innerText=u.profileLink;
   document.getElementById('referral-link').innerText=u.referralLink;
   document.querySelector('.profile-actions').style.display='none'; // hide both buttons
+  document.getElementById('bio-editor').style.display='block'; // Show bio editor for self
+  document.getElementById('bio-input').value = u.bio || '';
+  loadKYCStatus(); // Load KYC verification state
 }else{
   document.getElementById('follow-btn').innerText=u.isFollowing?'Unfollow':'Follow';
 
@@ -201,8 +217,18 @@ if(tab==='support')loadSupport();
 // WALLET
 async function loadWallet(){
 const w=await api('/api/wallet');
+const kyc=await api('/api/profile/kyc-status');
+
 const cap=getPercent(w.dailyCapProgress); const days=getPercent(w.daysProgress); const foll=getPercent(w.followersProgress);
 document.getElementById('tab-wallet').innerHTML=`
+<div class="card kyc-box">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <b>Identity Verification (KYC)</b>
+    <span style="font-size:11px;color:var(--muted);">${kyc.canWithdraw ? '✅ Verified' : '❌ Action Required'}</span>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Face: ${kyc.faceVerified ? '✅ Verified' : '❌ Pending'} | ID: ${kyc.idVerified ? '✅ Verified' : '❌ Pending'}</p>
+  <button class="btn" onclick="openKYCPortal()">Launch Verification Window (New Tab) ↗</button>
+</div>
 <div class="card wallet"><b>Status: ${w.monetized? '✅ Monetized' : '❌ Not Monetized'}</b></div>
 <div class="card wallet"><b>Free Credits: ${w.freeCredits}</b></div>
 <div class="card wallet"><b>Cash Balance: ₦${w.cashBalance}</b></div>
@@ -341,8 +367,240 @@ function openChat(userId){
 
 function logout(){localStorage.clear();location.href='auth.html'}
 
+// ==================== NEW KYC & BIO FUNCTIONS ====================
+
+// 1. Fetch KYC Status & Update Badges
+async function loadKYCStatus() {
+  const kyc = await api('/api/profile/kyc-status');
+  if (kyc) {
+    let badgesHtml = document.getElementById('badges').innerHTML;
+    if (kyc.faceVerified && kyc.idVerified) {
+      badgesHtml += `<span class="badge kyc">✓ KYC Verified</span>`;
+    }
+    document.getElementById('badges').innerHTML = badgesHtml;
+  }
+}
+
+// 2. Save Bio Handler (POST /api/profile/bio)
+async function saveBio() {
+  const bio = document.getElementById('bio-input').value;
+  const res = await api('/api/profile/bio', {
+    method: 'POST',
+    body: JSON.stringify({ bio })
+  });
+  if (res.success) {
+    toast('Bio updated successfully!');
+    document.getElementById('bio-text').innerText = res.bio;
+  } else {
+    toast(res.error || 'Failed to save bio');
+  }
+}
+
+// 3. Clear Bio Handler (DELETE /api/profile/bio)
+async function clearBio() {
+  const res = await api('/api/profile/bio', { method: 'DELETE' });
+  if (res.success) {
+    toast('Bio cleared!');
+    document.getElementById('bio-input').value = '';
+    document.getElementById('bio-text').innerText = '';
+  } else {
+    toast(res.error || 'Failed to clear bio');
+  }
+}
+
+// 4. SHA-256 Hex Generator Helper (Guarantees exact 64-char string for backend validation)
+async function generateSHA256(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// 5. Open Dedicated KYC Verification Portal in a CLEAR NEW TAB
+function openKYCPortal() {
+  const kycWin = window.open("", "_blank");
+  if (!kycWin) return toast("Please allow popups to open verification screen");
+
+  const portalHTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GolViral - Identity Verification</title>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.min.js"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"><\/script>
+<style>
+:root{ --bg:#000;--card:#0a0a0a;--glass:rgba(10,10,10,0.8);--text:#fff;--muted:#888;--border:#1a1a1a;--green:#00ff88;--blue:#3b82f6;--pink:#ec4899;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7); }
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
+body{background:var(--bg);color:var(--text);max-width:550px;margin:0 auto;padding:20px;min-height:100vh}
+.header{text-align:center;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:20px}
+.title{font-size:20px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px}
+.instruction{background:rgba(59,130,246,0.1);border-left:4px solid var(--blue);padding:12px;border-radius:8px;font-size:13px;line-height:1.5;margin-bottom:16px}
+.video-wrapper{position:relative;width:100%;aspect-ratio:4/3;background:#000;border-radius:12px;overflow:hidden;border:2px solid var(--border);margin-bottom:12px}
+video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.overlay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:12px}
+.badge-status{background:rgba(0,0,0,0.85);color:var(--green);padding:8px 16px;border-radius:20px;font-size:13px;font-weight:800;border:1px solid var(--border)}
+.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:16px;margin-top:8px}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.input-file{width:100%;padding:12px;background:var(--card);border:1px solid var(--border);color:#fff;border-radius:12px;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title">GOLVIRAL VERIFICATION PORTAL</div>
+  <p style="color:var(--muted);font-size:12px;margin-top:4px">Step-by-step Face Liveness & ID Document Verification</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-bottom:8px">1. Human Face Liveness Check</h3>
+  <div class="instruction">
+    <b>Instructions:</b><br>
+    • Position your face clearly in the camera.<br>
+    • When ready, click "Start Face Check" and slowly turn your head to the <b>LEFT</b> when prompted.
+  </div>
+  <div class="video-wrapper">
+    <video id="webcam" autoplay muted playsinline></video>
+    <div class="overlay"><div id="faceStatus" class="badge-status">Initializing AI Camera...</div></div>
+  </div>
+  <button id="startFaceBtn" class="btn" onclick="runFaceLiveness()" disabled>Start Face Check</button>
+</div>
+
+<div class="card">
+  <h3 style="margin-bottom:8px">2. Flat ID Document Verification</h3>
+  <div class="instruction">
+    <b>Instructions:</b><br>
+    • Snap a clear, flat photo of your ID Card, Driver's License, or Passport.<br>
+    • Do NOT hold it near your face. Lay it flat on a table.<br>
+    • Upload the document below for automatic OCR hashing.
+  </div>
+  <input type="file" accept="image/*" class="input-file" onchange="processIDSnap(this)">
+  <div id="ocrStatus" style="font-size:12px;color:var(--muted);margin-top:10px">Status: Waiting for document upload...</div>
+</div>
+
+<script>
+const API = '${API}';
+const TOKEN = '${TOKEN}';
+let video = document.getElementById('webcam');
+let faceStatus = document.getElementById('faceStatus');
+let startFaceBtn = document.getElementById('startFaceBtn');
+let ocrStatus = document.getElementById('ocrStatus');
+let detectorOptions, modelsLoaded = false, isScanning = false;
+
+// Initialize Face API Engine
+async function initAI() {
+  try {
+    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model';
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL)
+    ]);
+    detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 });
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 480, height: 360 } });
+    video.srcObject = stream;
+    modelsLoaded = true;
+    faceStatus.innerText = "Camera Ready";
+    startFaceBtn.disabled = false;
+  } catch(e) {
+    faceStatus.innerText = "Camera / AI Load Error";
+  }
+}
+
+async function generateSHA256(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function runFaceLiveness() {
+  if(!modelsLoaded || isScanning) return;
+  isScanning = true;
+  startFaceBtn.disabled = true;
+  faceStatus.innerText = "Look into camera & turn head LEFT...";
+  scanLoop();
+}
+
+async function scanLoop() {
+  if(!isScanning) return;
+  const detection = await faceapi.detectSingleFace(video, detectorOptions).withFaceLandmarks(true);
+  if(detection) {
+    const noseX = detection.landmarks.getNose()[3].x;
+    const jaw = detection.landmarks.getJawOutline();
+    const ratio = (noseX - jaw[0].x) / (jaw[16].x - jaw[0].x);
+
+    if(ratio < 0.38) { // Turn left detected
+      isScanning = false;
+      faceStatus.innerText = "Hashing Face Vector...";
+      const rawDescriptor = JSON.stringify(detection.landmarks.positions);
+      const faceHash = await generateSHA256(rawDescriptor);
+
+      const res = await fetch(API + '/api/profile/face-verify', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ faceHash })
+      });
+      const data = await res.json();
+      if(res.ok) {
+        faceStatus.innerText = "✓ Face Verified!";
+        alert("Face Verification Successful!");
+      } else {
+        faceStatus.innerText = "❌ " + (data.error || "Failed");
+        startFaceBtn.disabled = false;
+      }
+      return;
+    }
+  }
+  requestAnimationFrame(scanLoop);
+}
+
+async function processIDSnap(input) {
+  const file = input.files[0];
+  if(!file) return;
+  ocrStatus.innerText = "Reading ID document with OCR scanner...";
+  try {
+    const worker = await Tesseract.createWorker('eng');
+    const ret = await worker.recognize(file);
+    await worker.terminate();
+    
+    const text = ret.data.text;
+    const matches = text.match(/[A-Z0-9]{8,14}/g);
+    if(matches && matches.length > 0) {
+      const idHash = await generateSHA256(matches[0]);
+      ocrStatus.innerText = "Submitting ID Hash to server...";
+
+      const res = await fetch(API + '/api/profile/id-verify', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idHash })
+      });
+      const data = await res.json();
+      if(res.ok) {
+        ocrStatus.innerText = "✓ ID Verified Successfully!";
+        alert("ID Document Verification Successful!");
+      } else {
+        ocrStatus.innerText = "❌ " + (data.error || "Verification failed");
+      }
+    } else {
+      ocrStatus.innerText = "❌ Could not find valid ID numbers. Snap a clearer picture.";
+    }
+  } catch(err) {
+    ocrStatus.innerText = "❌ Error processing image.";
+  }
+}
+
+window.onload = initAI;
+<\/script>
+</body>
+</html>
+  `;
+
+  kycWin.document.write(portalHTML);
+  kycWin.document.close();
+}
+
 loadProfile();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/golviral-frontend/sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
+
+
