@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -309,8 +308,7 @@ document.getElementById('views').innerText=u.totalViews||0;
 getAndSaveDailyScores(profileId, u.totalViews || 0, u.totalLikes || 0);
 
 document.getElementById('bio-text').innerText = u.bio || '';
-const date = new Date(u.createdAt).toLocaleDateString('en-US',{month:'short', year:'numeric'});
-document.getElementById('joined-date').innerText = `Joined ${date}`;
+
 
 let badges='';
 if(u.isVerified) badges+=`<span class="badge verified"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Verified</span>`;
