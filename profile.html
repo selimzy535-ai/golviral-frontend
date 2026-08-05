@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,6 +68,10 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .trend-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700}
 .trend-up{background:rgba(0,255,136,0.15);color:var(--green)}
 .trend-down{background:rgba(239,68,68,0.15);color:var(--red)}
+
+/* AUTO EARNINGS CARD */
+.earn-badge{background:linear-gradient(135deg,rgba(0,255,136,0.15),rgba(59,130,246,0.15));border:1px solid var(--green);padding:14px;border-radius:14px;margin-bottom:14px}
+.earn-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 
 .copy-box{display:flex;justify-content:space-between;align-items:center;background:#141414;border:1px solid var(--border);padding:10px;border-radius:10px;margin-top:8px;font-size:12px;word-break:break-all}
 .bio-display{font-size:13px;color:var(--muted);margin:10px 0;line-height:1.4}
@@ -186,13 +191,36 @@ async function api(path,opt={}){try{const res=await fetch(API+path,{...opt,heade
 
 function getPercent(str){if(!str)return 0;const [a,b]=str.split('/').map(Number);return b?Math.min(100,Math.round(a/b*100)):0}
 
+// LOCATION DETECTOR: Check if user is in Nigeria via Timezone & Browser Settings
+function checkIsNigeria() {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    const lang = navigator.language || "";
+    return tz.includes("Lagos") || lang.includes("NG") || lang.includes("ng");
+  } catch(e) {
+    return false;
+  }
+}
+
+// EXCHANGE RATE ENGINE via open.er-api.com
+async function fetchUSDToNGNRate() {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+    if (data && data.rates && data.rates.NGN) {
+      return data.rates.NGN;
+    }
+  } catch(e) {
+    console.warn("Could not fetch open.er-api.com rates, using fallback");
+  }
+  return 1500; // Default fallback NGN/USD rate
+}
+
 // REAL LOCAL STORAGE DAILY SCORE ENGINE
 function getAndSaveDailyScores(uid, currentViews, currentLikes) {
   const key = `golviral_daily_scores_${uid}`;
   let history = [];
-  try {
-    history = JSON.parse(localStorage.getItem(key)) || [];
-  } catch(e) { history = []; }
+  try { history = JSON.parse(localStorage.getItem(key)) || []; } catch(e) { history = []; }
 
   const todayStr = new Date().toISOString().split('T')[0];
   const dayName = new Date().toLocaleDateString('en-US', { weekday: 'short' });
@@ -202,19 +230,10 @@ function getAndSaveDailyScores(uid, currentViews, currentLikes) {
     history[existingIdx].views = currentViews;
     history[existingIdx].likes = currentLikes;
   } else {
-    history.push({
-      date: todayStr,
-      day: dayName,
-      views: currentViews,
-      likes: currentLikes
-    });
+    history.push({ date: todayStr, day: dayName, views: currentViews, likes: currentLikes });
   }
 
-  // Keep last 7 days of real user data
-  if (history.length > 7) {
-    history = history.slice(-7);
-  }
-
+  if (history.length > 7) history = history.slice(-7);
   localStorage.setItem(key, JSON.stringify(history));
   return history;
 }
@@ -276,7 +295,6 @@ document.getElementById('following').innerText=u.following||0;
 document.getElementById('likes').innerText=u.totalLikes||0;
 document.getElementById('views').innerText=u.totalViews||0;
 
-// Save current views & likes to local storage daily array
 getAndSaveDailyScores(profileId, u.totalViews || 0, u.totalLikes || 0);
 
 document.getElementById('bio-text').innerText = u.bio || '';
@@ -335,12 +353,22 @@ if(tab==='gifts')loadGifts();
 if(tab==='support')loadSupport();
 }
 
-// SEPARATE LIKES & VIEWS LINE AREA CHARTS FROM REAL LOCALSTORAGE DATA
+// SEPARATE LIKES & VIEWS LINE AREA CHARTS + DYNAMIC OPEN.ER-API EARNINGS
 async function loadAnalytics(){
   const u = await api(`/api/user/${profileId}`);
   const dailyScores = getAndSaveDailyScores(profileId, u.totalViews || 0, u.totalLikes || 0);
+  const w = await api('/api/wallet');
 
-  // Calculate Likes Trend
+  // Fetch exchange rates from open.er-api.com & check country location
+  const usdToNgnRate = await fetchUSDToNGNRate();
+  const isNigeria = checkIsNigeria();
+
+  // Convert Cash Balance (in Naira points/currency) to USD & NGN
+  const rawNairaBalance = w.cashBalance || 0;
+  const usdtValue = (rawNairaBalance / usdToNgnRate).toFixed(2);
+  const formattedNaira = rawNairaBalance.toLocaleString();
+
+  // Calculate Trends
   let likesTrend = 'up';
   if (dailyScores.length > 1) {
     const prevLikes = dailyScores[dailyScores.length - 2].likes || 0;
@@ -348,7 +376,6 @@ async function loadAnalytics(){
     likesTrend = currLikes >= prevLikes ? 'up' : 'down';
   }
 
-  // Calculate Views Trend
   let viewsTrend = 'up';
   if (dailyScores.length > 1) {
     const prevViews = dailyScores[dailyScores.length - 2].views || 0;
@@ -359,7 +386,39 @@ async function loadAnalytics(){
   const likesChartSvg = buildLineAreaChart(dailyScores, 'likes', '#ec4899', 'likesGradient');
   const viewsChartSvg = buildLineAreaChart(dailyScores, 'views', '#00ff88', 'viewsGradient');
 
+  // BUILD DYNAMIC EARNINGS DISPLAY BASED ON LOCATION
+  let earningsDisplayHTML = '';
+  if (isNigeria) {
+    earningsDisplayHTML = `
+      <div class="earn-row">
+        <span>Naira Earned:</span>
+        <b style="color:var(--green);font-size:16px;">₦${formattedNaira}</b>
+      </div>
+      <div class="earn-row">
+        <span>US Dollar ($) Equivalent:</span>
+        <b style="color:var(--blue);font-size:16px;">$${usdtValue} USDT</b>
+      </div>
+      <p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right;">Auto-rate: 1 USD = ₦${usdToNgnRate.toFixed(2)} (via open.er-api.com)</p>
+    `;
+  } else {
+    earningsDisplayHTML = `
+      <div class="earn-row">
+        <span>Total Earned:</span>
+        <b style="color:var(--green);font-size:18px;">$${usdtValue} USDT</b>
+      </div>
+      <p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right;">Calculated via open.er-api.com</p>
+    `;
+  }
+
   document.getElementById('tab-analytics').innerHTML = `
+  <div class="earn-badge">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <b style="font-size:13px;color:var(--text)">💰 Auto Estimated Cash Earnings</b>
+      <span style="font-size:10px;background:rgba(0,255,136,0.2);color:var(--green);padding:2px 6px;border-radius:6px;font-weight:700">LIVE</span>
+    </div>
+    ${earningsDisplayHTML}
+  </div>
+
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
@@ -381,15 +440,15 @@ async function loadAnalytics(){
     </div>
   </div>
 
-  <div style="text-align:center;padding:6px 0;font-size:11px;color:var(--muted)">
-    ↓ Scroll down to view Daily Views Analytics ↓
+  <div style="text-align:center;padding:10px 0;font-size:12px;color:var(--muted);font-weight:700;">
+    ↓ Scroll down to see Views Analytics ↓
   </div>
 
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
         <h4 style="font-size:15px;color:var(--green);">Daily Views Analytics 👁️</h4>
-        <p style="font-size:11px;color:var(--muted);">Tracked via real user video views</p>
+        <p style="font-size:11px;color:var(--muted);">Tracked via real video views</p>
       </div>
       <span class="trend-pill ${viewsTrend === 'up' ? 'trend-up' : 'trend-down'}">
         <svg class="icon-inline" viewBox="0 0 24 24"><polyline points="${viewsTrend==='up'?'23 6 13.5 15.5 8.5 10.5 1 18':'23 18 13.5 8.5 8.5 13.5 1 6'}"/></svg>
@@ -577,7 +636,7 @@ function openChat(userId){
 
 function logout(){localStorage.clear();location.href='auth.html'}
 
-// BIO FUNCTIONS
+// BIO & KYC FUNCTIONS
 async function loadKYCStatus() {
   const kyc = await api('/api/profile/kyc-status');
   if (kyc && kyc.faceVerified && kyc.idVerified) {
@@ -928,6 +987,7 @@ window.onload = checkExistingKYC;
   kycWin.document.write(portalHTML);
   kycWin.document.close();
 }
+
 
 loadProfile();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/golviral-frontend/sw.js').catch(()=>{})}
