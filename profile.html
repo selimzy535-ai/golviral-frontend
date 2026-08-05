@@ -74,7 +74,18 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .earn-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 
 .copy-box{display:flex;justify-content:space-between;align-items:center;background:#141414;border:1px solid var(--border);padding:10px;border-radius:10px;margin-top:8px;font-size:12px;word-break:break-all}
-.bio-display{font-size:13px;color:var(--muted);margin:10px 0;line-height:1.4}
+.bio-display{
+  font-size:13px;
+  color:var(--muted);
+  margin:8px 0 16px 0; /* space before stats */
+  line-height:1.4;
+  padding:0 20px; /* no box, just clean text like tiktok */
+  text-align:center;
+  white-space:pre-wrap;
+  word-break:break-word;
+  min-height:18px; /* keeps spacing even if empty */
+}
+.bio-display:empty{display:none} /* hides if no bio */
 </style>
 </head>
 <body>
@@ -95,7 +106,7 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
   <h2 id="username-display" style="font-size:18px;font-weight:800;"></h2>
   <div id="badges" class="badges-wrap"></div>
   <p id="bio-text" class="bio-display"></p>
-  <p id="joined-date" style="color:var(--muted);font-size:11px;margin-bottom:8px"></p>
+  
 
   <div class="tiktok-stats">
     <div class="tiktok-stat-item">
