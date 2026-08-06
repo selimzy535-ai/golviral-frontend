@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GolViral - Identity Verification</title>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.min.js"></script>
+<style>
+:root { --bg:#000; --card:#0d0d0d; --text:#fff; --muted:#777; --border:#1e1e1e; --green:#00ff88; --blue:#3b82f6; --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7); }
+* { box-sizing:border-box; margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; }
+body { background:var(--bg); color:var(--text); max-width:550px; margin:0 auto; padding:20px; min-height:100vh; }
+header { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); margin-bottom:20px; }
+svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:20px; }
+.instruction { background:rgba(59,130,246,0.1); border-left:4px solid var(--blue); padding:12px; border-radius:8px; font-size:12px; line-height:1.5; margin-bottom:16px; color:var(--text); }
+.video-wrapper { position:relative; width:100%; aspect-ratio:4/3; background:#000; border-radius:12px; overflow:hidden; border:2px solid var(--border); margin-bottom:12px; }
+video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+#idVideo { transform:none; }
+.overlay { position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; padding:12px; }
+.badge-status { background:rgba(0,0,0,0.85); color:var(--green); padding:10px 18px; border-radius:20px; font-size:13px; font-weight:800; border:1px solid var(--border); text-align:center; }
+.btn { background:var(--gradient); color:#000; border:none; padding:14px; border-radius:12px; font-weight:900; width:100%; cursor:pointer; font-size:14px; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+.btn.secondary { background:var(--card); color:var(--text); border:1px solid var(--border); }
+.btn:disabled { opacity:0.4; cursor:not-allowed; }
+.btn-group { display:flex; gap:10px; margin-top:10px; }
+.input-file { display:none; }
+</style>
+</head>
+<body>
+
+<header>
+  <b style="font-size:16px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">GOLVIRAL KYC PORTAL</b>
+  <button class="btn secondary" style="width:auto;padding:8px 14px;margin:0;font-size:12px;" onclick="window.close()">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Close & Return
+  </button>
+</header>
+
+<div class="card">
+  <h3 style="margin-bottom:8px;font-size:15px">1. Face Liveness Check</h3>
+  <div class="instruction">
+    <b>Requirement:</b> Face verification is required to unlock Monetization features and count Referral Bonuses.<br>
+    <b>Random Prompts:</b> Follow the randomized actions shown on screen.
+  </div>
+  <div class="video-wrapper">
+    <video id="webcam" autoplay muted playsinline></video>
+    <div class="overlay"><div id="faceStatus" class="badge-status">Initializing...</div></div>
+  </div>
+  <button id="startFaceBtn" class="btn" onclick="runRandomFaceLiveness()" disabled>
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start Randomized Liveness Check
+  </button>
+</div>
+
+<div class="card">
+  <h3 style="margin-bottom:8px;font-size:15px">2. ID Document Upload</h3>
+  <div class="instruction">
+    <b>Requirement:</b> ID verification is required to execute your first cash withdrawal payout.<br>
+    <b>Note:</b> Upload clear photo of NIN, Driver License, or Voter Card. We will review manually in 24hrs.
+  </div>
+
+  <div id="idCameraContainer" style="display:none;margin-bottom:12px;">
+    <div class="video-wrapper">
+      <video id="idVideo" autoplay muted playsinline></video>
+      <div class="overlay"><div class="badge-status" style="color:#fff">Position ID Flat in Frame</div></div>
+    </div>
+    <button class="btn" onclick="captureAndUploadID()">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Capture & Upload ID Photo
+    </button>
+    <button class="btn secondary" onclick="stopIDCamera()">Cancel Camera</button>
+  </div>
+
+  <input type="file" id="idFileInput" accept="image/*" capture="environment" class="input-file" onchange="uploadIDFile(this)">
+  
+  <div class="btn-group">
+    <button class="btn secondary" onclick="document.getElementById('idFileInput').click()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload ID File
+    </button>
+    <button class="btn secondary" onclick="startIDCamera()">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Open Camera to Snap
+    </button>
+  </div>
+  
+  <div id="ocrStatus" style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center;">Status: Awaiting document upload/snap</div>
+  <img id="idPreview" style="display:none;width:100%;border-radius:8px;margin-top:10px;border:1px solid var(--border)" />
+</div>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const API = localStorage.getItem('API_URL') || urlParams.get('api') || '';
+const TOKEN = localStorage.getItem('AUTH_TOKEN') || urlParams.get('token') || '';
+
+let video = document.getElementById('webcam');
+let faceStatus = document.getElementById('faceStatus');
+let startFaceBtn = document.getElementById('startFaceBtn');
+let ocrStatus = document.getElementById('ocrStatus');
+
+let faceStream = null, idStream = null;
+let detectorOptions, modelsLoaded = false, isScanning = false;
+
+// Dynamic Action Array
+const POSSIBLE_ACTIONS = ['LOOK_LEFT', 'LOOK_RIGHT', 'BLINK'];
+let randomizedPrompts = [];
+let currentStepIndex = 0;
+
+function stopFaceCamera() {
+  if (faceStream) {
+    faceStream.getTracks().forEach(track => track.stop());
+    faceStream = null;
+  }
+  video.srcObject = null;
+}
+
+async function checkExistingKYC() {
+  try {
+    const res = await fetch(API + '/api/profile/kyc-status', {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    const kyc = await res.json();
+
+    if (kyc.faceVerified) {
+      faceStatus.innerText = "Face Verification Already Complete";
+      startFaceBtn.disabled = true;
+      startFaceBtn.innerText = "Verified";
+      stopFaceCamera();
+    } else {
+      initAI();
+    }
+
+    if (kyc.idVerified) {
+      ocrStatus.innerText = "ID Document Verified";
+    } else if (kyc.idStatus === 'PENDING') {
+      ocrStatus.innerText = "ID Submitted. Status: PENDING REVIEW";
+    }
+  } catch(e) {
+    initAI();
+  }
+}
+
+async function initAI() {
+  try {
+    faceStatus.innerText = "Loading AI Models...";
+    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model';
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL)
+    ]);
+    detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 });
+    faceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 480, height: 360 } });
+    video.srcObject = faceStream;
+    modelsLoaded = true;
+    faceStatus.innerText = "Camera Ready. Click Start Below";
+    startFaceBtn.disabled = false;
+  } catch(e) {
+    faceStatus.innerText = "Camera / AI Load Error";
+  }
+}
+
+async function generateSHA256(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getEAR(eye) {
+  const p2_p6 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
+  const p3_p5 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
+  const p1_p4 = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
+  return (p2_p6 + p3_p5) / (2.0 * p1_p4);
+}
+
+// RANDOMIZE PROMPTS
+function runRandomFaceLiveness() {
+  if (!modelsLoaded || isScanning) return;
+  
+  randomizedPrompts = [...POSSIBLE_ACTIONS].sort(() => Math.random() - 0.5);
+  currentStepIndex = 0;
+  isScanning = true;
+  startFaceBtn.disabled = true;
+  
+  updatePromptInstruction();
+  scanLoop();
+}
+
+function updatePromptInstruction() {
+  const action = randomizedPrompts[currentStepIndex];
+  const stepNum = currentStepIndex + 1;
+  if (action === 'LOOK_LEFT') faceStatus.innerText = "Step " + stepNum + "/3: Turn Head LEFT";
+  if (action === 'LOOK_RIGHT') faceStatus.innerText = "Step " + stepNum + "/3: Turn Head RIGHT";
+  if (action === 'BLINK') faceStatus.innerText = "Step " + stepNum + "/3: BLINK Your Eyes";
+}
+
+async function scanLoop() {
+  if (!isScanning) return;
+
+  try {
+    const detection = await faceapi.detectSingleFace(video, detectorOptions).withFaceLandmarks(true);
+    
+    if (detection) {
+      const noseX = detection.landmarks.getNose()[3].x;
+      const jaw = detection.landmarks.getJawOutline();
+      const ratio = (noseX - jaw[0].x) / (jaw[16].x - jaw[0].x);
+      
+      const leftEye = detection.landmarks.getLeftEye();
+      const rightEye = detection.landmarks.getRightEye();
+      const ear = (getEAR(leftEye) + getEAR(rightEye)) / 2.0;
+
+      const currentAction = randomizedPrompts[currentStepIndex];
+      let passedStep = false;
+
+      if (currentAction === 'LOOK_LEFT' && ratio < 0.38) passedStep = true;
+      else if (currentAction === 'LOOK_RIGHT' && ratio > 0.62) passedStep = true;
+      else if (currentAction === 'BLINK' && ear < 0.22) passedStep = true;
+
+      if (passedStep) {
+        currentStepIndex++;
+        if (currentStepIndex >= randomizedPrompts.length) {
+          isScanning = false;
+          faceStatus.innerText = "Validating Face Data...";
+          
+          const rawDescriptor = JSON.stringify(detection.landmarks.positions);
+          const faceHash = await generateSHA256(rawDescriptor);
+
+          const res = await fetch(API + '/api/profile/face-verify', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ faceHash })
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            faceStatus.innerText = "Face Verification Complete";
+            stopFaceCamera();
+            alert("Face Liveness Verification Successful!");
+          } else {
+            faceStatus.innerText = data.error || "Failed";
+            startFaceBtn.disabled = false;
+          }
+          return;
+        } else {
+          updatePromptInstruction();
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Scanning Error:", err);
+  }
+
+  requestAnimationFrame(scanLoop);
+}
+
+// ===== ID BASE64 FUNCTIONS =====
+async function startIDCamera() {
+  const container = document.getElementById('idCameraContainer');
+  container.style.display = 'block';
+  try {
+    idStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    document.getElementById('idVideo').srcObject = idStream;
+  } catch(e) {
+    alert("Unable to access rear camera.");
+  }
+}
+
+function stopIDCamera() {
+  if (idStream) {
+    idStream.getTracks().forEach(t => t.stop());
+    idStream = null;
+  }
+  document.getElementById('idCameraContainer').style.display = 'none';
+}
+
+function compressImage(base64, maxWidth = 1280) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = base64;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = (err) => reject(err);
+  });
+}
+
+async function uploadBase64ToBackend(base64) {
+  ocrStatus.innerText = "Uploading ID for review...";
+  try {
+    const res = await fetch(API + '/api/profile/id-upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idPhotoBase64: base64 })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      ocrStatus.innerText = "ID Submitted. Status: PENDING REVIEW. We will notify you in 24hrs";
+      document.getElementById('idPreview').src = base64;
+      document.getElementById('idPreview').style.display = 'block';
+      alert("ID Uploaded Successfully. Waiting for admin approval.");
+    } else {
+      ocrStatus.innerText = data.error || "Upload failed";
+    }
+  } catch (err) {
+    ocrStatus.innerText = "Upload failed due to network error";
+  }
+}
+
+async function captureAndUploadID() {
+  const idVideo = document.getElementById('idVideo');
+  if (!idVideo.videoWidth || !idVideo.videoHeight) {
+    alert("Camera frame is not ready yet. Please wait.");
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = idVideo.videoWidth;
+  canvas.height = idVideo.videoHeight;
+  canvas.getContext('2d').drawImage(idVideo, 0, 0, canvas.width, canvas.height);
+
+  const base64 = canvas.toDataURL('image/jpeg', 0.9);
+  stopIDCamera();
+  try {
+    const compressed = await compressImage(base64);
+    uploadBase64ToBackend(compressed);
+  } catch (e) {
+    alert("Failed to process image.");
+  }
+}
+
+async function uploadIDFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const compressed = await compressImage(e.target.result);
+      uploadBase64ToBackend(compressed);
+    } catch (err) {
+      alert("Error reading uploaded image file.");
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+window.onload = checkExistingKYC;
+</script>
+</body>
+</html>
