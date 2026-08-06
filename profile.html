@@ -673,7 +673,7 @@ async function clearBio() {
   }
 }
 
-// OPEN KYC PORTAL WINDOW
+// OPEN KYC PORTAL WINDOW - UPDATED FOR BASE64 MANUAL REVIEW
 function openKYCPortal() {
   const kycWin = window.open("", "_blank");
   if (!kycWin) return toast("Please allow popups to open KYC window");
@@ -686,7 +686,6 @@ function openKYCPortal() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GolViral - Identity Verification</title>
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.min.js"><\/script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"><\/script>
 <style>
 :root{ --bg:#000;--card:#0d0d0d;--text:#fff;--muted:#777;--border:#1e1e1e;--green:#00ff88;--blue:#3b82f6;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7); }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
@@ -732,9 +731,10 @@ video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 </div>
 
 <div class="card">
-  <h3 style="margin-bottom:8px;font-size:15px">2. ID Document OCR Scan</h3>
+  <h3 style="margin-bottom:8px;font-size:15px">2. ID Document Upload</h3>
   <div class="instruction">
-    <b>Requirement:</b> ID verification is required to execute your first cash withdrawal payout.
+    <b>Requirement:</b> ID verification is required to execute your first cash withdrawal payout.<br>
+    <b>Note:</b> Upload clear photo of NIN, Driver License, or Voter Card. We will review manually in 24hrs.
   </div>
 
   <div id="idCameraContainer" style="display:none;margin-bottom:12px;">
@@ -742,13 +742,13 @@ video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
       <video id="idVideo" autoplay muted playsinline></video>
       <div class="overlay"><div class="badge-status" style="color:#fff">Position ID Flat in Frame</div></div>
     </div>
-    <button class="btn" onclick="captureAndProcessID()">
-      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Capture & Scan ID Photo
+    <button class="btn" onclick="captureAndUploadID()">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Capture & Upload ID Photo
     </button>
     <button class="btn secondary" onclick="stopIDCamera()">Cancel Camera</button>
   </div>
 
-  <input type="file" id="idFileInput" accept="image/*" class="input-file" onchange="processIDFile(this)">
+  <input type="file" id="idFileInput" accept="image/*" capture="environment" class="input-file" onchange="uploadIDFile(this)">
   
   <div class="btn-group">
     <button class="btn secondary" onclick="document.getElementById('idFileInput').click()">
@@ -760,6 +760,7 @@ video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
   </div>
   
   <div id="ocrStatus" style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center;">Status: Awaiting document upload/snap</div>
+  <img id="idPreview" style="display:none;width:100%;border-radius:8px;margin-top:10px;border:1px solid var(--border)" />
 </div>
 
 <script>
@@ -803,7 +804,9 @@ async function checkExistingKYC() {
     }
 
     if (kyc.idVerified) {
-      ocrStatus.innerText = "ID Document Verification Already Complete";
+      ocrStatus.innerText = "ID Document Verified";
+    } else if (kyc.idStatus === 'PENDING') {
+      ocrStatus.innerText = "ID Submitted. Status: PENDING REVIEW";
     }
   } catch(e) {
     initAI();
@@ -915,7 +918,7 @@ async function scanLoop() {
   requestAnimationFrame(scanLoop);
 }
 
-// OPEN CAMERA FOR ID SCAN
+// ===== NEW ID BASE64 FUNCTIONS =====
 async function startIDCamera() {
   const container = document.getElementById('idCameraContainer');
   container.style.display = 'block';
@@ -935,56 +938,61 @@ function stopIDCamera() {
   document.getElementById('idCameraContainer').style.display = 'none';
 }
 
-async function captureAndProcessID() {
+function compressImage(base64, maxWidth = 1280) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = maxWidth / img.width;
+      canvas.width = maxWidth;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% quality ~300-500KB
+    }
+  });
+}
+
+async function uploadBase64ToBackend(base64) {
+  ocrStatus.innerText = "Uploading ID for review...";
+  const res = await fetch(API + '/api/profile/id-upload', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idPhotoBase64: base64 })
+  });
+  const data = await res.json();
+  if(res.ok) {
+    ocrStatus.innerText = "ID Submitted. Status: PENDING REVIEW. We will notify you in 24hrs";
+    document.getElementById('idPreview').src = base64;
+    document.getElementById('idPreview').style.display = 'block';
+    alert("ID Uploaded Successfully. Waiting for admin approval.");
+  } else {
+    ocrStatus.innerText = data.error || "Upload failed";
+  }
+}
+
+async function captureAndUploadID() {
   const idVideo = document.getElementById('idVideo');
   const canvas = document.createElement('canvas');
-  canvas.width = idVideo.videoWidth || 640;
-  canvas.height = idVideo.videoHeight || 480;
+  canvas.width = idVideo.videoWidth || 1280;
+  canvas.height = idVideo.videoHeight || 720;
   canvas.getContext('2d').drawImage(idVideo, 0, 0, canvas.width, canvas.height);
-  
+
+  const base64 = canvas.toDataURL('image/jpeg', 0.9);
   stopIDCamera();
-  runOCR(canvas);
+  const compressed = await compressImage(base64);
+  uploadBase64ToBackend(compressed);
 }
 
-async function processIDFile(input) {
+async function uploadIDFile(input) {
   const file = input.files[0];
   if(!file) return;
-  runOCR(file);
-}
-
-async function runOCR(imageSource) {
-  ocrStatus.innerText = "Scanning Document text with OCR Engine...";
-  try {
-    const worker = await Tesseract.createWorker('eng');
-    const ret = await worker.recognize(imageSource);
-    await worker.terminate();
-
-    const text = ret.data.text;
-    const matches = text.match(/[A-Z0-9]{8,14}/g);
-
-    if(matches && matches.length > 0) {
-      const idHash = await generateSHA256(matches[0]);
-      ocrStatus.innerText = "Submitting ID hash...";
-
-      const res = await fetch(API + '/api/profile/id-verify', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idHash })
-      });
-      const data = await res.json();
-
-      if(res.ok) {
-        ocrStatus.innerText = "ID Document Verified";
-        alert("ID Document Verification Successful!");
-      } else {
-        ocrStatus.innerText = data.error || "Verification failed";
-      }
-    } else {
-      ocrStatus.innerText = "No clear ID text found. Re-snap in direct light.";
-    }
-  } catch(err) {
-    ocrStatus.innerText = "Error processing document image.";
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const compressed = await compressImage(e.target.result);
+    uploadBase64ToBackend(compressed);
   }
+  reader.readAsDataURL(file);
 }
 
 window.onload = checkExistingKYC;
