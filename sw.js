@@ -1,4 +1,4 @@
-const CACHE_NAME = 'golviral-v7'; // BUMP version so old cache clears
+const CACHE_NAME = 'golviral-v6'; // BUMPED
 const APP_BASE_URL = 'https://selimzy535-ai.github.io/golviral-frontend';
 const API_URL = 'https://golviral-api.onrender.com';
 
@@ -8,18 +8,17 @@ const PRECACHE_URLS = [
   `${APP_BASE_URL}/auth.html`,
   `${APP_BASE_URL}/post.html`,
   `${APP_BASE_URL}/messages.html`,
+  `${APP_BASE_URL}/profile.html`,
   `${APP_BASE_URL}/manifest.json`
 ];
 
+// INSTALL: Precache app shell
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => 
-      Promise.allSettled(PRECACHE_URLS.map(url => cache.add(url)))
-    )
+    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_URLS))
   );
   self.skipWaiting();
 });
-
 
 // ACTIVATE: Clean old caches
 self.addEventListener('activate', event => {
