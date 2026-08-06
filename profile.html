@@ -669,9 +669,9 @@ async function clearBio() {
 }
 
 
-// OPEN KYC PORTAL WINDOW
 function openKYCPortal() {
-  const kycWin = window.open("kyc.html", "_blank");
+  const kycUrl = `kyc.html?token=${encodeURIComponent(TOKEN)}&api=${encodeURIComponent(API)}`;
+  const kycWin = window.open(kycUrl, "_blank");
   if (!kycWin) return toast("Please allow popups to open KYC window");
 }
 loadProfile();
