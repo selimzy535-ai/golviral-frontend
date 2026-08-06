@@ -9,49 +9,45 @@
 <style>
 :root{
   --bg:#000;--card:#0d0d0d;--glass:rgba(15,15,15,0.65);--text:#fff;--muted:#777;--border:#1e1e1e;
-  --green:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;
   --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden}
-body::before{ /* Chat Wallpaper Layer */
-  content:'';position:absolute;inset:0;z-index:-1;
-  background-size:cover;background-position:center;
-  filter:brightness(0.35) blur(2px);transition:0.3s;
-}
+body::before{content:'';position:absolute;inset:0;z-index:-1;background-size:cover;background-position:center;filter:brightness(0.35) blur(2px)}
 
-header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2}
+header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2;justify-content:space-between}
 svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:pointer}
 .list{flex:1;overflow-y:auto;z-index:2}
-.chat-item{display:flex;gap:12px;padding:16px;border-bottom:1px solid var(--border);cursor:pointer;position:relative}
-.chat-item:hover{background:var(--card)}
-.avatar{width:48px;height:48px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;position:relative;flex-shrink:0}
-.avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
-.online-dot{position:absolute;bottom:2px;right:2px;width:12px;height:12px;background:var(--green);border-radius:50%;border:2px solid var(--bg);display:none}
-.chat-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.chat-item{display:flex;gap:12px;padding:16px;border-bottom:1px solid var(--border);cursor:pointer}
+.avatar{width:48px;height:48px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;position:relative}
+.online-dot{position:absolute;bottom:2px;right:2px;width:12px;height:12px;background:#00ff88;border-radius:50%;border:2px solid var(--bg);display:none}
 .chat-header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2}
 .last-seen{font-size:11px;color:var(--muted)}
 .chat-box{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;z-index:2}
-.bubble{max-width:75%;padding:12px 16px;border-radius:18px;font-size:15px;line-height:1.4;word-break:break-word;position:relative}
+.bubble{max-width:75%;padding:10px;border-radius:18px;font-size:15px;line-height:1.4;position:relative}
 .sent{align-self:flex-end;background:var(--gradient);color:#000;border-bottom-right-radius:4px}
 .recv{align-self:flex-start;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);border-bottom-left-radius:4px}
-.bubble img{max-width:200px;border-radius:12px;margin-top:4px;cursor:pointer}
-.bubble audio{max-width:200px;margin-top:4px}
-.bubble.gift{background:linear-gradient(135deg,rgba(168,85,247,0.3),rgba(236,72,153,0.3));border:1px solid var(--purple);text-align:center;font-weight:800}
+.bubble img.sticker{max-width:140px;border-radius:12px;display:block}
 .bubble-time{font-size:10px;color:var(--muted);margin-top:4px;text-align:right}
 
-.input-area{padding:12px;background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;z-index:2}
-.input{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:20px;outline:none}
-.input:focus{border-color:var(--green)}
-.icon-btn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;display:flex;justify-content:center;align-items:center;cursor:pointer;color:var(--muted)}
-.icon-btn:active{background:var(--border)}
+.input-area{padding:8px 12px;background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;z-index:2}
+.input{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:22px;outline:none}
+.icon-btn{background:transparent;border:none;border-radius:50%;width:40px;height:40px;display:flex;justify-content:center;align-items:center;cursor:pointer;color:var(--muted)}
 .send-btn{background:var(--gradient);border:none;border-radius:50%;width:44px;height:44px;display:flex;justify-content:center;align-items:center;cursor:pointer}
 
-.typing{display:flex;gap:4px;padding:8px 16px}
-.dot{width:8px;height:8px;background:var(--muted);border-radius:50%;animation:blink 1.4s infinite}
-.dot:nth-child(2){animation-delay:0.2s}.dot:nth-child(3){animation-delay:0.4s}
+/* STICKER KEYBOARD */
+.sticker-sheet{position:absolute;bottom:60px;left:0;right:0;height:320px;background:var(--card);border-top:1px solid var(--border);display:none;flex-direction:column;z-index:10;animation:slideUp 0.2s}
+@keyframes slideUp{from{transform:translateY(100%)}}
+.sticker-header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border)}
+.sticker-tabs{display:flex;gap:12px;padding:8px;overflow-x:auto;border-bottom:1px solid var(--border)}
+.sticker-tab{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.sticker-tab.active{background:var(--border)}
+.sticker-grid{display:flex;flex-wrap:wrap;gap:8px;padding:12px;overflow-y:auto;align-content:flex-start}
+.sticker-item{width:70px;height:70px;object-fit:contain;cursor:pointer;border-radius:8px}
+.sticker-create{display:flex;flex-direction:column;align-items:center;justify-content:center;width:70px;height:70px;background:var(--bg);border:1px dashed var(--border);border-radius:8px;font-size:10px;text-align:center;cursor:pointer}
+.sticker-item:hover{background:var(--border)}
+.typing{display:flex;gap:4px;padding:8px 16px}.dot{width:8px;height:8px;background:var(--muted);border-radius:50%;animation:blink 1.4s infinite}
 @keyframes blink{0%,60%,100%{opacity:0.3}30%{opacity:1}}
-
 .error-modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:none;justify-content:center;align-items:center;z-index:200}
 .error-box{background:var(--card);border:1px solid var(--border);padding:20px;border-radius:16px;text-align:center}
 .btn{background:var(--gradient);color:#000;border:none;padding:12px;border-radius:12px;font-weight:800;width:100%;cursor:pointer}
@@ -66,189 +62,180 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 
 <div id="chat-screen" style="display:none;flex-direction:column;height:100dvh">
 <header class="chat-header">
+<div style="display:flex;align-items:center;gap:12px">
 <svg onclick="backToList()" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
 <div class="avatar" id="chat-avatar"><span id="chat-initial"></span><div class="online-dot" id="online-dot"></div></div>
 <div><b id="chat-name"></b><div class="last-seen" id="last-seen"></div></div>
+</div>
+<svg onclick="changeBackground()" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.2 2.1 7.8L12 17l-6.6 4 2.1-7.8L2 9h7l3-7z"/></svg>
 </header>
 
 <div class="chat-box" id="chat-box"></div>
 <div id="typing-indicator" class="typing" style="display:none"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
+<div class="sticker-sheet" id="sticker-sheet">
+  <div class="sticker-header"><b>Stickers</b><svg onclick="toggleStickers()" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></div>
+  <div class="sticker-tabs" id="sticker-tabs"></div>
+  <div class="sticker-grid" id="sticker-grid"></div>
+</div>
+
 <div class="input-area">
-<button class="icon-btn" onclick="openGiftModal()"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button>
+<button class="icon-btn" onclick="toggleStickers()"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button>
 <input class="input" id="msg-input" placeholder="Message..." onkeydown="handleTyping(event)">
 <button class="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
 </div>
 </div>
 
-<div id="dm-error" class="error-modal"><div class="error-box">
-<svg viewBox="0 0 24 24" style="color:#ff0044;margin-bottom:8px"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-<p>DM Locked</p><p style="color:var(--muted);font-size:14px">Both users must enable monetization or unlock DM</p>
-<button class="btn" style="margin-top:12px" onclick="closeError()">OK</button>
-</div></div>
+<div id="dm-error" class="error-modal"><div class="error-box"><p>DM Locked</p><button class="btn" onclick="closeError()">OK</button></div></div>
+<input type="file" id="bg-upload" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
+<input type="file" id="sticker-upload" accept="image/*" style="display:none" onchange="handleStickerUpload(event)">
 
 <script>
 const API='https://golviral-api.onrender.com';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
-
 const params=new URLSearchParams(location.search);
 const toUserId=params.get('user') || params.get('to');
 let socket=null; let currentChat=null; let typingTimer=null;
 let onlineUsers = new Set();
 
+// Load stickers from localStorage
+function getStickers(){
+  return JSON.parse(localStorage.getItem('gol_stickers') || `{
+    "Recent":[],
+    "Funny":["https://i.imgur.com/8Km9tLL.png","https://i.imgur.com/3sTQk3V.png"],
+    "Memes":["https://i.imgur.com/5Z3jK9a.png","https://i.imgur.com/7Yb9c2Q.png"]
+  }`);
+}
+function saveStickers(data){ localStorage.setItem('gol_stickers', JSON.stringify(data)); }
+function addRecent(url){
+  const s = getStickers();
+  s.Recent = [url,...s.Recent.filter(x=>x!==url)].slice(0,12);
+  saveStickers(s);
+}
+
 function showScreen(s){
 document.getElementById('chat-list-screen').style.display=s==='list'?'block':'none';
 document.getElementById('chat-screen').style.display=s==='chat'?'flex':'none';
 }
-
 async function api(path,opt={}){
 const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
 if(res.status===401) location.href='auth.html';
 return res.json();
 }
-
-// INIT SOCKET + ONLINE TRACKING
 function initSocket(){
 socket=io(API,{auth:{token:TOKEN}});
-socket.on('connect',()=>{
-  console.log('socket connected');
-  socket.emit('join'); // tell backend im online
-});
+socket.on('connect',()=>socket.emit('join'));
 socket.on('online_users', ids => { onlineUsers = new Set(ids); updateOnlineDots(); });
 socket.on('user_online', id => { onlineUsers.add(id); updateOnlineDots(); });
 socket.on('user_offline', data => { onlineUsers.delete(data.userId); if(data.userId===currentChat) updateLastSeen(data.lastSeen); });
-
-socket.on('receive_message',data=>{
-  if(data.senderId===currentChat) addBubble(data);
-});
+socket.on('receive_message',data=>{ if(data.senderId===currentChat) addBubble(data); });
 socket.on('typing',data=>{if(data.from===currentChat)showTyping()});
-socket.on('error_msg',data=>{showError()});
 }
-
-// LOAD CHAT LIST
 async function loadChatList(){
 const res=await api('/api/messages');
 const chats=res.chats||[];
 document.getElementById('chat-list').innerHTML=chats.map(c=>{
 const username=c.username||'User';
 const initial=username[0].toUpperCase();
-const isOnline = onlineUsers.has(c.userId);
-return `
-<div class="chat-item" onclick="openChat('${c.userId}','${username}')">
-<div class="avatar">
-  ${c.avatar? `<img src="${c.avatar}">` : initial}
-  <div class="online-dot" style="display:${isOnline?'block':'none'}"></div>
-</div>
-<div class="chat-wrap">
-<b>${username}</b>
-<small style="color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.lastMessage||'No messages yet'}</small>
-</div>
-</div>`;
+return `<div class="chat-item" onclick="openChat('${c.userId}','${username}')"><div class="avatar">${initial}<div class="online-dot" style="display:${onlineUsers.has(c.userId)?'block':'none'}"></div></div><div><b>${username}</b><small style="color:var(--muted)">${c.lastMessage||'No messages yet'}</small></div></div>`;
 }).join('');
 }
-
-// OPEN CHAT
 async function openChat(userId,username){
 currentChat=userId;
-const validName=username||'User';
-document.getElementById('chat-name').innerText=validName;
-document.getElementById('chat-initial').innerText=validName[0].toUpperCase();
+document.getElementById('chat-name').innerText=username||'User';
+document.getElementById('chat-initial').innerText=(username||'U')[0].toUpperCase();
 showScreen('chat');
-
-const u = await api(`/api/user/${userId}`); // get background + avatar
-if(u.backgroundUrl) document.body.style.backgroundImage = `url(${u.backgroundUrl})`;
-document.getElementById('chat-avatar').innerHTML = u.avatar? `<img src="${u.avatar}"><div class="online-dot" id="online-dot"></div>` : `<span id="chat-initial">${validName[0].toUpperCase()}</span><div class="online-dot" id="online-dot"></div>`;
-updateOnlineDots();
-
+const bg = localStorage.getItem(`bg_${userId}`);
+document.body.style.backgroundImage = bg? `url(${bg})` : 'none';
+updateOnlineDots(); loadStickerUI();
 const d=await api(`/api/messages/${userId}`);
 document.getElementById('chat-box').innerHTML='';
-const messages=d||[];
-messages.forEach(m=>addBubble(m));
+(d||[]).forEach(m=>addBubble(m));
 }
+function backToList(){showScreen('list');currentChat=null;document.body.style.backgroundImage = 'none';loadChatList();}
+function updateOnlineDots(){const dot = document.getElementById('online-dot');if(dot) dot.style.display = onlineUsers.has(currentChat)? 'block' : 'none';}
+function updateLastSeen(ts){if(!ts) return;const diff = Math.floor((Date.now() - new Date(ts))/60000);document.getElementById('last-seen').innerText = diff < 1? 'Active now' : `Last seen ${diff}m ago`;}
 
-function backToList(){
-showScreen('list');
-currentChat=null;
-document.body.style.backgroundImage = 'none'; // reset bg
-loadChatList();
-}
-
-function updateOnlineDots(){
-const dot = document.getElementById('online-dot');
-if(dot) dot.style.display = onlineUsers.has(currentChat)? 'block' : 'none';
-}
-function updateLastSeen(ts){
-if(!ts) return;
-const date = new Date(ts);
-const now = new Date();
-const diff = Math.floor((now - date)/60000);
-let txt = diff < 1? 'Active now' : diff < 60? `Last seen ${diff}m ago` : `Last seen ${Math.floor(diff/60)}h ago`;
-document.getElementById('last-seen').innerText = txt;
-}
-
-// SEND MESSAGE
 async function sendMessage(){
 const text=document.getElementById('msg-input').value.trim();
 if(!text)return;
 document.getElementById('msg-input').value='';
 addBubble({text,type:'text',senderId:localStorage.userId,createdAt:new Date()});
-
-if(socket && socket.connected){
-socket.emit('send_message',{receiverId:currentChat,text,type:'text'});
-}else{
-await api('/api/message/send',{method:'POST',body:JSON.stringify({receiverId:currentChat,text,type:'text'})});
-}
+if(socket) socket.emit('send_message',{receiverId:currentChat,text,type:'text'});
 }
 
-// TYPING
-function handleTyping(e){
-if(e && e.key === 'Enter'){ sendMessage(); return; }
-if(socket) socket.emit('typing',{receiverId:currentChat});
-clearTimeout(typingTimer);
-typingTimer=setTimeout(()=>{},1000);
+function sendSticker(url){
+addBubble({url,type:'sticker',senderId:localStorage.userId,createdAt:new Date()});
+addRecent(url);
+if(socket) socket.emit('send_message',{receiverId:currentChat,url,type:'sticker'});
+toggleStickers();
 }
 
-function showTyping(){
-document.getElementById('typing-indicator').style.display='flex';
-setTimeout(()=>document.getElementById('typing-indicator').style.display='none',2000);
-}
-
+function handleTyping(e){if(e && e.key === 'Enter'){ sendMessage(); return; }if(socket) socket.emit('typing',{receiverId:currentChat});}
+function showTyping(){document.getElementById('typing-indicator').style.display='flex';setTimeout(()=>document.getElementById('typing-indicator').style.display='none',2000);}
 function addBubble(msg){
 const div=document.createElement('div');
 div.className='bubble '+(msg.senderId===localStorage.userId?'sent':'recv');
-if(msg.type==='gift') div.classList.add('gift');
-
-let content = msg.text;
-if(msg.type==='image') content = `<img src="${msg.url}" onclick="window.open('${msg.url}')">`;
-if(msg.type==='voice') content = `<audio controls src="${msg.url}"></audio>`;
-if(msg.type==='gift') content = `🎁 ${msg.text}`;
-
+let content = msg.text || '';
+if(msg.type==='sticker') content = `<img class="sticker" src="${msg.url}">`;
 div.innerHTML = content + `<div class="bubble-time">${new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>`;
 document.getElementById('chat-box').appendChild(div);
 document.getElementById('chat-box').scrollTop=99999;
 }
 
-function openGiftModal(){ // reuse your gifts tab logic
-  alert('Open gift selection. Will send as gift message type');
-  // TODO: call your buyGift() then emit type:'gift'
+// STICKER UI
+function loadStickerUI(){
+  const s = getStickers();
+  const tabs = document.getElementById('sticker-tabs');
+  tabs.innerHTML = Object.keys(s).map((k,i)=>`<div class="sticker-tab ${i===0?'active':''}" onclick="showPack('${k}',this)">${k==='Recent'?'🕒':k[0]}</div>`).join('');
+  showPack(Object.keys(s)[0], tabs.firstChild);
+}
+function showPack(name, el){
+  document.querySelectorAll('.sticker-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const s = getStickers();
+  const grid = document.getElementById('sticker-grid');
+  grid.innerHTML = `<div class="sticker-create" onclick="document.getElementById('sticker-upload').click()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Create sticker</div>` +
+  s[name].map(url=>`<img class="sticker-item" src="${url}" onclick="sendSticker('${url}')">`).join('');
+}
+function toggleStickers(){
+  const p = document.getElementById('sticker-sheet');
+  p.style.display = p.style.display==='flex'?'none':'flex';
+}
+function handleStickerUpload(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const url = ev.target.result;
+    const s = getStickers();
+    s.Funny.push(url); // add to Funny pack
+    saveStickers(s);
+    sendSticker(url);
+    loadStickerUI();
+  }
+  reader.readAsDataURL(file);
+}
+
+// BACKGROUND
+function changeBackground(){ document.getElementById('bg-upload').click(); }
+function handleBgUpload(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const url = ev.target.result;
+    localStorage.setItem(`bg_${currentChat}`, url);
+    document.body.style.backgroundImage = `url(${url})`;
+  }
+  reader.readAsDataURL(file);
 }
 
 function showError(){document.getElementById('dm-error').style.display='flex'}
 function closeError(){document.getElementById('dm-error').style.display='none'}
 
-// INIT
 initSocket();
-if(toUserId){
-api(`/api/user/${toUserId}`).then(u=>{
-openChat(toUserId, u.username);
-});
-}else{
-loadChatList();
-showScreen('list');
-}
-
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
+if(toUserId){ openChat(toUserId, localStorage.getItem(`name_${toUserId}`) || 'User'); }
+else{ loadChatList(); showScreen('list'); }
 </script>
 </body>
 </html>
