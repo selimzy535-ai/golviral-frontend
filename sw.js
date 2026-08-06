@@ -1,6 +1,5 @@
-const CACHE_NAME = 'golviral-v6'; // BUMPED
+const CACHE_NAME = 'golviral-v8'; // bumped again
 const APP_BASE_URL = 'https://selimzy535-ai.github.io/golviral-frontend';
-const API_URL = 'https://golviral-api.onrender.com';
 
 const PRECACHE_URLS = [
   `${APP_BASE_URL}/`,
@@ -8,26 +7,24 @@ const PRECACHE_URLS = [
   `${APP_BASE_URL}/auth.html`,
   `${APP_BASE_URL}/post.html`,
   `${APP_BASE_URL}/messages.html`,
-  `${APP_BASE_URL}/profile.html`,
+  `${APP_BASE_URL}/kyc.html`,
   `${APP_BASE_URL}/manifest.json`
 ];
 
-// INSTALL: Precache app shell
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_URLS))
-  );
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => 
+    Promise.allSettled(PRECACHE_URLS.map(u => c.add(u).catch(()=>{})))
+  ));
   self.skipWaiting();
 });
 
-// ACTIVATE: Clean old caches
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys => 
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => 
+    Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+  ).then(() => self.clients.claim()));
 });
+
+// Keep all your other fetch, video, push code the same
 
 // HELPER: Delete items older than 72 hours
 async function cleanupOldVideos() {
