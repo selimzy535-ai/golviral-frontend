@@ -359,10 +359,21 @@ function nextQuestion(){
 
 async function finishOnboard(){
   localStorage.onboarding_data=JSON.stringify(surveyData);
-  await requestPush();
-  document.getElementById('onboard-modal').classList.remove('active');
-  toast('Profile Setup Complete');
-  setTimeout(()=>window.location.href='index.html',1000);
+  
+  // Don't auto-request. Show button instead so Chrome allows it
+  document.getElementById('survey-container').innerHTML = `
+    <div style="text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">🔔</div>
+      <h4 style="margin-bottom:8px">Turn On Notifications?</h4>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:20px">
+        Get instant alerts for Likes, Comments, DMs, and Earnings
+      </p>
+      <button class="btn" onclick="requestPush()">Enable Notifications</button>
+      <button class="btn" style="background:#222;margin-top:10px" onclick="skipPush()">Maybe Later</button>
+    </div>
+  `;
+  document.getElementById('progress-bar').style.width='100%';
+  document.getElementById('next-btn').style.display = 'none';
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -378,12 +389,43 @@ function urlBase64ToUint8Array(base64String) {
 
 async function requestPush(){
   try {
-    const reg=await navigator.serviceWorker.register('/sw.js');
+    // STEP 1: ASK PERMISSION - THIS TRIGGERS THE POP
+    const permission = await Notification.requestPermission();
+    if(permission !== 'granted') {
+      toast('You can enable notifications later in Settings');
+      skipPush();
+      return;
+    }
+
+    // STEP 2: REGISTER SW + SUBSCRIBE
+    const reg = await navigator.serviceWorker.register('/sw.js');
     const vapidKey = 'BFUBvjiKFi8pBUDFUskcOw6uv4LRa4IXp_cvpphDtanmon2u4YfIzeEOGNB4q0eEIBR3ZZfjKyTL1i6WBL5h7zs';
     const convertedKey = urlBase64ToUint8Array(vapidKey);
-    const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:convertedKey});
-    await fetch(API+'/api/push/subscribe',{method:'POST',headers:{'Authorization':'Bearer '+localStorage.token,'Content-Type':'application/json'},body:JSON.stringify({subscription:sub})});
-  } catch(err) {console.log('Push disabled')}
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly:true, 
+      applicationServerKey:convertedKey
+    });
+    
+    // STEP 3: SEND TO BACKEND
+    await fetch(API+'/api/push/subscribe',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+localStorage.token,'Content-Type':'application/json'},
+      body:JSON.stringify({subscription:sub})
+    });
+    
+    toast('Notifications Enabled ✅');
+    skipPush();
+  } catch(err) {
+    console.log('Push error', err);
+    toast('Notifications not supported');
+    skipPush();
+  }
+}
+
+function skipPush(){
+  document.getElementById('onboard-modal').classList.remove('active');
+  toast('Profile Setup Complete');
+  setTimeout(()=>window.location.href='index.html',1000);
 }
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
