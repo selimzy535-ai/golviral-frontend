@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -157,6 +158,17 @@
     .search-bar { display: flex; gap: 10px; }
     
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
+    
+    .summary-box {
+      background: #111; 
+      padding: 12px 16px; 
+      border-radius: 8px; 
+      border: 1px solid var(--border); 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      font-size: 0.85rem;
+    }
   </style>
 </head>
 <body>
@@ -226,6 +238,16 @@
       setTimeout(() => toast.style.opacity = '0', 3000); 
     }
 
+    // Helper function to format raw Base64 strings into browser-renderable Data URIs
+    function formatBase64Image(base64Str) {
+      if (!base64Str) return '';
+      if (base64Str.startsWith('data:') || base64Str.startsWith('http://') || base64Str.startsWith('https://')) {
+        return base64Str;
+      }
+      const cleaned = base64Str.replace(/\s/g, '');
+      return `data:image/jpeg;base64,${cleaned}`;
+    }
+
     // ========== AUTH LOGIC ==========
     function unlockAdmin(){
       const key = document.getElementById('keyInput').value.trim();
@@ -236,7 +258,6 @@
       ADMIN_KEY = key;
       localStorage.setItem('admin_key', ADMIN_KEY);
       
-      // Test the key against pending posts
       fetchAPI('/api/admin/posts/pending').then(res => {
         if(res !== null){
           document.getElementById('loginBox').style.display = 'none';
@@ -308,7 +329,7 @@
       return data?.url || key;
     }
 
-    // ========== 1. USER MANAGEMENT ==========
+    // ========== 1. USER MANAGEMENT (WITH TOTAL COUNTS) ==========
     async function loadUsers(page = 1) {
       const container = document.getElementById('users-container');
       const search = document.getElementById('user-search').value;
@@ -320,17 +341,28 @@
       });
       
       if (!data) return;
+
+      // Summary Header showing Totals across infrastructure shards
+      const summaryHeader = `
+        <div class="summary-box">
+          <span><strong>Total Users:</strong> ${data.total || 0}</span>
+          <span style="color:var(--text-muted); font-size:0.75rem;">
+            DB1: ${data.totals?.db1 || 0} | DB2: ${data.totals?.db2 || 0} | DB3: ${data.totals?.db3 || 0}
+          </span>
+        </div>
+      `;
+
       if (!data.users || data.users.length === 0) { 
-        container.innerHTML = '<div class="empty-state">No users found.</div>'; 
+        container.innerHTML = summaryHeader + '<div class="empty-state">No users found.</div>'; 
         return; 
       }
 
-      container.innerHTML = data.users.map(u => `
+      const usersList = data.users.map(u => `
         <div class="card" id="user-card-${u.id}">
           <div class="card-header">
             <span>@${u.username || 'No-Username'}</span>
             <div>
-              <span class="badge badge-shard">${u.shard.toUpperCase()}</span>
+              <span class="badge badge-shard">${(u.shard || 'db').toUpperCase()}</span>
               ${u.monetizeFlag ? '<span class="badge badge-success">MONETIZED</span>' : ''}
             </div>
           </div>
@@ -350,6 +382,8 @@
             <button class="btn btn-danger" onclick="manageUser('${u.id}', 'delete')">Delete User</button>
           </div>
         </div>`).join('');
+
+      container.innerHTML = summaryHeader + usersList;
     }
 
     async function manageUser(userId, action) { 
@@ -361,7 +395,7 @@
       } 
     }
 
-    // ========== 2. KYC VERIFICATION ==========
+    // ========== 2. KYC VERIFICATION (CONVERTS BASE64 TO IMAGE) ==========
     async function loadKYC() {
       const container = document.getElementById('kyc-container');
       container.innerHTML = 'Loading KYC requests...';
@@ -374,20 +408,26 @@
         return; 
       }
 
-      container.innerHTML = pending.map(k => `
-        <div class="card" id="kyc-card-${k.user_id}">
-          <div class="card-header">
-            <span>User ID: ${k.user_id.slice(0, 10)}...</span>
-            <span class="badge badge-danger">PENDING KYC</span>
+      container.innerHTML = pending.map(k => {
+        const imageSrc = formatBase64Image(k.id_photo_temp);
+        return `
+          <div class="card" id="kyc-card-${k.user_id}">
+            <div class="card-header">
+              <span>User ID: ${k.user_id.slice(0, 10)}...</span>
+              <span class="badge badge-danger">PENDING KYC</span>
+            </div>
+            ${imageSrc 
+              ? `<img src="${imageSrc}" class="media-preview" alt="ID Verification Photo"/>` 
+              : '<div class="empty-state">No ID image found</div>'
+            }
+            <div style="font-size:0.8rem; color:var(--text-muted);">Submitted: ${new Date(k.created_at).toLocaleString()}</div>
+            <div class="btn-group">
+              <button class="btn btn-accent" onclick="approveKYC('${k.user_id}')">Approve ID</button>
+              <button class="btn btn-danger" onclick="rejectKYC('${k.user_id}')">Reject ID</button>
+            </div>
           </div>
-          ${k.id_photo_temp ? `<img src="${k.id_photo_temp}" class="media-preview" alt="ID Document"/>` : '<div class="empty-state">No ID image found</div>'}
-          <div style="font-size:0.8rem; color:var(--text-muted);">Submitted: ${new Date(k.created_at).toLocaleString()}</div>
-          <div class="btn-group">
-            <button class="btn btn-accent" onclick="approveKYC('${k.user_id}')">Approve ID</button>
-            <button class="btn btn-danger" onclick="rejectKYC('${k.user_id}')">Reject ID</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     async function approveKYC(userId) {
