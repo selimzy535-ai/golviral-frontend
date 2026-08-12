@@ -4,19 +4,34 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GolViral - Create</title>
 <style>
-:root{--bg:#050505;--card:#0f0f0f;--accent:#00ff88;--text:#fff;--muted:#888;--border:#1f1f1f;--danger:#ff4444;--gradient:linear-gradient(135deg,#00ff88,#3b82f6)}
+:root{--bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.65);--accent:#00ff88;--text:#fff;--muted:#888;--border:#1f1f1f;--danger:#ff4444;--gradient:linear-gradient(135deg,#00ff88,#3b82f6)}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
-body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;padding:20px}
+body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;display:flex;flex-direction:column}
+header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
+.content{flex:1;overflow-y:auto;padding:20px}
 h2{margin-bottom:16px}
+
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.type-btn{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:12px}
+.type-btn.active{border-color:var(--accent);background:rgba(0,255,136,0.1)}
+.type-btn svg{stroke:var(--accent)}
+
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px}
 .input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px;outline:none}
 .input:focus{border-color:var(--accent)}
-.drop{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;margin-bottom:12px;cursor:pointer}
+
+.drop{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;margin-bottom:12px;cursor:pointer;position:relative;min-height:220px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden}
 .drop:hover{border-color:var(--accent)}
-.progress{height:8px;background:#000;border-radius:10px;overflow:hidden;margin-top:12px}
+.drop img,.drop video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.drop-placeholder{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px}
+
+.progress{height:8px;background:#000;border-radius:10px;overflow:hidden;margin-top:12px;display:none}
 .progress-bar{height:100%;background:var(--gradient);width:0%;transition:0.2s}
+
 .btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer}
 .btn:disabled{opacity:0.6;cursor:not-allowed}
+
 .toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0;max-width:90%;text-align:center}
 .toast.show{transform:translate(-50%,0);opacity:1}
 .toast.error{background:var(--danger);color:#fff}
@@ -24,147 +39,196 @@ h2{margin-bottom:16px}
 </style>
 </head>
 <body>
+<header>
+<svg onclick="location.href='index.html'" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+<h2>Create</h2>
+</header>
+
 <div id="toast" class="toast"></div>
-<h2>Create Reel</h2>
 
-<div class="card">
-<div class="drop" id="drop">
-  <b>Tap to select video</b>
-  <p class="tip">MP4 or MOV • Max 60s • Max 10MB</p>
-  <input type="file" id="file-input" accept="video/mp4,video/quicktime,video/mov" style="display:none">
-</div>
-<div class="progress"><div class="progress-bar" id="progress"></div></div>
-</div>
+<div class="content">
+  <!-- USER SEES: Reel, Photo, Short Story -->
+  <div class="type-grid">
+    <div class="type-btn active" data-ui="reel" onclick="setType('reel')">
+      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      Reel
+    </div>
+    <div class="type-btn" data-ui="photo" onclick="setType('photo')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+      Photo
+    </div>
+    <div class="type-btn" data-ui="shortstory" onclick="setType('shortstory')">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4h16v13H4z"></path></svg>
+      Short Story
+    </div>
+  </div>
 
-<div class="card" id="details-step" style="display:none">
-<input class="input" id="title" placeholder="Title">
-<textarea class="input" id="caption" placeholder="Caption"></textarea>
-<button class="btn" id="publish-btn" onclick="submitPost()">Publish Post</button>
+  <div class="card">
+    <div class="drop" id="drop">
+      <div class="drop-placeholder" id="placeholder">
+        <svg width="40" height="40" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>
+        <b>Tap to select file</b>
+        <p class="tip" id="tip-text">MP4 or MOV • Max 60s • Max 100MB</p>
+      </div>
+      <img id="img-preview" style="display:none">
+      <video id="video-preview" style="display:none" controls></video>
+      <input type="file" id="file-input" style="display:none">
+    </div>
+    <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+  </div>
+
+  <div class="card" id="details-step">
+    <input class="input" id="title" placeholder="Title">
+    <textarea class="input" id="caption" placeholder="Caption / Story text" rows="4"></textarea>
+    <button class="btn" id="publish-btn" onclick="submitPost()">Publish Post</button>
+  </div>
 </div>
 
 <script>
 const API='https://golviral-api.onrender.com';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
+
+// MAP UI NAME -> BACKEND NAME
+const TYPE_MAP = {
+  reel: 'reel', // stays reel
+  photo: 'store', // user sees Photo, backend gets store
+  shortstory: 'novel' // user sees Short Story, backend gets novel
+};
+
+let uiType='reel'; // what user sees
 let selectedFile=null;
-let objectKey='', contentType='';
 
 function toast(msg, isError=false){
   const t=document.getElementById('toast');
   t.innerText=msg;
   t.className='toast '+(isError?'error':'');
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),5000)
+  setTimeout(()=>t.classList.remove('show'),4000)
+}
+
+function setType(type){
+  uiType=type;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-ui="${type}"]`).classList.add('active');
+
+  const drop=document.getElementById('drop');
+  const tip=document.getElementById('tip-text');
+  const fileInput=document.getElementById('file-input');
+
+  if(type==='shortstory'){
+    drop.style.display='none';
+    selectedFile=null;
+  }else{
+    drop.style.display='flex';
+    document.getElementById('placeholder').style.display='flex';
+    document.getElementById('img-preview').style.display='none';
+    document.getElementById('video-preview').style.display='none';
+    if(type==='reel'){
+      fileInput.accept='video/mp4,video/quicktime,video/mov';
+      tip.innerText='MP4 or MOV • Max 60s • Max 100MB';
+    }
+    if(type==='photo'){
+      fileInput.accept='image/jpeg,image/png,image/webp,image/gif';
+      tip.innerText='JPG, PNG, WEBP • Max 10MB';
+    }
+  }
 }
 
 document.getElementById('drop').onclick=()=>document.getElementById('file-input').click();
 document.getElementById('file-input').onchange=e=>{
   selectedFile=e.target.files[0];
-  if(selectedFile){
-    // SIZE CHECK - Increased to 10MB for proxy
-    if(selectedFile.size > 10*1024*1024){
-      toast('Video too big! Max 10MB. Yours: '+(selectedFile.size/1024/1024).toFixed(1)+'MB', true);
-      selectedFile=null;
-      return;
+  if(!selectedFile) return;
+
+  const maxSize = uiType==='reel'?100*1024*1024:10*1024*1024;
+  if(selectedFile.size > maxSize){
+    toast('File too big! Max '+(maxSize/1024/1024)+'MB', true);
+    selectedFile=null;
+    return;
+  }
+
+  document.getElementById('placeholder').style.display='none';
+  if(uiType==='photo'){
+    document.getElementById('img-preview').src=URL.createObjectURL(selectedFile);
+    document.getElementById('img-preview').style.display='block';
+  }
+  if(uiType==='reel'){
+    document.getElementById('video-preview').src=URL.createObjectURL(selectedFile);
+    document.getElementById('video-preview').style.display='block';
+  }
+  toast('File ready: '+selectedFile.name)
+}
+
+async function api(path,body){
+  const res=await fetch(API+path,{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(res.status===401) location.href='auth.html';
+  return res.json();
+}
+
+// USES YOUR EXISTING /create-intent PRESIGNED URL
+async function submitPost(){
+  if(uiType!=='shortstory' &&!selectedFile) return toast('Please select a file first', true);
+
+  const btn = document.getElementById('publish-btn');
+  btn.disabled=true; btn.innerText='Processing...';
+
+  const title=document.getElementById('title').value;
+  const caption=document.getElementById('caption').value;
+  const fileExt=selectedFile?.name.split('.').pop();
+  const backendType = TYPE_MAP[uiType]; // THIS IS THE KEY
+
+  try {
+    // STEP 1: GET PRESIGNED URL FROM YOUR BACKEND
+    btn.innerText='Step 1: Getting upload link...';
+    const intent=await api('/api/post/create-intent',{
+      fileExtension:fileExt,
+      contentType:selectedFile?.type,
+      postType: backendType, // send novel/store/reel to backend
+      caption
+    });
+    if(intent.error) throw new Error(intent.error);
+
+    // STEP 2: UPLOAD DIRECT TO B2 USING PRESIGNED URL
+    if(intent.uploadUrl && selectedFile){
+      btn.innerText='Step 2: Uploading to B2...';
+      document.getElementById('progress-wrap').style.display='block';
+      await uploadToB2(intent.uploadUrl, selectedFile);
     }
-    document.getElementById('details-step').style.display='block';
-    toast('File selected: '+selectedFile.name+' - '+ (selectedFile.size/1024/1024).toFixed(2)+'MB')
+
+    // STEP 3: ACTIVATE POST
+    btn.innerText='Step 3: Publishing...';
+    const final=await api('/api/post/create',{
+      postId:intent.postId,
+      objectKey:intent.objectKey,
+      title,
+      content:caption
+    });
+    if(final.error) throw new Error(final.error);
+
+    toast('Posted successfully 🎉');
+    setTimeout(()=>location.href='index.html',1500);
+  } catch(err) {
+    console.error(err);
+    toast('ERROR: '+err.message, true);
+    btn.disabled=false; btn.innerText='Publish Post';
   }
 }
 
-async function submitPost(){
-if(!selectedFile) return toast('Please select a video first', true);
-
-const btn = document.getElementById('publish-btn');
-btn.disabled=true;
-btn.innerText='Step 1: Getting Upload URL...';
-toast('Step 1: Calling /create-intent');
-
-const fileExt=selectedFile.name.split('.').pop();
-contentType=selectedFile.type;
-const title=document.getElementById('title').value;
-const caption=document.getElementById('caption').value;
-
-try {
-  // STEP 1: INTENT - still needed to get postId and objectKey
-  const res1=await fetch(API+'/api/post/create-intent',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-    body:JSON.stringify({fileExtension:fileExt,contentType,postType:'reel',caption})
-  });
-  const d1=await res1.json();
-  toast('Step 1: '+res1.status+' '+ (d1.error||'OK'));
-  if(!res1.ok) throw new Error('Intent failed: '+d1.error);
-
-  objectKey = d1.objectKey; // save for step 2
-
-  btn.innerText='Step 2: Uploading via Server...';
-  toast('Step 2: Uploading '+ (selectedFile.size/1024/1024).toFixed(2)+'MB to your server');
-
-  // STEP 2: UPLOAD TO BACKEND -> B2
-  await uploadFile(d1.postId, selectedFile);
-  toast('Step 2 Success: Uploaded to B2');
-  btn.innerText='Step 3: Activating Post...';
-  toast('Step 3: Calling /post/create');
-
-  // STEP 3: ACTIVATE
-  const res3=await fetch(API+'/api/post/create',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-    body:JSON.stringify({postId:d1.postId,objectKey:d1.objectKey,title,caption})
-  });
-  const d3=await res3.json();
-  toast('Step 3: '+res3.status+' '+ (d3.message||d3.error));
-  if(!res3.ok) throw new Error('Create failed: '+d3.error);
-
-  toast('DONE! Post Published 🎉');
-  setTimeout(()=>location.href='index.html',2000);
-} catch(err) {
-  console.error(err);
-  toast('ERROR: '+err.message, true);
-  btn.disabled=false; btn.innerText='Publish Post';
-}
-}
-
-async function uploadFile(postId, file){
+function uploadToB2(url,file){
   return new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();
-    xhr.timeout = 120000; // 2min timeout for server upload
-
-    const formData = new FormData();
-    formData.append('video', file);
-    formData.append('postId', postId);
-    formData.append('objectKey', objectKey);
-    formData.append('contentType', contentType);
-
+    xhr.open('PUT',url);
+    xhr.setRequestHeader('Content-Type',file.type);
     xhr.upload.onprogress=e=>{
       if(e.lengthComputable){
         let percent = (e.loaded/e.total*100).toFixed(0);
         document.getElementById('progress').style.width=percent+'%';
-        if(percent % 10 === 0) toast('Uploading: '+percent+'%') // toast every 10%
       }
     }
-
-    xhr.onload=()=>{
-      toast('Server Response: '+xhr.status);
-      if(xhr.status>=200 && xhr.status<300) resolve();
-      else reject(new Error('Upload failed '+xhr.status + '. ' + xhr.responseText.slice(0,100)))
-    };
-
-    xhr.onerror=()=>{
-      toast('Network Error to server', true);
-      reject(new Error('Network error'))
-    };
-
-    xhr.ontimeout=()=>{
-      toast('Upload Timeout. File too big or slow network', true);
-      reject(new Error('Upload timeout'))
-    };
-
-    xhr.open('POST', API+'/api/post/upload-video');
-    xhr.setRequestHeader('Authorization', 'Bearer '+TOKEN);
-    xhr.send(formData);
-  });
+    xhr.onload=()=> xhr.status===200?resolve():reject(new Error('B2 Upload failed '+xhr.status));
+    xhr.onerror=()=>reject(new Error('Network error to B2'));
+    xhr.send(file);
+  })
 }
 </script>
 </body>
