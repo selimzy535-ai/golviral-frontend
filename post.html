@@ -71,7 +71,7 @@ h2{margin-bottom:16px}
         <p class="tip" id="tip-text">MP4 or MOV • Max 60s • Max 100MB</p>
       </div>
       <img id="img-preview" style="display:none">
-      <video id="video-preview" style="display:none" controls></video>
+      <video id="video-preview" style="display:none" controls playsinline></video>
       <input type="file" id="file-input" style="display:none">
     </div>
     <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress"></div></div>
@@ -91,13 +91,14 @@ if(!TOKEN) location.href='auth.html';
 
 // MAP UI NAME -> BACKEND NAME
 const TYPE_MAP = {
-  reel: 'reel', // stays reel
-  photo: 'store', // user sees Photo, backend gets store
-  shortstory: 'novel' // user sees Short Story, backend gets novel
+  reel: 'reel',
+  photo: 'store',
+  shortstory: 'novel'
 };
 
-let uiType='reel'; // what user sees
+let uiType='reel';
 let selectedFile=null;
+let objectUrl = null; // to fix preview memory leak
 
 function toast(msg, isError=false){
   const t=document.getElementById('toast');
@@ -107,8 +108,18 @@ function toast(msg, isError=false){
   setTimeout(()=>t.classList.remove('show'),4000)
 }
 
+function clearPreview(){
+  if(objectUrl){
+    URL.revokeObjectURL(objectUrl); // FIX: prevent browser using old video
+    objectUrl = null;
+  }
+  document.getElementById('img-preview').src='';
+  document.getElementById('video-preview').src='';
+}
+
 function setType(type){
   uiType=type;
+  clearPreview(); // reset preview when switching type
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector(`[data-ui="${type}"]`).classList.add('active');
 
@@ -137,6 +148,7 @@ function setType(type){
 
 document.getElementById('drop').onclick=()=>document.getElementById('file-input').click();
 document.getElementById('file-input').onchange=e=>{
+  clearPreview(); // clear old one first
   selectedFile=e.target.files[0];
   if(!selectedFile) return;
 
@@ -147,14 +159,18 @@ document.getElementById('file-input').onchange=e=>{
     return;
   }
 
+  objectUrl = URL.createObjectURL(selectedFile); // create new url
   document.getElementById('placeholder').style.display='none';
+
   if(uiType==='photo'){
-    document.getElementById('img-preview').src=URL.createObjectURL(selectedFile);
+    document.getElementById('img-preview').src=objectUrl;
     document.getElementById('img-preview').style.display='block';
   }
   if(uiType==='reel'){
-    document.getElementById('video-preview').src=URL.createObjectURL(selectedFile);
-    document.getElementById('video-preview').style.display='block';
+    const vid = document.getElementById('video-preview');
+    vid.src=objectUrl;
+    vid.load(); // force reload so it plays from new location
+    vid.style.display='block';
   }
   toast('File ready: '+selectedFile.name)
 }
@@ -165,7 +181,7 @@ async function api(path,body){
   return res.json();
 }
 
-// USES YOUR EXISTING /create-intent PRESIGNED URL
+// BACK TO RENDER PROXY UPLOAD
 async function submitPost(){
   if(uiType!=='shortstory' &&!selectedFile) return toast('Please select a file first', true);
 
@@ -174,25 +190,24 @@ async function submitPost(){
 
   const title=document.getElementById('title').value;
   const caption=document.getElementById('caption').value;
-  const fileExt=selectedFile?.name.split('.').pop();
-  const backendType = TYPE_MAP[uiType]; // THIS IS THE KEY
+  const backendType = TYPE_MAP[uiType];
 
   try {
-    // STEP 1: GET PRESIGNED URL FROM YOUR BACKEND
-    btn.innerText='Step 1: Getting upload link...';
+    // STEP 1: GET POST ID
+    btn.innerText='Step 1: Creating post...';
     const intent=await api('/api/post/create-intent',{
-      fileExtension:fileExt,
+      fileExtension:selectedFile?.name.split('.').pop(),
       contentType:selectedFile?.type,
-      postType: backendType, // send novel/store/reel to backend
+      postType: backendType,
       caption
     });
     if(intent.error) throw new Error(intent.error);
 
-    // STEP 2: UPLOAD DIRECT TO B2 USING PRESIGNED URL
-    if(intent.uploadUrl && selectedFile){
-      btn.innerText='Step 2: Uploading to B2...';
+    // STEP 2: UPLOAD TO RENDER -> B2
+    if(selectedFile){
+      btn.innerText='Step 2: Uploading via Server...';
       document.getElementById('progress-wrap').style.display='block';
-      await uploadToB2(intent.uploadUrl, selectedFile);
+      await uploadViaRender(intent.postId, intent.objectKey, selectedFile);
     }
 
     // STEP 3: ACTIVATE POST
@@ -206,6 +221,7 @@ async function submitPost(){
     if(final.error) throw new Error(final.error);
 
     toast('Posted successfully 🎉');
+    clearPreview();
     setTimeout(()=>location.href='index.html',1500);
   } catch(err) {
     console.error(err);
@@ -214,20 +230,28 @@ async function submitPost(){
   }
 }
 
-function uploadToB2(url,file){
+function uploadViaRender(postId, objectKey, file){
   return new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();
-    xhr.open('PUT',url);
-    xhr.setRequestHeader('Content-Type',file.type);
+    xhr.timeout = 180000; // 3min for render
+    const formData = new FormData();
+    formData.append('video', file);
+    formData.append('postId', postId);
+    formData.append('objectKey', objectKey);
+    formData.append('contentType', file.type);
+
     xhr.upload.onprogress=e=>{
       if(e.lengthComputable){
         let percent = (e.loaded/e.total*100).toFixed(0);
         document.getElementById('progress').style.width=percent+'%';
       }
     }
-    xhr.onload=()=> xhr.status===200?resolve():reject(new Error('B2 Upload failed '+xhr.status));
-    xhr.onerror=()=>reject(new Error('Network error to B2'));
-    xhr.send(file);
+    xhr.onload=()=> xhr.status===200?resolve():reject(new Error('Upload failed '+xhr.status));
+    xhr.onerror=()=>reject(new Error('Network error to server'));
+    xhr.ontimeout=()=>reject(new Error('Upload timeout'));
+    xhr.open('POST', API+'/api/post/upload-video');
+    xhr.setRequestHeader('Authorization', 'Bearer '+TOKEN);
+    xhr.send(formData);
   })
 }
 </script>
