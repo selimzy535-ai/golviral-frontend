@@ -220,14 +220,18 @@ function uploadToB2(url,file){
     const xhr=new XMLHttpRequest();
     xhr.open('PUT',url);
     xhr.setRequestHeader('Content-Type',file.type);
+    
     xhr.upload.onprogress=e=>{
       if(e.lengthComputable){
         let percent = (e.loaded/e.total*100).toFixed(0);
         document.getElementById('progress').style.width=percent+'%';
       }
     }
-    xhr.onload=()=> xhr.status===200?resolve():reject(new Error('B2 Upload failed '+xhr.status));
-    xhr.onerror=()=>reject(new Error('Network error to B2'));
+    xhr.onload=()=> {
+      if(xhr.status===200) resolve()
+      else reject(new Error('B2 Upload failed '+xhr.status+' - '+xhr.responseText))
+    }
+    xhr.onerror=()=>reject(new Error('CORS BLOCKED by B2. Add your domain to B2 CORS Rules')); // <-- this is the key
     xhr.send(file);
   })
 }
