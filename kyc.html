@@ -302,7 +302,7 @@ async function uploadBase64ToBackend(base64) {
       ocrStatus.innerText = "ID Submitted. Status: PENDING REVIEW. We will notify you in 24hrs";
       document.getElementById('idPreview').src = base64;
       document.getElementById('idPreview').style.display = 'block';
-      alert("ID Uploaded Successfully. Waiting for admin approval.");
+      alert("ID Uploaded Successfully. Waiting for approval.");
     } else {
       ocrStatus.innerText = data.error || "Upload failed";
     }
