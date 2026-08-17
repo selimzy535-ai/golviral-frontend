@@ -1,6 +1,8 @@
+
 {
   "name": "GolViral",
   "short_name": "GolViral",
+  "id": "/golviral-frontend/",
   "start_url": "/golviral-frontend/index.html",
   "scope": "/golviral-frontend/",
   "display": "standalone",
@@ -8,18 +10,32 @@
   "theme_color": "#00ff88",
   "orientation": "portrait",
   "description": "Go Viral Faster - Short video platform",
+  "categories": ["entertainment", "social"],
   "icons": [
     {
       "src": "/golviral-frontend/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/golviral-frontend/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/golviral-frontend/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/golviral-frontend/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
+
