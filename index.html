@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="google-site-verification" content="0rn74joHgCCJ0qqgQmbX4H9k1VRvOH31qY_SDkGqLbE" />
 <!-- Primary Meta -->
 <title>GolViral - Earn Money Creating Short Videos & Stories</title>
@@ -14,6 +14,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GolViral">
+<meta name="format-detection" content="telephone=no">
+
+<!-- iOS Touch Icons -->
+<link rel="apple-touch-icon" href="/golviral-frontend/icon-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/golviral-frontend/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/golviral-frontend/icon-192.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/golviral-frontend/icon-192.png">
 
 <!-- Open Graph for WhatsApp/Facebook/Twitter -->
 <meta property="og:title" content="GolViral - Earn Money Creating Content">
@@ -27,7 +34,7 @@
 <meta name="twitter:title" content="GolViral - Earn Money Creating Content">
 <meta name="twitter:description" content="Post reels, novels and memes. Get paid for views and referrals.">
 <meta name="twitter:image" content="https://selimzy535-ai.github.io/golviral-frontend/icon-512.png">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/golviral-frontend/manifest.json">
 <style>
 :root{
   --bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.7);
@@ -129,7 +136,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 <script>
 const API='https://golviral-api.onrender.com';
 const TOKEN=localStorage.token;
-const USER_ID=localStorage.userId;
+const USER_ID=localStorageuserId;
 if(!TOKEN) location.href='auth.html';
 
 let feedData=[];
