@@ -368,7 +368,7 @@ loadFeed('ForYou',document.querySelector('.tab'));
 
 // REGISTER ROOT SW FOR IPHONE PUSH
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js')
+  navigator.serviceWorker.register('/golviral-frontend/sw.js', {scope: '/golviral-frontend/'})
    .then(()=>console.log('SW registered'))
    .catch(e=>console.error('SW failed', e))
 }
