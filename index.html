@@ -6,8 +6,8 @@
 <meta name="google-site-verification" content="0rn74joHgCCJ0qqgQmbX4H9k1VRvOH31qY_SDkGqLbE" />
 <!-- Primary Meta -->
 <title>GolViral - Earn Money Creating Short Videos & Stories</title>
-<meta name="description" content="GolViral: The short video and story app where you earn money. Post reels, short novels, memes, and get paid for views, likes, and referrals. Join millions of creators today.">
-<meta name="keywords" content="short video, earn money, reels, creators, referrals, photos, novels, stories, ">
+<meta name="description" content="GolViral: The short video and story app where you earn money. Post reels, short novels, memes & photos , and get paid for views, likes, engagement, and more. Join millions of creators today.">
+<meta name="keywords" content="short video, earn money, reels, creators, referrals, photos, novels, stories">
 <meta name="theme-color" content="#00ff88">
 
 <!-- PWA iOS -->
@@ -27,13 +27,17 @@
 <meta name="twitter:title" content="GolViral - Earn Money Creating Content">
 <meta name="twitter:description" content="Post reels, novels and memes. Get paid for views and referrals.">
 <meta name="twitter:image" content="https://selimzy535-ai.github.io/golviral-frontend/icon-512.png">
-<link rel="manifest" href="manifest.json">
+
+<!-- PWA -->
+<link rel="manifest" href="/golviral-frontend/manifest.json">
+<link rel="apple-touch-icon" href="/golviral-frontend/icon-192.png">
+
 <style>
 :root{
-  --bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.7);
-  --accent:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;
-  --text:#fff;--muted:#888;--border:#1f1f1f;--nav:70px;--top:100px;
-  --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)
+  --bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.7);
+  --accent:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;
+  --text:#fff;--muted:#888;--border:#1f1f1f;--nav:70px;--top:100px;
+  --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;overflow:hidden}
@@ -78,16 +82,16 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 <div id="toast" class="toast"></div>
 
 <header>
-  <div class="topbar">
-    <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>GolViral</div>
-    <svg onclick="openSearch()" viewBox="0 0 24 24" style="cursor:pointer"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  </div>
-  <div class="tabs">
-    <div class="tab active" onclick="loadFeed('ForYou',this)">ForYou</div>
-    <div class="tab" onclick="loadFeed('Reels',this)">Reels</div>
-    <div class="tab" onclick="loadFeed('Novels',this)">Short Story</div>
-    <div class="tab" onclick="loadFeed('Stories',this)">Memes</div>
-  </div>
+  <div class="topbar">
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>GolViral</div>
+    <svg onclick="openSearch()" viewBox="0 0 24 24" style="cursor:pointer"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="loadFeed('ForYou',this)">ForYou</div>
+    <div class="tab" onclick="loadFeed('Reels',this)">Reels</div>
+    <div class="tab" onclick="loadFeed('Novels',this)">Short Story</div>
+    <div class="tab" onclick="loadFeed('Stories',this)">Memes</div>
+  </div>
 </header>
 
 <main id="feed"></main>
@@ -95,35 +99,35 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
 <button class="fab" onclick="location.href='post.html'"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
 
 <nav class="bottom-nav">
-  <div class="nav-btn active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
-  <div class="nav-btn" onclick="openSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Search</span></div>
-  <div class="nav-btn" onclick="location.href='post.html'"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Post</span></div>
-  <div class="nav-btn" onclick="location.href='messages.html'"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>DM</span></div>
-  <div class="nav-btn" onclick="location.href='profile.html'"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Me</span></div>
+  <div class="nav-btn active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
+  <div class="nav-btn" onclick="openSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Search</span></div>
+  <div class="nav-btn" onclick="location.href='post.html'"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Post</span></div>
+  <div class="nav-btn" onclick="location.href='messages.html'"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>DM</span></div>
+  <div class="nav-btn" onclick="location.href='profile.html'"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Me</span></div>
 </nav>
 
 <!-- COMMENT SHEET -->
 <div id="comment-sheet" class="modal">
-  <div class="sheet">
-    <div style="display:flex;justify-content:space-between;margin-bottom:12px"><b>Comments</b><span onclick="closeSheet()" style="cursor:pointer">✕</span></div>
-    <div id="comment-list" style="overflow-y:auto;max-height:300px;margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px"><input id="comment-input" class="input" placeholder="Add comment..."><button class="btn" onclick="sendComment()">Send</button></div>
-  </div>
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px"><b>Comments</b><span onclick="closeSheet()" style="cursor:pointer">✕</span></div>
+    <div id="comment-list" style="overflow-y:auto;max-height:300px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px"><input id="comment-input" class="input" placeholder="Add comment..."><button class="btn" onclick="sendComment()">Send</button></div>
+  </div>
 </div>
 
 <!-- SEARCH MODAL -->
 <div id="search-modal" class="modal">
-  <div class="sheet">
-    <input id="search-input" class="input" placeholder="Search users..." oninput="debounceSearch(this.value)">
-    <div id="search-results" style="margin-top:12px"></div>
-  </div>
+  <div class="sheet">
+    <input id="search-input" class="input" placeholder="Search users..." oninput="debounceSearch(this.value)">
+    <div id="search-results" style="margin-top:12px"></div>
+  </div>
 </div>
 
 <!-- READER TAB -->
 <div id="reader-tab" class="reader">
-  <svg onclick="closeReader()" viewBox="0 0 24 24" style="margin-bottom:20px;cursor:pointer"><path d="M15 18l-6-6 6-6"/></svg>
-  <h2 id="reader-title"></h2>
-  <p id="reader-content" style="line-height:1.8;margin-top:16px;white-space:pre-wrap"></p>
+  <svg onclick="closeReader()" viewBox="0 0 24 24" style="margin-bottom:20px;cursor:pointer"><path d="M15 18l-6-6 6-6"/></svg>
+  <h2 id="reader-title"></h2>
+  <p id="reader-content" style="line-height:1.8;margin-top:16px;white-space:pre-wrap"></p>
 </div>
 
 <script>
@@ -141,196 +145,193 @@ const followLocks={};
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 
 async function api(path,opt={}){
-  try{
-    const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
-    if(res.status===401) location.href='auth.html';
-    const data = await res.json().catch(()=>({}));
-    if(res.status>=400) return {error: data.error || 'Request failed'};
-    return data;
-  }catch{ toast('Network error'); return {} }
+  try{
+    const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
+    if(res.status===401) location.href='auth.html';
+    const data = await res.json().catch(()=>({}));
+    if(res.status>=400) return {error: data.error || 'Request failed'};
+    return data;
+  }catch{ toast('Network error'); return {} }
 }
 
 async function getUser(id){
-  if(userCache[id]) return userCache[id];
-  const u=await api(`/api/user/${id}`);
-  userCache[id]=u;
-  return u;
+  if(userCache[id]) return userCache[id];
+  const u=await api(`/api/user/${id}`);
+  userCache[id]=u;
+  return u;
 }
 
 async function getSignedUrl(key,shard){
-  const d=await api(`/api/media/sign?key=${key}&shard=${shard||0}`);
-  return d.url;
+  const d=await api(`/api/media/sign?key=${key}&shard=${shard||0}`);
+  return d.url;
 }
 
 async function loadFeed(type,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  feedData=await api('/api/feed');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  feedData=await api('/api/feed');
 
-  const typeMap = {ForYou:'all', Reels:'reel', Novels:'novel', Stories:'story'};
-  const targetType = typeMap[type];
-  let filtered = targetType==='all'? feedData : feedData.filter(p=>p.type===targetType);
-  renderFeed(filtered,type);
+  const typeMap = {ForYou:'all', Reels:'reel', Novels:'novel', Stories:'story'};
+  const targetType = typeMap[type];
+  let filtered = targetType==='all'? feedData : feedData.filter(p=>p.type===targetType);
+  renderFeed(filtered,type);
 }
 
 async function renderFeed(posts,type){
-  const container=document.getElementById('feed');
-  container.innerHTML='';
-  if(!posts || posts.length===0){container.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>'; return}
+  const container=document.getElementById('feed');
+  container.innerHTML='';
+  if(!posts || posts.length===0){container.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>'; return}
 
-  container.style.overflowY='scroll';
-  for(const p of posts){
-    if(p.type==='reel') container.appendChild(await createReel(p));
-    else container.appendChild(await createTextReel(p));
-  }
-  setupReelObserver();
+  container.style.overflowY='scroll';
+  for(const p of posts){
+    if(p.type==='reel') container.appendChild(await createReel(p));
+    else container.appendChild(await createTextReel(p));
+  }
+  setupReelObserver();
 }
 
 async function createReel(p){
-  const div=document.createElement('div');
-  div.className='reel';
-  div.dataset.id=p.id;
-  div.dataset.creator=p.userId;
+  const div=document.createElement('div');
+  div.className='reel';
+  div.dataset.id=p.id;
+  div.dataset.creator=p.userId;
 
-  const user=await getUser(p.userId);
-  const isMe = p.userId === USER_ID;
+  const user=await getUser(p.userId);
+  const isMe = p.userId === USER_ID;
 
-  // CHANGE 1: added webkit-playsinline + play overlay
-  div.innerHTML=`
-    <video muted loop playsinline webkit-playsinline preload="metadata" data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video>
-    <div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-    <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username||p.userId}</b>
-        ${!isMe? `<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>` : ''}
-      </div>
-      <p>${p.caption||''}</p>
-      ${p.externalLink && p.isBoosted? `<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ''}
-    </div>
-    <div class="actions">
-      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div>
-      <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>
-      ${!isMe? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
-      <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
-      <div class="action-btn" onclick="boostPost('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-      <div class="action-btn" onclick="toggleSound(this)"><svg viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div>
-    </div>`;
+  div.innerHTML=`
+    <video muted loop playsinline webkit-playsinline preload="metadata" data-key="${p.mediaUrl}" data-shard="${p.b2Shard}"></video>
+    <div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username||p.userId}</b>
+        ${!isMe? `<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>` : ''}
+      </div>
+      <p>${p.caption||''}</p>
+      ${p.externalLink && p.isBoosted? `<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ''}
+    </div>
+    <div class="actions">
+      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>
+      ${!isMe? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
+      <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+      <div class="action-btn" onclick="boostPost('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div class="action-btn" onclick="toggleSound(this)"><svg viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div>
+    </div>`;
 
-  let lastTap=0;
-  div.ontouchend=e=>{const now=Date.now();if(now-lastTap<300) likePost(p.id,p.userId,div.querySelector('.action-btn'));lastTap=now;}
-  return div;
+  let lastTap=0;
+  div.ontouchend=e=>{const now=Date.now();if(now-lastTap<300) likePost(p.id,p.userId,div.querySelector('.action-btn'));lastTap=now;}
+  return div;
 }
 
 async function createTextReel(p){
-  const div=document.createElement('div');
-  div.className=`reel ${p.type}`;
-  div.dataset.id=p.id;
-  div.dataset.creator=p.userId;
+  const div=document.createElement('div');
+  div.className=`reel ${p.type}`;
+  div.dataset.id=p.id;
+  div.dataset.creator=p.userId;
 
-  const user=await getUser(p.userId);
-  const isMe = p.userId === USER_ID;
+  const user=await getUser(p.userId);
+  const isMe = p.userId === USER_ID;
 
-  div.innerHTML=`
-    <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px">
-      <h2 style="font-size:28px;margin-bottom:12px">${p.title||'Untitled'}</h2>
-      <p style="color:var(--muted)">@${user.username||p.userId}</p>
-      <p style="margin-top:20px;opacity:0.7">Double tap to read</p>
-    </div>
-    <div class="actions">
-      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div>
-      <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>
-      ${!isMe? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
-      <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
-    </div>`;
+  div.innerHTML=`
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px">
+      <h2 style="font-size:28px;margin-bottom:12px">${p.title||'Untitled'}</h2>
+      <p style="color:var(--muted)">@${user.username||p.userId}</p>
+      <p style="margin-top:20px;opacity:0.7">Double tap to read</p>
+    </div>
+    <div class="actions">
+      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>
+      ${!isMe? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
+      <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+    </div>`;
 
-  let lastTap=0;
-  div.ontouchend=e=>{const now=Date.now();if(now-lastTap<300) openReader(p.id);lastTap=now;}
-  return div;
+  let lastTap=0;
+  div.ontouchend=e=>{const now=Date.now();if(now-lastTap<300) openReader(p.id);lastTap=now;}
+  return div;
 }
 
-// CHANGE 2: new manual play function for iPhone
 function manualPlay(overlay){
-  const video = overlay.parentElement.querySelector('video');
-  video.play();
-  overlay.style.display = 'none';
+  const video = overlay.parentElement.querySelector('video');
+  video.play();
+  overlay.style.display = 'none';
 }
 
 function setupReelObserver(){
-  const obs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      const video=e.target.querySelector('video');
-      const overlay=e.target.querySelector('.play-overlay');
-      const postId=e.target.dataset.id;
-      const creatorId=e.target.dataset.creator;
-      if(e.intersectionRatio>0.7){
-        if(video &&!video.src){
-          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{
-            if(url){
-              video.src=url;
-              // CHANGE 3: try autoplay, if fails show tap button
-              video.play().catch(()=>{
-                overlay.style.display = 'flex';
-                toast('Tap to play')
-              });
-            }
-          });
-        } else if(video){
-          video.play().catch(()=>{
-            if(overlay) overlay.style.display = 'flex';
-          });
-        }
-        api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
-      }else{
-        if(video) video.pause();
-        if(overlay) overlay.style.display = 'none';
-      }
-    });
-  },{threshold:0.7});
-  document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      const video=e.target.querySelector('video');
+      const overlay=e.target.querySelector('.play-overlay');
+      const postId=e.target.dataset.id;
+      const creatorId=e.target.dataset.creator;
+      if(e.intersectionRatio>0.7){
+        if(video &&!video.src){
+          getSignedUrl(video.dataset.key,video.dataset.shard).then(url=>{
+            if(url){
+              video.src=url;
+              video.play().catch(()=>{
+                overlay.style.display = 'flex';
+                toast('Tap to play')
+              });
+            }
+          });
+        } else if(video){
+          video.play().catch(()=>{
+            if(overlay) overlay.style.display = 'flex';
+          });
+        }
+        api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
+      }else{
+        if(video) video.pause();
+        if(overlay) overlay.style.display = 'none';
+      }
+    });
+  },{threshold:0.7});
+  document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
 }
 
 async function likePost(postId,creatorId,btn){
-  if(btn.dataset.locked) return;
-  btn.dataset.locked=1;
-  const span=document.getElementById(`like-${postId}`);
-  span.innerText=parseInt(span.innerText)+1;
-  btn.style.color='var(--pink)';
-  await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})});
-  setTimeout(()=>delete btn.dataset.locked,1000);
+  if(btn.dataset.locked) return;
+  btn.dataset.locked=1;
+  const span=document.getElementById(`like-${postId}`);
+  span.innerText=parseInt(span.innerText)+1;
+  btn.style.color='var(--pink)';
+  await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})});
+  setTimeout(()=>delete btn.dataset.locked,1000);
 }
 
 async function toggleFollow(userId,btn){
-  if(followLocks[userId]) return;
-  followLocks[userId]=true;
-  btn.disabled=true;
-  const isFollowing=btn.innerText==='Following';
-  const oldText=btn.innerText;
-  btn.innerText=isFollowing?'Follow':'Following';
-  const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});
-  if(res.error){ btn.innerText=oldText; toast(res.error); }
-  setTimeout(()=>{btn.disabled=false; delete followLocks[userId]},2000);
+  if(followLocks[userId]) return;
+  followLocks[userId]=true;
+  btn.disabled=true;
+  const isFollowing=btn.innerText==='Following';
+  const oldText=btn.innerText;
+  btn.innerText=isFollowing?'Follow':'Following';
+  const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});
+  if(res.error){ btn.innerText=oldText; toast(res.error); }
+  setTimeout(()=>{btn.disabled=false; delete followLocks[userId]},2000);
 }
 
 async function sendGift(userId){
-  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId, giftType:'RUBY'})});
-  if(res.success) toast('Gift sent!');
-  else toast(res.error);
+  const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:userId, giftType:'RUBY'})});
+  if(res.success) toast('Gift sent!');
+  else toast(res.error);
 }
 
 function boostPost(id){location.href=`post.html?boost=${id}`}
 function toggleSound(btn){const video=btn.closest('.reel').querySelector('video');video.muted=!video.muted;toast(video.muted?'Muted':'Unmuted')}
 
 async function sharePost(){
-  const url=`${location.origin}/index.html`;
-  navigator.clipboard.writeText(url);
-  toast('App link copied');
+  const url=`${location.origin}/golviral-frontend/index.html`;
+  navigator.clipboard.writeText(url);
+  toast('App link copied');
 }
 
 async function openComments(postId,creatorId){
-  currentPost={postId,creatorId};
-  document.getElementById('comment-sheet').classList.add('active');
-  const d=await api(`/api/comments/${postId}`);
-  document.getElementById('comment-list').innerHTML=(d.comments||[]).map(c=>`<p style="margin-bottom:8px"><b>${c.user.username}</b>: ${c.text}</p>`).join('');
+  currentPost={postId,creatorId};
+  document.getElementById('comment-sheet').classList.add('active');
+  const d=await api(`/api/comments/${postId}`);
+  document.getElementById('comment-list').innerHTML=(d.comments||[]).map(c=>`<p style="margin-bottom:8px"><b>${c.user.username}</b>: ${c.text}</p>`).join('');
 }
 
 function closeSheet(){document.getElementById('comment-sheet').classList.remove('active')}
@@ -338,19 +339,19 @@ document.getElementById('comment-sheet').onclick=e=>{if(e.target.id==='comment-s
 document.getElementById('search-modal').onclick=e=>{if(e.target.id==='search-modal') e.target.classList.remove('active')}
 
 async function sendComment(){
-  const text=document.getElementById('comment-input').value;
-  if(!text) return;
-  await api('/api/comment',{method:'POST',body:JSON.stringify({...currentPost,text})});
-  document.getElementById('comment-input').value='';
-  openComments(currentPost.postId,currentPost.creatorId);
+  const text=document.getElementById('comment-input').value;
+  if(!text) return;
+  await api('/api/comment',{method:'POST',body:JSON.stringify({...currentPost,text})});
+  document.getElementById('comment-input').value='';
+  openComments(currentPost.postId,currentPost.creatorId);
 }
 
 async function openReader(id){
-  const p=await api(`/api/post/${id}`);
-  document.getElementById('reader-title').innerText=p.title||'No Title';
-  document.getElementById('reader-content').innerText=p.content||'No Content';
-  document.getElementById('reader-tab').classList.add('active');
-  api('/api/read-session',{method:'POST',body:JSON.stringify({contentId:id,authorId:p.userId,contentType:p.type})});
+  const p=await api(`/api/post/${id}`);
+  document.getElementById('reader-title').innerText=p.title||'No Title';
+  document.getElementById('reader-content').innerText=p.content||'No Content';
+  document.getElementById('reader-tab').classList.add('active');
+  api('/api/read-session',{method:'POST',body:JSON.stringify({contentId:id,authorId:p.userId,contentType:p.type})});
 }
 
 function closeReader(){document.getElementById('reader-tab').classList.remove('active')}
@@ -358,13 +359,19 @@ function openSearch(){document.getElementById('search-modal').classList.add('act
 function debounceSearch(q){clearTimeout(searchTimer);searchTimer=setTimeout(()=>searchUsers(q),300)}
 
 async function searchUsers(q){
-  if(q.length<2) return;
-  const users=await api(`/api/search/users?q=${q}`);
-  document.getElementById('search-results').innerHTML=(users||[]).map(u=>`<div onclick="location.href='profile.html?id=${u.id}'" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border)">${u.username} - ${u.followers} followers</div>`).join('');
+  if(q.length<2) return;
+  const users=await api(`/api/search/users?q=${q}`);
+  document.getElementById('search-results').innerHTML=(users||[]).map(u=>`<div onclick="location.href='profile.html?id=${u.id}'" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border)">${u.username} - ${u.followers} followers</div>`).join('');
 }
 
 loadFeed('ForYou',document.querySelector('.tab'));
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/golviral-frontend/sw.js').catch(()=>{})}
+
+// REGISTER ROOT SW FOR IPHONE PUSH
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js')
+   .then(()=>console.log('SW registered'))
+   .catch(e=>console.error('SW failed', e))
+}
 </script>
 </body>
 </html>
