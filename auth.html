@@ -3,8 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GolViral - Login</title>
+<meta name="description" content="GolViral: The short video and story app where you earn money. Post reels, short novels, memes & photos,and get paid for views, engagement likes, and referrals. Join millions of creators today.">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GolViral">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
+<title>GolViral - Login</title>
 <style>
 :root{
   --bg:#000;
@@ -27,6 +33,17 @@ header{padding:20px;display:flex;justify-content:center;align-items:center;gap:1
 .tab.active{background:var(--gradient);color:#000;border:none}
 .input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;outline:none;margin-bottom:12px;font-size:16px}
 .input:focus{border-color:var(--accent)}
+.pass-container{position:relative;margin-bottom:12px}
+.pass-container .input{margin-bottom:0;padding-right:44px}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px}
+.eye-btn:hover{color:var(--text)}
+.terms-container{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.terms-container input[type="checkbox"]{display:none}
+.custom-checkbox{width:18px;height:18px;border:1px solid var(--border);border-radius:4px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:0.2s}
+.terms-container input[type="checkbox"]:checked + .custom-checkbox{background:var(--accent);border-color:var(--accent)}
+.terms-container input[type="checkbox"]:checked + .custom-checkbox svg{display:block;stroke:#000}
+.custom-checkbox svg{display:none;width:12px;height:12px;stroke-width:3}
+.username-note{font-size:12px;color:var(--muted);margin:-6px 0 12px 4px;display:block}
 .btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:16px}
 .btn:disabled{opacity:0.5}
 svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
@@ -46,6 +63,7 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
 .toast.show{transform:translate(-50%,0);opacity:1}
 .progress{height:4px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden}
 .progress-bar{height:100%;width:0%;background:var(--gradient);transition:0.3s}
+.social-proof{text-align:center;padding:20px;margin-top:auto;font-size:13px;color:var(--muted);line-height:1.5}
 </style>
 </head>
 <body>
@@ -68,14 +86,32 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   </div>
   <form id="form-login">
     <input class="input" id="login-email" type="email" placeholder="Email" required>
-    <input class="input" id="login-pass" type="password" placeholder="Password" required>
+    <div class="pass-container">
+      <input class="input" id="login-pass" type="password" placeholder="Password (8 chars)" maxlength="8" minlength="8" required>
+      <button type="button" class="eye-btn" onclick="togglePass('login-pass', this)" aria-label="Toggle password visibility">
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
     <button class="btn" type="submit">Login</button>
   </form>
   <form id="form-signup" style="display:none">
     <input class="input" id="signup-user" placeholder="Username" required>
+    <span class="username-note">Note: Only your bio will be editable; your username cannot be changed once created.</span>
     <input class="input" id="signup-email" type="email" placeholder="Email" required>
-    <input class="input" id="signup-pass" type="password" placeholder="Password" required>
+    <div class="pass-container">
+      <input class="input" id="signup-pass" type="password" placeholder="Password (8 chars)" maxlength="8" minlength="8" required>
+      <button type="button" class="eye-btn" onclick="togglePass('signup-pass', this)" aria-label="Toggle password visibility">
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
     <input class="input" id="signup-ref" placeholder="Referral Code Optional">
+    <label class="terms-container">
+      <input type="checkbox" id="signup-terms" required>
+      <span class="custom-checkbox">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </span>
+      <span>I agree to the <a href="legal.html" target="_blank" style="color:var(--accent);text-decoration:underline;">Legal Terms</a></span>
+    </label>
     <button class="btn" type="submit">Create Account</button>
   </form>
   <form id="form-forgot" style="display:none">
@@ -97,7 +133,12 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   <div class="glass-modal">
     <h3 style="margin-bottom:12px">Reset Password</h3>
     <input class="input" id="otp-code" placeholder="Enter 6 digit OTP">
-    <input class="input" id="new-pass" type="password" placeholder="New Password">
+    <div class="pass-container">
+      <input class="input" id="new-pass" type="password" placeholder="New Password (8 chars)" maxlength="8" minlength="8">
+      <button type="button" class="eye-btn" onclick="togglePass('new-pass', this)" aria-label="Toggle password visibility">
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
     <button class="btn" onclick="submitReset()">Reset Password</button>
   </div>
 </div>
@@ -111,6 +152,10 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
     <button class="btn" id="next-btn" onclick="nextQuestion()">Continue</button>
   </div>
 </div>
+
+<footer class="social-proof">
+  Join millions of creators earning with GolViral and meet more friends by following, chatting and more.
+</footer>
 
 <script>
 const API='https://golviral-api.onrender.com';
@@ -130,6 +175,17 @@ const surveyQuestions=[
   {id:'language', title:'Q5: Preferred Language', type:'radio', options:['English','Pidgin','Hausa','Yoruba','Igbo']},
   {id:'country', title:'Q6: Select Country', type:'select', options:['NG','US','UK','CA','GH','KE','ZA']}
 ];
+
+function togglePass(id, btn){
+  const input = document.getElementById(id);
+  if(input.type === 'password'){
+    input.type = 'text';
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+  } else {
+    input.type = 'password';
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  }
+}
 
 function showTab(tab, el){
   currentTab=tab;
@@ -240,6 +296,10 @@ document.getElementById('form-login').onsubmit=async e=>{
 
 document.getElementById('form-signup').onsubmit=async e=>{
   e.preventDefault();
+  if(!document.getElementById('signup-terms').checked){
+    toast('You must agree to the Legal Terms');
+    return;
+  }
   pendingData={type:'signup',username:document.getElementById('signup-user').value,email:document.getElementById('signup-email').value,password:document.getElementById('signup-pass').value,referralCode:document.getElementById('signup-ref').value};
   botChallenge();
 }
