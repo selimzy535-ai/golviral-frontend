@@ -168,54 +168,51 @@ async function apiMain(path,body){
 async function submitPost(){
   if(uiType!=='shortstory' &&!selectedFile) return toast('Please select a file first', true);
   const btn = document.getElementById('publish-btn');
-  btn.disabled=true; btn.innerText='Processing...';
+  btn.disabled=true;
+  btn.innerText='Processing...';
   const title=document.getElementById('title').value;
   const caption=document.getElementById('caption').value;
   const backendType = TYPE_MAP[uiType];
   const userId = JSON.parse(atob(TOKEN.split('.')[1])).id;
+  const postId = crypto.randomUUID(); // 1. Generate first
 
   try {
-    let postId;
-
-    // STEP 1: UPLOAD DIRECT TO CDN SERVER
     if(selectedFile){
       btn.innerText='Step 1: Uploading to CDN...';
       document.getElementById('progress-wrap').style.display='block';
-
       const form = new FormData();
       form.append('video', selectedFile);
       form.append('userId', userId);
+      form.append('postId', postId); // 2. Send same postId
       form.append('title', title);
       form.append('caption', caption);
-
+      
       const uploadRes = await fetch(CDN_API+'/api/cdn/upload-direct', {
         method: 'POST',
-        headers: { 'x-api-key': CDN_KEY }, // no Content-Type, browser sets it for FormData
+        headers: { 'x-api-key': CDN_KEY },
         body: form
       });
       const uploadData = await uploadRes.json();
       if(uploadData.error) throw new Error(uploadData.error);
-
-      // CDN will generate postId internally and queue it
-      postId = crypto.randomUUID(); // we still need one for main-api create
-    } else {
-      // shortstory
-      postId = crypto.randomUUID();
     }
 
-    // STEP 2: CREATE DB RECORD AS UPLOADING
     btn.innerText='Step 2: Creating post...';
     const final = await apiMain('/api/post/create', {
-      postId, title, content: caption, type: backendType, status: 'UPLOADING'
+      postId, // 3. Use same postId
+      title, 
+      content: caption, 
+      type: backendType, 
+      status: 'UPLOADING'
     });
     if(final.error) throw new Error(final.error);
-
-    toast('Uploaded! Waiting for admin approval 🎉');
+    
+    toast('Uploaded! Waiting for system review  🎉');
     setTimeout(()=>location.href='index.html',1500);
   } catch(err) {
     console.error(err);
     toast('ERROR: '+err.message, true);
-    btn.disabled=false; btn.innerText='Publish Post';
+    btn.disabled=false;
+    btn.innerText='Publish Post';
   }
 }
 
