@@ -89,14 +89,15 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const method = event.request.method;
 
-  // 0. BYPASS: API calls, Admin page, non-GET requests
+  // 0. BYPASS: API calls, CDN calls, Admin page, non-GET requests
   if (
     method !== 'GET' ||
-    url.hostname.includes('onrender.com') || 
+    url.hostname.includes('onrender.com') || // bypass golviral-api AND golviral-cdn
+    url.hostname.includes('backblazeb2.com') || // bypass B2 direct uploads
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('admin.html')
   ) {
-    return; // Fall back to default browser fetch handling
+    return; // Let browser handle it. Don't touch with cache
   }
 
   // 1. VIDEOS: Cache First with Range Request support
@@ -117,11 +118,11 @@ self.addEventListener('fetch', event => {
           if (networkRes.status === 200) {
             cache.put(event.request.url, networkRes.clone());
             event.waitUntil(cleanupOldVideos());
-            return returnRangeResponse(event.request, networkRes);
+            returnRangeResponse(event.request, networkRes);
           }
           return networkRes;
         } catch {
-          if (cached) return returnRangeResponse(event.request, cached);
+          if (cached) returnRangeResponse(event.request, cached);
         }
       })
     );
