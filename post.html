@@ -94,21 +94,9 @@ const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 
-function generateUUID() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-
 function parseJwt(token) {
   try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(window.atob(base64));
+    return JSON.parse(atob(token.split('.')[1]));
   } catch (e) {
     location.href='auth.html';
   }
@@ -138,7 +126,7 @@ function setType(type){
   const drop=document.getElementById('drop');
   const tip=document.getElementById('tip-text');
   const fileInput=document.getElementById('file-input');
-  
+
   if(type==='shortstory'){
     drop.style.display='none';
     selectedFile=null;
@@ -172,19 +160,17 @@ document.getElementById('file-input').onchange=e=>{
     selectedFile=null;
     return;
   }
-  
+
   document.getElementById('placeholder').style.display='none';
-  
+
   if(uiType==='photo'){
-    const img = document.getElementById('img-preview');
-    img.src = URL.createObjectURL(selectedFile);
-    img.style.display = 'block';
+    document.getElementById('img-preview').src = URL.createObjectURL(selectedFile);
+    document.getElementById('img-preview').style.display = 'block';
     document.getElementById('video-preview').style.display = 'none';
   }
   if(uiType==='reel'){
-    const video = document.getElementById('video-preview');
-    video.src = URL.createObjectURL(selectedFile);
-    video.style.display = 'block';
+    document.getElementById('video-preview').src = URL.createObjectURL(selectedFile);
+    document.getElementById('video-preview').style.display = 'block';
     document.getElementById('img-preview').style.display = 'none';
   }
   toast('File ready: '+selectedFile.name);
@@ -205,7 +191,7 @@ function uploadFileWithProgress(url, formData) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url);
     xhr.setRequestHeader('x-api-key', CDN_KEY);
-    
+
     xhr.upload.onprogress = e => {
       if(e.lengthComputable){
         let percent = (e.loaded / e.total * 100).toFixed(0);
@@ -215,28 +201,18 @@ function uploadFileWithProgress(url, formData) {
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          resolve(JSON.parse(xhr.responseText));
-        } catch (err) {
-          reject(new Error('Invalid JSON response from CDN server'));
-        }
+        resolve(JSON.parse(xhr.responseText));
       } else {
-        try {
-          const errData = JSON.parse(xhr.responseText);
-          reject(new Error(errData.error || `Upload failed with status ${xhr.status}`));
-        } catch(e) {
-          reject(new Error(`Server error: ${xhr.status}`));
-        }
+        reject(new Error(JSON.parse(xhr.responseText).error || `Upload failed ${xhr.status}`));
       }
     };
-
     xhr.onerror = () => reject(new Error('Network error during CDN upload'));
     xhr.send(formData);
   });
 }
 
 async function submitPost(){
-  if(uiType!=='shortstory' && !selectedFile) return toast('Please select a file first', true);
+  if(uiType!=='shortstory' &&!selectedFile) return toast('Please select a file first', true);
   const btn = document.getElementById('publish-btn');
   btn.disabled=true;
   btn.innerText='Processing...';
@@ -244,37 +220,53 @@ async function submitPost(){
   const caption=document.getElementById('caption').value;
   const backendType = TYPE_MAP[uiType];
   const userId = parseJwt(TOKEN).id;
-  const postId = generateUUID();
 
   try {
+    let postId, uploadUrl, objectKey;
+
+    // STEP 1: GET INTENT FROM MAIN-API
+    btn.innerText='Step 1: Creating post intent...';
+    const intentRes = await fetch(API+'/api/post/create-intent', {
+      method:'POST',
+      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        postType: backendType,
+        contentType: selectedFile? selectedFile.type : null,
+        fileExtension: selectedFile? selectedFile.name.split('.').pop() : null,
+        caption,
+        externalLink: ''
+      })
+    });
+    const intent = await intentRes.json();
+    if(intent.error) throw new Error(intent.error);
+    postId = intent.postId;
+    uploadUrl = intent.uploadUrl;
+    objectKey = intent.objectKey;
+
+    // STEP 2: UPLOAD TO CDN DIRECT
     if(selectedFile){
-      btn.innerText='Step 1: Uploading to CDN...';
+      btn.innerText='Step 2: Uploading to CDN...';
       document.getElementById('progress-wrap').style.display='block';
       document.getElementById('progress').style.width='0%';
-      
+
       const form = new FormData();
-      // Uses generic field name 'file' to match upload.any() on Express backend
-      form.append('file', selectedFile);
+      form.append('video', selectedFile); // MUST be 'video' to match upload.single('video')
       form.append('userId', userId);
-      form.append('postId', postId);
       form.append('title', title);
       form.append('caption', caption);
-      
+
       const uploadData = await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct', form);
       if(uploadData.error) throw new Error(uploadData.error);
     }
 
-    btn.innerText='Step 2: Creating post...';
+    // STEP 3: FINALIZE
+    btn.innerText='Step 3: Finalizing...';
     const final = await apiMain('/api/post/create', {
-      postId,
-      title, 
-      content: caption, 
-      type: backendType, 
-      status: 'UPLOADING'
+      postId, objectKey, title, content: caption
     });
     if(final.error) throw new Error(final.error);
-    
-    toast('Uploaded! Waiting for system review 🎉');
+
+    toast('Uploaded! Waiting for admin approval 🎉');
     setTimeout(()=>location.href='index.html',1500);
   } catch(err) {
     console.error(err);
