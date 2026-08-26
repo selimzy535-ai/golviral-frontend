@@ -21,10 +21,11 @@ h2{margin-bottom:16px}
 .input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px;outline:none}
 .input:focus{border-color:var(--accent)}
 
-.drop{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;margin-bottom:12px;cursor:pointer;position:relative;min-height:220px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden}
+/* DROP CONTAINER FIX: Prevents layout jump on media load */
+.drop{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;margin-bottom:12px;cursor:pointer;position:relative;height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;background:#000}
 .drop:hover{border-color:var(--accent)}
-.drop img,.drop video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.drop-placeholder{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px}
+.drop img, .drop video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:10px;z-index:2}
+.drop-placeholder{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1}
 
 .progress{height:8px;background:#000;border-radius:10px;overflow:hidden;margin-top:12px;display:none}
 .progress-bar{height:100%;background:var(--gradient);width:0%;transition:0.2s}
@@ -68,10 +69,10 @@ h2{margin-bottom:16px}
       <div class="drop-placeholder" id="placeholder">
         <svg width="40" height="40" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>
         <b>Tap to select file</b>
-        <p class="tip" id="tip-text">MP4 or MOV • Max 60s • Max 100MB</p>
+        <p class="tip" id="tip-text">MP4 or MOV • Max 120s • Max 10MB</p>
       </div>
       <img id="img-preview" style="display:none">
-      <video id="video-preview" style="display:none" controls></video>
+      <video id="video-preview" style="display:none" controls playsinline></video>
       <input type="file" id="file-input" style="display:none">
     </div>
     <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress"></div></div>
@@ -83,16 +84,27 @@ h2{margin-bottom:16px}
     <button class="btn" id="publish-btn" onclick="submitPost()">Publish Post</button>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 <script>eruda.init();</script>
 <script>
-const API='https://golviral-api.onrender.com'; // main-api for final create
-const CDN_API='https://golviral-cdn.onrender.com'; // new cdn
-const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars'; // same key as in admin
+const API='https://golviral-api.onrender.com';
+const CDN_API='https://golviral-cdn.onrender.com';
+const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 
-// MAP UI NAME -> BACKEND NAME
+// Safe JWT parser handling Base64URL encoding
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(window.atob(base64));
+  } catch (e) {
+    location.href='auth.html';
+  }
+}
+
 const TYPE_MAP = {
   reel: 'reel',
   photo: 'store',
@@ -107,7 +119,7 @@ function toast(msg, isError=false){
   t.innerText=msg;
   t.className='toast '+(isError?'error':'');
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),4000)
+  setTimeout(()=>t.classList.remove('show'),4000);
 }
 
 function setType(type){
@@ -117,6 +129,7 @@ function setType(type){
   const drop=document.getElementById('drop');
   const tip=document.getElementById('tip-text');
   const fileInput=document.getElementById('file-input');
+  
   if(type==='shortstory'){
     drop.style.display='none';
     selectedFile=null;
@@ -127,7 +140,7 @@ function setType(type){
     document.getElementById('video-preview').style.display='none';
     if(type==='reel'){
       fileInput.accept='video/mp4,video/quicktime,video/mov';
-      tip.innerText='MP4 or MOV • Max 120s • Max 10MB'; // CDN limit
+      tip.innerText='MP4 or MOV • Max 120s • Max 10MB';
     }
     if(type==='photo'){
       fileInput.accept='image/jpeg,image/png,image/webp,image/gif';
@@ -136,54 +149,72 @@ function setType(type){
   }
 }
 
-document.getElementById('drop').onclick=()=>document.getElementById('file-input').click();
+document.getElementById('drop').onclick=(e)=>{
+  // Prevent file dialog trigger if user is interacting with video controls
+  if(e.target.tagName === 'VIDEO') return;
+  document.getElementById('file-input').click();
+};
+
 document.getElementById('file-input').onchange=e=>{
   selectedFile=e.target.files[0];
   if(!selectedFile) return;
-  const maxSize = 10*1024*1024; // CDN limit is 10MB
+  const maxSize = 10*1024*1024;
   if(selectedFile.size > maxSize){
     toast('File too big! Max 10MB for CDN', true);
     selectedFile=null;
     return;
   }
+  
   document.getElementById('placeholder').style.display='none';
+  
   if(uiType==='photo'){
-    document.getElementById('img-preview').src=URL.createObjectURL(selectedFile);
-    document.getElementById('img-preview').style.display='block';
+    const img = document.getElementById('img-preview');
+    img.src = URL.createObjectURL(selectedFile);
+    img.style.display = 'block';
+    document.getElementById('video-preview').style.display = 'none';
   }
   if(uiType==='reel'){
-    document.getElementById('video-preview').src=URL.createObjectURL(selectedFile);
-    document.getElementById('video-preview').style.display='block';
+    const video = document.getElementById('video-preview');
+    video.src = URL.createObjectURL(selectedFile);
+    video.style.display = 'block';
+    document.getElementById('img-preview').style.display = 'none';
   }
-  toast('File ready: '+selectedFile.name)
-}
+  toast('File ready: '+selectedFile.name);
+};
 
 async function apiMain(path,body){
-  const res=await fetch(API+path,{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const res=await fetch(API+path,{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
   if(res.status===401) location.href='auth.html';
   return res.json();
 }
 
-// NEW 2 STEP FLOW: UPLOAD TO CDN -> CREATE DB
 async function submitPost(){
-  if(uiType!=='shortstory' &&!selectedFile) return toast('Please select a file first', true);
+  if(uiType!=='shortstory' && !selectedFile) return toast('Please select a file first', true);
   const btn = document.getElementById('publish-btn');
   btn.disabled=true;
   btn.innerText='Processing...';
   const title=document.getElementById('title').value;
   const caption=document.getElementById('caption').value;
   const backendType = TYPE_MAP[uiType];
-  const userId = JSON.parse(atob(TOKEN.split('.')[1])).id;
-  const postId = crypto.randomUUID(); // 1. Generate first
+  const userId = parseJwt(TOKEN).id;
+  const postId = crypto.randomUUID();
 
   try {
     if(selectedFile){
       btn.innerText='Step 1: Uploading to CDN...';
       document.getElementById('progress-wrap').style.display='block';
       const form = new FormData();
-      form.append('video', selectedFile);
+      
+      // Dynamic upload key matching media type
+      const fileField = uiType === 'photo' ? 'image' : 'video';
+      form.append(fileField, selectedFile);
+      
       form.append('userId', userId);
-      form.append('postId', postId); // 2. Send same postId
+      form.append('postId', postId);
       form.append('title', title);
       form.append('caption', caption);
       
@@ -198,7 +229,7 @@ async function submitPost(){
 
     btn.innerText='Step 2: Creating post...';
     const final = await apiMain('/api/post/create', {
-      postId, // 3. Use same postId
+      postId,
       title, 
       content: caption, 
       type: backendType, 
@@ -206,7 +237,7 @@ async function submitPost(){
     });
     if(final.error) throw new Error(final.error);
     
-    toast('Uploaded! Waiting for system review  🎉');
+    toast('Uploaded! Waiting for system review 🎉');
     setTimeout(()=>location.href='index.html',1500);
   } catch(err) {
     console.error(err);
@@ -216,7 +247,6 @@ async function submitPost(){
   }
 }
 
-// Progress bar for FormData upload
 const origFetch = window.fetch;
 window.fetch = async (...args) => {
   if(args[1]?.body instanceof FormData){
@@ -229,14 +259,15 @@ window.fetch = async (...args) => {
           let percent = (e.loaded/e.total*100).toFixed(0);
           document.getElementById('progress').style.width=percent+'%';
         }
-      }
+      };
       xhr.onload = () => resolve(new Response(xhr.response, {status: xhr.status}));
       xhr.onerror = reject;
       xhr.send(args[1].body);
     });
   }
   return origFetch(...args);
-}
+};
 </script>
 </body>
 </html>
+
