@@ -244,20 +244,19 @@ async function submitPost(){
     objectKey = intent.objectKey;
 
     // STEP 2: UPLOAD TO CDN DIRECT
-    if(selectedFile){
-      btn.innerText='Step 2: Uploading to CDN...';
-      document.getElementById('progress-wrap').style.display='block';
-      document.getElementById('progress').style.width='0%';
-
-      const form = new FormData();
-      form.append('video', selectedFile); // MUST be 'video' to match upload.single('video')
-      form.append('userId', userId);
-      form.append('title', title);
-      form.append('caption', caption);
-
-      const uploadData = await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct', form);
-      if(uploadData.error) throw new Error(uploadData.error);
-    }
+if(selectedFile){
+    btn.innerText='Step 2: Uploading to CDN...';
+    document.getElementById('progress-wrap').style.display='block';
+    document.getElementById('progress').style.width='0%';
+    const form = new FormData();
+    form.append('video', selectedFile); // MUST be 'video'
+    form.append('userId', userId);
+    form.append('title', title);
+    form.append('caption', caption);
+    const uploadData = await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct', form);
+    if(uploadData.error) throw new Error(uploadData.error);
+    objectKey = uploadData.objectKey; // <-- THIS IS THE FIX
+}
 
     // STEP 3: FINALIZE
     btn.innerText='Step 3: Finalizing...';
