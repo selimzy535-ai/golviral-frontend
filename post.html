@@ -219,7 +219,9 @@ async function submitPost(){
   const title=document.getElementById('title').value;
   const caption=document.getElementById('caption').value;
   const backendType = TYPE_MAP[uiType];
-  const userId = parseJwt(TOKEN).id;
+const decoded = parseJwt(TOKEN);
+const userId = decoded.userId || decoded.id;
+console.log('JWT:', decoded, 'Using userId:', userId); // debug line
 
   try {
     let postId, uploadUrl, objectKey;
