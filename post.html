@@ -21,6 +21,7 @@ h2{margin-bottom:16px}
 .input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px;outline:none}
 .input:focus{border-color:var(--accent)}
 
+/* DROP CONTAINER FIX: Prevents layout jump on media load */
 .drop{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;margin-bottom:12px;cursor:pointer;position:relative;height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;background:#000}
 .drop:hover{border-color:var(--accent)}
 .drop img, .drop video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:10px;z-index:2}
@@ -47,6 +48,7 @@ h2{margin-bottom:16px}
 <div id="toast" class="toast"></div>
 
 <div class="content">
+  <!-- USER SEES: Reel, Photo, Short Story -->
   <div class="type-grid">
     <div class="type-btn active" data-ui="reel" onclick="setType('reel')">
       <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -62,7 +64,7 @@ h2{margin-bottom:16px}
     </div>
   </div>
 
-  <div class="card" id="media-card">
+  <div class="card">
     <div class="drop" id="drop">
       <div class="drop-placeholder" id="placeholder">
         <svg width="40" height="40" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>
@@ -86,17 +88,17 @@ h2{margin-bottom:16px}
 <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 <script>eruda.init();</script>
 <script>
-const API = 'https://golviral-api.onrender.com';
-const CDN_API = 'https://golviral-cdn.onrender.com';
-const CDN_KEY = 'sk_live_golviral_cdn_replace_this_with_32_random_chars';
-const TOKEN = localStorage.token;
-if (!TOKEN) location.href = 'auth.html';
+const API='https://golviral-api.onrender.com';
+const CDN_API='https://golviral-cdn.onrender.com';
+const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
+const TOKEN=localStorage.token;
+if(!TOKEN) location.href='auth.html';
 
 function parseJwt(token) {
   try {
     return JSON.parse(atob(token.split('.')[1]));
   } catch (e) {
-    location.href = 'auth.html';
+    location.href='auth.html';
   }
 }
 
@@ -106,81 +108,81 @@ const TYPE_MAP = {
   shortstory: 'novel'
 };
 
-let uiType = 'reel';
-let selectedFile = null;
+let uiType='reel';
+let selectedFile=null;
 
-function toast(msg, isError = false) {
-  const t = document.getElementById('toast');
-  t.innerText = msg;
-  t.className = 'toast ' + (isError ? 'error' : '');
+function toast(msg, isError=false){
+  const t=document.getElementById('toast');
+  t.innerText=msg;
+  t.className='toast '+(isError?'error':'');
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 4000);
+  setTimeout(()=>t.classList.remove('show'),4000);
 }
 
-function setType(type) {
-  uiType = type;
-  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+function setType(type){
+  uiType=type;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector(`[data-ui="${type}"]`).classList.add('active');
-  const mediaCard = document.getElementById('media-card');
-  const tip = document.getElementById('tip-text');
-  const fileInput = document.getElementById('file-input');
+  const drop=document.getElementById('drop');
+  const tip=document.getElementById('tip-text');
+  const fileInput=document.getElementById('file-input');
 
-  if (type === 'shortstory') {
-    mediaCard.style.display = 'none';
-    selectedFile = null;
-  } else {
-    mediaCard.style.display = 'block';
-    document.getElementById('placeholder').style.display = 'flex';
-    document.getElementById('img-preview').style.display = 'none';
-    document.getElementById('video-preview').style.display = 'none';
-    if (type === 'reel') {
-      fileInput.accept = 'video/mp4,video/quicktime,video/mov';
-      tip.innerText = 'MP4 or MOV • Max 120s • Max 10MB';
+  if(type==='shortstory'){
+    drop.style.display='none';
+    selectedFile=null;
+  }else{
+    drop.style.display='flex';
+    document.getElementById('placeholder').style.display='flex';
+    document.getElementById('img-preview').style.display='none';
+    document.getElementById('video-preview').style.display='none';
+    if(type==='reel'){
+      fileInput.accept='video/mp4,video/quicktime,video/mov';
+      tip.innerText='MP4 or MOV • Max 120s • Max 10MB';
     }
-    if (type === 'photo') {
-      fileInput.accept = 'image/jpeg,image/png,image/webp,image/gif';
-      tip.innerText = 'JPG, PNG, WEBP • Max 10MB';
+    if(type==='photo'){
+      fileInput.accept='image/jpeg,image/png,image/webp,image/gif';
+      tip.innerText='JPG, PNG, WEBP • Max 10MB';
     }
   }
 }
 
-document.getElementById('drop').onclick = (e) => {
-  if (e.target.tagName === 'VIDEO') return;
+document.getElementById('drop').onclick=(e)=>{
+  if(e.target.tagName === 'VIDEO') return;
   document.getElementById('file-input').click();
 };
 
-document.getElementById('file-input').onchange = e => {
-  selectedFile = e.target.files[0];
-  if (!selectedFile) return;
-  const maxSize = 10 * 1024 * 1024;
-  if (selectedFile.size > maxSize) {
+document.getElementById('file-input').onchange=e=>{
+  selectedFile=e.target.files[0];
+  if(!selectedFile) return;
+  const maxSize = 10*1024*1024;
+  if(selectedFile.size > maxSize){
     toast('File too big! Max 10MB for CDN', true);
-    selectedFile = null;
+    selectedFile=null;
     return;
   }
 
-  document.getElementById('placeholder').style.display = 'none';
+  document.getElementById('placeholder').style.display='none';
 
-  if (uiType === 'photo') {
+  if(uiType==='photo'){
     document.getElementById('img-preview').src = URL.createObjectURL(selectedFile);
     document.getElementById('img-preview').style.display = 'block';
     document.getElementById('video-preview').style.display = 'none';
   }
-  if (uiType === 'reel') {
+  if(uiType==='reel'){
     document.getElementById('video-preview').src = URL.createObjectURL(selectedFile);
     document.getElementById('video-preview').style.display = 'block';
     document.getElementById('img-preview').style.display = 'none';
   }
-  toast('File ready: ' + selectedFile.name);
+  toast('File ready: '+selectedFile.name);
 };
 
-async function apiMain(path, body) {
-  const res = await fetch(API + path, {
-    method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+async function apiMain(path,body){
+  const res=await fetch(API+path,{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
   });
-  if (res.status === 401) location.href = 'auth.html';
+  if(res.status===401) location.href='auth.html';
   return res.json();
 }
 
@@ -191,7 +193,7 @@ function uploadFileWithProgress(url, formData) {
     xhr.setRequestHeader('x-api-key', CDN_KEY);
 
     xhr.upload.onprogress = e => {
-      if (e.lengthComputable) {
+      if(e.lengthComputable){
         let percent = (e.loaded / e.total * 100).toFixed(0);
         document.getElementById('progress').style.width = percent + '%';
       }
@@ -201,11 +203,7 @@ function uploadFileWithProgress(url, formData) {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(JSON.parse(xhr.responseText));
       } else {
-        try {
-          reject(new Error(JSON.parse(xhr.responseText).error || `Upload failed ${xhr.status}`));
-        } catch (_) {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
-        }
+        reject(new Error(JSON.parse(xhr.responseText).error || `Upload failed ${xhr.status}`));
       }
     };
     xhr.onerror = () => reject(new Error('Network error during CDN upload'));
@@ -213,60 +211,68 @@ function uploadFileWithProgress(url, formData) {
   });
 }
 
-async function submitPost() {
-  if (uiType !== 'shortstory' && !selectedFile) return toast('Please select a file first', true);
+async function submitPost(){
+  if(uiType!=='shortstory' &&!selectedFile) return toast('Please select a file first', true);
   const btn = document.getElementById('publish-btn');
-  btn.disabled = true;
-  btn.innerText = 'Processing...';
-
-  const title = document.getElementById('title').value;
-  const caption = document.getElementById('caption').value;
+  btn.disabled=true;
+  btn.innerText='Processing...';
+  const title=document.getElementById('title').value;
+  const caption=document.getElementById('caption').value;
   const backendType = TYPE_MAP[uiType];
   const userId = parseJwt(TOKEN).id;
 
   try {
-    let postId = null;
-    let objectKey = null;
+    let postId, uploadUrl, objectKey;
 
-    // STEP 1: UPLOAD DIRECT TO CDN (For Reels & Photos)
-    if (selectedFile) {
-      btn.innerText = 'Step 1: Uploading to CDN...';
-      document.getElementById('progress-wrap').style.display = 'block';
-      document.getElementById('progress').style.width = '0%';
-
-      const form = new FormData();
-      form.append('file', selectedFile);
-      form.append('userId', userId);
-      form.append('title', title);
-      form.append('caption', caption);
-
-      const uploadData = await uploadFileWithProgress(CDN_API + '/api/cdn/upload-direct', form);
-      if (uploadData.error) throw new Error(uploadData.error);
-      
-      postId = uploadData.postId;
-      objectKey = uploadData.objectKey;
-    }
-
-    // STEP 2: FINALIZE POST ENTRY ON MAIN-API
-    btn.innerText = 'Step 2: Finalizing post...';
-    const final = await apiMain('/api/post/create', {
-      postId,
-      objectKey,
-      title,
-      content: caption,
-      postType: backendType
+    // STEP 1: GET INTENT FROM MAIN-API
+    btn.innerText='Step 1: Creating post intent...';
+    const intentRes = await fetch(API+'/api/post/create-intent', {
+      method:'POST',
+      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        postType: backendType,
+        contentType: selectedFile? selectedFile.type : null,
+        fileExtension: selectedFile? selectedFile.name.split('.').pop() : null,
+        caption,
+        externalLink: ''
+      })
     });
-    if (final.error) throw new Error(final.error);
+    const intent = await intentRes.json();
+    if(intent.error) throw new Error(intent.error);
+    postId = intent.postId;
+    uploadUrl = intent.uploadUrl;
+    objectKey = intent.objectKey;
+
+    // STEP 2: UPLOAD TO CDN DIRECT
+if(selectedFile){
+    btn.innerText='Step 2: Uploading to CDN...';
+    document.getElementById('progress-wrap').style.display='block';
+    document.getElementById('progress').style.width='0%';
+    const form = new FormData();
+    form.append('video', selectedFile); // MUST be 'video'
+    form.append('userId', userId);
+    form.append('title', title);
+    form.append('caption', caption);
+    const uploadData = await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct', form);
+    if(uploadData.error) throw new Error(uploadData.error);
+    objectKey = uploadData.objectKey; // <-- THIS IS THE FIX
+}
+
+    // STEP 3: FINALIZE
+    btn.innerText='Step 3: Finalizing...';
+    const final = await apiMain('/api/post/create', {
+      postId, objectKey, title, content: caption
+    });
+    if(final.error) throw new Error(final.error);
 
     toast('Uploaded! Waiting for admin approval 🎉');
-    setTimeout(() => location.href = 'index.html', 1500);
-
-  } catch (err) {
+    setTimeout(()=>location.href='index.html',1500);
+  } catch(err) {
     console.error(err);
-    toast('ERROR: ' + err.message, true);
-    btn.disabled = false;
-    btn.innerText = 'Publish Post';
-    document.getElementById('progress-wrap').style.display = 'none';
+    toast('ERROR: '+err.message, true);
+    btn.disabled=false;
+    btn.innerText='Publish Post';
+    document.getElementById('progress-wrap').style.display='none';
   }
 }
 </script>
