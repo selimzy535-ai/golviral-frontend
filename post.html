@@ -213,18 +213,19 @@ function uploadFileWithProgress(url, formData) {
 
 async function submitPost(){
   if(uiType!=='shortstory' &&!selectedFile) return toast('Please select a file first', true);
+
   const btn = document.getElementById('publish-btn');
   btn.disabled=true;
   btn.innerText='Processing...';
+
   const title=document.getElementById('title').value;
   const caption=document.getElementById('caption').value;
   const backendType = TYPE_MAP[uiType];
-const decoded = parseJwt(TOKEN);
-const userId = decoded.userId || decoded.id;
-console.log('JWT:', decoded, 'Using userId:', userId); // debug line
+  const decoded = parseJwt(TOKEN);
+  const userId = decoded.userId || decoded.id;
 
   try {
-    let postId, uploadUrl, objectKey;
+    let postId, objectKey;
 
     // STEP 1: GET INTENT FROM MAIN-API
     btn.innerText='Step 1: Creating post intent...';
@@ -236,39 +237,53 @@ console.log('JWT:', decoded, 'Using userId:', userId); // debug line
         contentType: selectedFile? selectedFile.type : null,
         fileExtension: selectedFile? selectedFile.name.split('.').pop() : null,
         caption,
+        title,
         externalLink: ''
       })
     });
+
     const intent = await intentRes.json();
     if(intent.error) throw new Error(intent.error);
-    postId = intent.postId;
-    uploadUrl = intent.uploadUrl;
-    objectKey = intent.objectKey;
 
-    // STEP 2: UPLOAD TO CDN DIRECT
-if(selectedFile){
-    btn.innerText='Step 2: Uploading to CDN...';
-    document.getElementById('progress-wrap').style.display='block';
-    document.getElementById('progress').style.width='0%';
-    const form = new FormData();
-    form.append('video', selectedFile); // MUST be 'video'
-    form.append('userId', userId);
-    form.append('title', title);
-    form.append('caption', caption);
-    const uploadData = await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct', form);
-    if(uploadData.error) throw new Error(uploadData.error);
-    objectKey = uploadData.objectKey; // <-- THIS IS THE FIX
-}
+    postId = intent.postId; // <-- d57a0b4cf6306476 FROM MAIN
+    objectKey = intent.objectKey; // <-- uploads/raw/userId/d57a.jpg FROM MAIN
+
+    console.log('Intent OK:', postId, objectKey);
+
+    // STEP 2: UPLOAD TO CDN DIRECT - FIXED
+    if(selectedFile){
+      btn.innerText='Step 2: Uploading to CDN...';
+      document.getElementById('progress-wrap').style.display='block';
+      document.getElementById('progress').style.width='0%';
+
+      const form = new FormData();
+      form.append('video', selectedFile);
+      form.append('userId', userId);
+      form.append('postId', postId); // <-- CRITICAL FIX: SEND Main's ID to CDN
+      form.append('title', title);
+      form.append('caption', caption);
+
+      const uploadData = await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct', form);
+      if(uploadData.error) throw new Error(uploadData.error);
+
+      console.log('CDN Upload OK with same ID:', uploadData.postId);
+      // DO NOT overwrite objectKey - keep Main's objectKey
+    }
 
     // STEP 3: FINALIZE
     btn.innerText='Step 3: Finalizing...';
     const final = await apiMain('/api/post/create', {
-      postId, objectKey, title, content: caption
+      postId,
+      objectKey,
+      title,
+      content: caption
     });
+
     if(final.error) throw new Error(final.error);
 
     toast('Uploaded! Waiting for admin approval 🎉');
     setTimeout(()=>location.href='index.html',1500);
+
   } catch(err) {
     console.error(err);
     toast('ERROR: '+err.message, true);
