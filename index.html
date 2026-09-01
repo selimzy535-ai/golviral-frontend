@@ -1,4 +1,3 @@
-Check this again 
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta name="google-site-verification" content="0rn74joHgCCJ0qqgQmbX4H9k1VRvOH31qY_SDkGqLbE" /><title>GolViral - Earn Money Creating Short Videos & Stories</title><meta name="description" content="GolViral: The short video and story app where you earn money. Post reels, short novels, memes & photos, and get paid for views, likes, engagement, and more. Join millions of creators today."><meta name="keywords" content="short video, earn money, reels, creators, referrals, photos, novels, stories"><meta name="theme-color" content="#00ff88"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="GolViral"><meta property="og:title" content="GolViral - Earn Money Creating Content"><meta property="og:description" content="Post reels, novels and memes. Get paid for views and referrals."><meta property="og:image" content="https://selimzy535-ai.github.io/golviral-frontend/icon-512.png"><meta property="og:url" content="https://selimzy535-ai.github.io/golviral-frontend"><meta property="og:type" content="website"><meta name="twitter:card" content="summary_large_image"><link rel="manifest" href="/golviral-frontend/manifest.json"><link rel="apple-touch-icon" href="/golviral-frontend/icon-192.png"><style>:root{
   --bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.85);
   --accent:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;
@@ -102,8 +101,9 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}.modal{p
 
   container.style.overflowY='scroll';
   for(const p of posts){
-    if(p.type==='reel') container.appendChild(await createReel(p));
-    else if(p.type==='store') container.appendChild(await createImageReel(p));
+    const isMedia = p.file_id || p.cdn_url; // if it has media, it's not text
+    if(p.type==='reel' || isMedia && p.mediaUrl?.includes('.mp4')) container.appendChild(await createReel(p));
+    else if(p.type==='store' || p.type==='story' || isMedia && p.mediaUrl?.match(/\.(jpg|png|webp|gif)/)) container.appendChild(await createImageReel(p));
     else container.appendChild(await createTextReel(p));
   }
   setupReelObserver();
