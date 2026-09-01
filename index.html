@@ -239,7 +239,7 @@
       const isMe = p.userId === USER_ID;
 
       div.innerHTML = `
-        <video muted loop playsinline webkit-playsinline preload="metadata" data-postid="${p.id}"></video>
+       <video muted loop playsinline webkit-playsinline preload="auto" data-postid="${p.id}"></video>
         <div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
         <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -337,40 +337,42 @@
     }
 
     function manualPlay(overlay) {
-      const video = overlay.parentElement.querySelector('video');
-      if (video) {
-        video.play().then(() => {
-          overlay.style.display = 'none';
-        }).catch(e => console.error("Manual playback trigger failed:", e));
-      }
-    }
+  const video = overlay.parentElement.querySelector('video');
+  if (video) {
+    video.play().then(() => {
+      overlay.style.display = 'none';
+    }).catch(e => console.error("Manual playback trigger failed:", e));
+  }
+}
 
     function setupReelObserver() {
-      const obs = new IntersectionObserver(entries => {
-        entries.forEach(e => {
-          const video = e.target.querySelector('video');
-          const overlay = e.target.querySelector('.play-overlay');
-          const postId = e.target.dataset.id;
-          const creatorId = e.target.dataset.creator;
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      const video = e.target.querySelector('video');
+      const overlay = e.target.querySelector('.play-overlay');
+      const postId = e.target.dataset.id;
+      const creatorId = e.target.dataset.creator;
 
-          if (e.intersectionRatio > 0.7) {
-            if (video) {
-              const playPromise = video.play();
-              if (playPromise !== undefined) {
-                playPromise.catch(() => {
-                  if (overlay) overlay.style.display = 'flex';
-                });
-              }
-            }
-            api('/api/view', { method: 'POST', body: JSON.stringify({ postId: postId, userId: creatorId, viewerId: USER_ID }) });
-          } else {
-            if (video) video.pause();
+      if (e.intersectionRatio > 0.7) {
+        if (video) {
+          // SAFARI FIX: Only play if muted
+          video.muted = true; 
+          video.play().then(() => {
             if (overlay) overlay.style.display = 'none';
-          }
-        });
-      }, { threshold: 0.7 });
-      document.querySelectorAll('.reel').forEach(r => obs.observe(r));
-    }
+          }).catch(() => {
+            // If blocked, show play button
+            if (overlay) overlay.style.display = 'flex';
+          });
+        }
+        api('/api/view', { method: 'POST', body: JSON.stringify({ postId: postId, userId: creatorId, viewerId: USER_ID }) });
+      } else {
+        if (video) video.pause();
+        if (overlay) overlay.style.display = 'none';
+      }
+    });
+  }, { threshold: 0.7 });
+  document.querySelectorAll('.reel').forEach(r => obs.observe(r));
+}
 
     async function likePost(postId, creatorId, btn) {
       if (btn.dataset.locked) return;
