@@ -337,11 +337,28 @@
     }
 
     function manualPlay(overlay) {
-  const video = overlay.parentElement.querySelector('video');
+  const reel = overlay.parentElement;
+  const video = reel.querySelector('video');
   if (video) {
-    video.play().then(() => {
-      overlay.style.display = 'none';
-    }).catch(e => console.error("Manual playback trigger failed:", e));
+    // Pause all others
+    document.querySelectorAll('video').forEach(v => { 
+      if(v !== video) {
+        v.pause();
+        const otherOverlay = v.parentElement.querySelector('.play-overlay');
+        if(otherOverlay) otherOverlay.style.display = 'flex';
+      }
+    });
+    
+    video.muted = false; // unmute on tap
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        overlay.style.display = 'none'; // hide play button
+      }).catch(e => {
+        console.error("Manual playback trigger failed:", e);
+        toast('Tap to play');
+      });
+    }
   }
 }
 
@@ -354,16 +371,13 @@
       const creatorId = e.target.dataset.creator;
 
       if (e.intersectionRatio > 0.7) {
-        if (video) {
-          // SAFARI FIX: Only play if muted
-          video.muted = true; 
-          video.play().then(() => {
-            if (overlay) overlay.style.display = 'none';
-          }).catch(() => {
-            // If blocked, show play button
-            if (overlay) overlay.style.display = 'flex';
-          });
-        }
+        // 1. Pause all others
+        document.querySelectorAll('video').forEach(v => { if(v !== video) v.pause() });
+        
+        // 2. JUST SHOW PLAY BUTTON. DO NOT CALL video.play()
+        if (overlay) overlay.style.display = 'flex';
+        if (video) video.pause();
+        
         api('/api/view', { method: 'POST', body: JSON.stringify({ postId: postId, userId: creatorId, viewerId: USER_ID }) });
       } else {
         if (video) video.pause();
