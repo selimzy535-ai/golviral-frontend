@@ -1,6 +1,6 @@
-const CACHE_NAME = 'golviral-v9'; // bumped for root deploy
-const APP_BASE_URL = 'https://selimzy535-ai.github.io'; // ROOT - no subfolder
-const APP_FOLDER = '/golviral-frontend'; // your app is still in this folder
+const CACHE_NAME = 'golviral-v10'; // bumped
+const APP_BASE_URL = 'https://selimzy535-ai.github.io'; // ROOT
+const APP_FOLDER = '/golviral-frontend';
 
 const PRECACHE_URLS = [
   `${APP_BASE_URL}${APP_FOLDER}/`,
@@ -16,8 +16,8 @@ const PRECACHE_URLS = [
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(c => 
-      Promise.allSettled(PRECACHE_URLS.map(u => c.add(u).catch(() => {})))
+    caches.open(CACHE_NAME).then(c =>
+      Promise.allSettled(PRECACHE_URLS.map(u => c.add(u).catch(()=>{})))
     )
   );
   self.skipWaiting();
@@ -25,13 +25,13 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => 
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k!== CACHE_NAME).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
-// Throttled cleanup helper to avoid race conditions on high concurrency
+// Throttled cleanup
 let isCleaning = false;
 async function cleanupOldVideos() {
   if (isCleaning) return;
@@ -40,13 +40,13 @@ async function cleanupOldVideos() {
     const cache = await caches.open(CACHE_NAME);
     const requests = await cache.keys();
     const now = Date.now();
-    const MAX_AGE = 72 * 60 * 60 * 1000; // 72 hours
+    const MAX_AGE = 72 * 60 * 60 * 1000;
 
     for (const req of requests) {
       const res = await cache.match(req);
       if (!res) continue;
       const dateHeader = res.headers.get('date');
-      const cachedTime = dateHeader ? new Date(dateHeader).getTime() : now;
+      const cachedTime = dateHeader? new Date(dateHeader).getTime() : now;
       if (now - cachedTime > MAX_AGE) {
         await cache.delete(req);
       }
@@ -58,7 +58,7 @@ async function cleanupOldVideos() {
   }
 }
 
-// Helper to construct artificial 206 responses from a cached 200 response for Safari compatibility
+// Range support for Safari video seeking
 async function returnRangeResponse(request, cachedResponse) {
   const rangeHeader = request.headers.get('range');
   if (!rangeHeader) return cachedResponse;
@@ -67,20 +67,19 @@ async function returnRangeResponse(request, cachedResponse) {
   const match = rangeHeader.match(/bytes=(\d+)-(\d+)?/);
   if (!match) return cachedResponse;
 
-  const totalLength = arrayBuffer.byteLength;
   const start = parseInt(match[1], 10);
-  const end = match[2] ? parseInt(match[2], 10) : totalLength - 1;
+  const end = match[2]? parseInt(match[2], 10) : arrayBuffer.byteLength - 1;
   const slicedBuffer = arrayBuffer.slice(start, end + 1);
 
-  const responseHeaders = new Headers(cachedResponse.headers);
-  responseHeaders.set('Content-Range', `bytes ${start}-${end}/${totalLength}`);
-  responseHeaders.set('Content-Length', slicedBuffer.byteLength);
-  responseHeaders.set('Accept-Ranges', 'bytes');
+  const headers = new Headers(cachedResponse.headers);
+  headers.set('Content-Range', `bytes ${start}-${end}/${arrayBuffer.byteLength}`);
+  headers.set('Content-Length', slicedBuffer.byteLength);
+  headers.set('Accept-Ranges', 'bytes');
 
   return new Response(slicedBuffer, {
     status: 206,
     statusText: 'Partial Content',
-    headers: responseHeaders
+    headers
   });
 }
 
@@ -89,54 +88,49 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const method = event.request.method;
 
-  // 0. BYPASS: API calls, CDN calls, Admin page, non-GET requests
+  // BYPASS API
   if (
-    method !== 'GET' ||
-    url.hostname.includes('onrender.com') || // bypass golviral-api AND golviral-cdn
-    url.hostname.includes('backblazeb2.com') || // bypass B2 direct uploads
+    method!== 'GET' ||
+    url.hostname.includes('onrender.com') ||
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('admin.html')
   ) {
-    return; // Let browser handle it. Don't touch with cache
+    return event.respondWith(fetch(event.request));
   }
 
-  // 1. VIDEOS: Cache First with Range Request support
+  // VIDEOS: Cache First + Range
   if (event.request.destination === 'video' || url.pathname.includes('/media/') || url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async cache => {
-        const cached = await cache.match(event.request.url);
-        if (cached) {
-          return returnRangeResponse(event.request, cached);
-        }
+        const cached = await cache.match(event.request, { ignoreSearch: true });
+        if (cached) return returnRangeResponse(event.request, cached);
 
         try {
-          const fetchRequest = event.request.headers.has('range') 
-            ? new Request(event.request.url, { headers: { 'Accept': '*/*' } }) 
+          const fetchRequest = event.request.headers.has('range')
+           ? new Request(event.request.url, { headers: { 'Accept': '*/*' } })
             : event.request;
 
           const networkRes = await fetch(fetchRequest);
           if (networkRes.status === 200) {
-            cache.put(event.request.url, networkRes.clone());
+            cache.put(event.request, networkRes.clone());
             event.waitUntil(cleanupOldVideos());
-            returnRangeResponse(event.request, networkRes);
           }
-          return networkRes;
+          return returnRangeResponse(event.request, networkRes);
         } catch {
-          if (cached) returnRangeResponse(event.request, cached);
+          return cached;
         }
       })
     );
     return;
   }
 
-  // 2. IMAGES: Cache First
+  // IMAGES
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached =>
         cached || fetch(event.request).then(res => {
           if (res.status === 200) {
-            const resClone = res.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, res.clone()));
           }
           return res;
         })
@@ -145,61 +139,57 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 3. APP SHELL: Stale While Revalidate
+  // APP SHELL
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request).then(networkResponse => {
         if (networkResponse && networkResponse.status === 200) {
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, networkResponse.clone());
-          });
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
         }
         return networkResponse;
       }).catch(() => cached);
-
       return cached || fetchPromise;
     })
   );
 });
 
-// BACKGROUND PREFETCH
+// PREFETCH
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'PREFETCH_VIDEO') {
     const url = event.data.url;
     caches.open(CACHE_NAME).then(cache => {
-      cache.match(url).then(cached => {
+      cache.match(url, { ignoreSearch: true }).then(cached => {
         if (!cached) {
           fetch(url).then(res => {
             if (res.status === 200) {
               cache.put(url, res);
               event.waitUntil(cleanupOldVideos());
             }
-          }).catch(() => {});
+          }).catch(()=>{});
         }
       });
     });
   }
 });
 
-// PUSH: Show notification
+// PUSH: FIXED vibrate
 self.addEventListener('push', event => {
-  const data = event.data ? event.data.json() : {};
+  const data = event.data? event.data.json() : {};
   const title = data.title || 'GolViral';
   const options = {
     body: data.body || 'You have a new notification',
     icon: `${APP_BASE_URL}${APP_FOLDER}/icon-192.png`,
     badge: `${APP_BASE_URL}${APP_FOLDER}/icon-192.png`,
     data: data.data || { url: `${APP_FOLDER}/index.html#feed` },
-    vibrate: [200, 100, 200],
+    vibrate: [200, 100, 200], // <-- FIXED
     tag: data.type || 'general'
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// NOTIFICATION CLICK: Open app
+// CLICK
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  
   const relativeUrl = event.notification.data?.url || `${APP_FOLDER}/index.html#feed`;
   const urlToOpen = new URL(relativeUrl.replace(/^\//, ''), `${APP_BASE_URL}/`).href;
 
@@ -212,4 +202,3 @@ self.addEventListener('notificationclick', event => {
     })
   );
 });
-
