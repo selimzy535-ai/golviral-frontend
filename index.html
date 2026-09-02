@@ -36,7 +36,6 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}.modal{p
   <div class="nav-btn" onclick="location.href='messages.html'"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>DM</span></div>
   <div class="nav-btn" onclick="location.href='profile.html'"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Me</span></div></nav>
 
-<!-- Clean FB-Style Comment Modal -->
 <div id="comment-sheet" class="modal">
   <div class="sheet">
     <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:12px">
@@ -51,7 +50,6 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}.modal{p
   </div>
 </div>
 
-<!-- Clean Top-Dropdown Search Modal -->
 <div id="search-modal" class="modal">
   <div class="search-top-panel">
     <div class="search-header-row">
@@ -65,8 +63,8 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}.modal{p
 <div id="reader-tab" class="reader">
   <svg onclick="closeReader()" viewBox="0 0 24 24" style="margin-bottom:20px;cursor:pointer"><path d="M15 18l-6-6 6-6"/></svg>
   <h2 id="reader-title"></h2>
-  <p id="reader-content" style="line-height:1.8;margin-top:16px;white-space:pre-wrap"></p></div><!-- Eruda Dev Console --><script src="https://cdn.jsdelivr.net/npm/eruda"></script><script>
-  if (typeof eruda !== 'undefined') {
+  <p id="reader-content" style="line-height:1.8;margin-top:16px;white-space:pre-wrap"></p></div><script src="https://cdn.jsdelivr.net/npm/eruda"></script><script>
+  if (typeof eruda!== 'undefined') {
     eruda.init();
   }</script><script>const API='https://golviral-api.onrender.com';const TOKEN=localStorage.token;const USER_ID=localStorage.userId;if(!TOKEN) location.href='auth.html';let feedData=[];let currentPost=null;let searchTimer=null;const userCache={};const followLocks={};function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}async function api(path,opt={}){
   try{
@@ -81,14 +79,18 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}.modal{p
   const u=await api(`/api/user/${id}`);
   userCache[id]=u;
   return u;
-}async function getSignedUrl(postId){
+}
+// CHANGED: Added logs
+async function getSignedUrl(postId){
+  console.log('[SIGN] Fetching url for', postId)
   const d=await api(`/api/media/sign?postId=${postId}`);
-  return d ? d.url : null;
+  console.log('[SIGN] Result', d)
+  return d? d.url : null;
 }async function loadFeed(type,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   if(el) el.classList.add('active');
   const res = await api('/api/feed');
-  feedData = Array.isArray(res) ? res : [];
+  feedData = Array.isArray(res)? res : [];
 
   const typeMap = {ForYou:'all', Reels:'reel', Novels:'novel', Stories:'store'};
   const targetType = typeMap[type];
@@ -135,12 +137,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}.modal{p
       <div class="action-btn" onclick="toggleSound(this)"><svg viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div>
     </div>`;
 
-  getSignedUrl(p.id).then(url => { 
-    if(url) {
-      const v = div.querySelector('video');
-      v.src = url;
-    }
-  });
+  // REMOVED: immediate getSignedUrl call
 
   let lastTap=0;
   div.ontouchend=e=>{const now=Date.now();if(now-lastTap<300) likePost(p.id,p.userId,div.querySelector('.action-btn'));lastTap=now;}
@@ -170,7 +167,7 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}.modal{p
       <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
     </div>`;
 
-  getSignedUrl(p.id).then(url=>{ if(url) div.querySelector('img').src = url });
+  // REMOVED: immediate getSignedUrl call
   return div;
 }async function createTextReel(p){
   const div=document.createElement('div');
@@ -203,20 +200,39 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}.modal{p
     video.play();
     overlay.style.display = 'none';
   }
-}function setupReelObserver(){
+}
+// CHANGED: Now loads media on scroll
+function setupReelObserver(){
   const obs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       const video=e.target.querySelector('video');
+      const img=e.target.querySelector('img');
       const overlay=e.target.querySelector('.play-overlay');
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
 
       if(e.intersectionRatio>0.7){
-        if(video){
-          video.play().catch(()=>{
-            if(overlay) overlay.style.display = 'flex';
+        // LOAD VIDEO
+        if(video &&!video.src){
+          console.log('[REEL] Loading video for', postId)
+          getSignedUrl(postId).then(url=>{
+            if(url){
+              video.src = url;
+              video.play().catch(()=>{
+                if(overlay) overlay.style.display = 'flex';
+              });
+            } else { toast('Media failed to load') }
+          });
+        } else if(video){ video.play().catch(()=>{ if(overlay) overlay.style.display = 'flex'; }); }
+
+        // LOAD IMAGE
+        if(img &&!img.src){
+          console.log('[REEL] Loading image for', postId)
+          getSignedUrl(postId).then(url=>{
+            if(url){ img.src = url; } else { toast('Image failed to load') }
           });
         }
+
         api('/api/view',{method:'POST',body:JSON.stringify({postId:postId,userId:creatorId,viewerId:USER_ID})});
       }else{
         if(video) video.pause();
@@ -259,7 +275,6 @@ svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}.modal{p
   toast('App link copied');
 }
 
-// Updated FB-Style Comments Handler
 async function openComments(postId,creatorId){
   currentPost={postId,creatorId};
   document.getElementById('comment-sheet').classList.add('active');
@@ -294,7 +309,6 @@ async function sendComment(){
   openComments(currentPost.postId,currentPost.creatorId);
 }
 
-// Updated Top-Dropdown Search Handlers
 function openSearch(){
   document.getElementById('search-modal').classList.add('active');
   document.getElementById('search-input').focus();
@@ -335,6 +349,6 @@ function closeReader(){document.getElementById('reader-tab').classList.remove('a
 loadFeed('ForYou',document.querySelector('.tab'));
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('/golviral-frontend/sw.js', {scope: '/golviral-frontend/'})
-  .then(()=>console.log('SW registered'))
-  .catch(e=>console.error('SW failed', e))
+ .then(()=>console.log('SW registered'))
+ .catch(e=>console.error('SW failed', e))
 }</script></body></html>
