@@ -132,7 +132,7 @@ if(!TOKEN) location.href='auth.html';
 
 let swRegistration = null;
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw-uploader.js').then(reg => {
+  navigator.serviceWorker.register('sw.js').then(reg => {
     swRegistration = reg;
   });
 }
@@ -421,9 +421,6 @@ async function submitPost(){
 }
 
 updateDraftsDropdown();
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
 </script>
 </body>
 </html>
