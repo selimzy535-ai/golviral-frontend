@@ -421,6 +421,9 @@ async function submitPost(){
 }
 
 updateDraftsDropdown();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
 </script>
 </body>
 </html>
