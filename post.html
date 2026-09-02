@@ -282,7 +282,7 @@ async function submitPost(){
 
     if(final.error) throw new Error(final.error);
 
-    toast('Uploaded! Waiting for admin approval 🎉');
+    toast('Uploaded! Waiting for approval 🎉');
     setTimeout(()=>location.href='index.html',1500);
 
   } catch(err) {
