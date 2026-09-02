@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GolViral - Create</title>
+<title>GolViral - Create & Edit</title>
 <style>
 :root{--bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.65);--accent:#00ff88;--text:#fff;--muted:#888;--border:#1f1f1f;--danger:#ff4444;--gradient:linear-gradient(135deg,#00ff88,#3b82f6)}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
 body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;display:flex;flex-direction:column}
-header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.header-left{display:flex;align-items:center;gap:12px}
 svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
 .content{flex:1;overflow-y:auto;padding:20px}
 h2{margin-bottom:16px}
@@ -21,68 +22,103 @@ h2{margin-bottom:16px}
 .input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px;outline:none}
 .input:focus{border-color:var(--accent)}
 
-/* DROP CONTAINER FIX: Prevents layout jump on media load */
 .drop{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;margin-bottom:12px;cursor:pointer;position:relative;height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;background:#000}
 .drop:hover{border-color:var(--accent)}
-.drop img, .drop video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:10px;z-index:2}
+.drop img, .drop video, .drop canvas{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:10px;z-index:2}
 .drop-placeholder{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1}
 
 .progress{height:8px;background:#000;border-radius:10px;overflow:hidden;margin-top:12px;display:none}
 .progress-bar{height:100%;background:var(--gradient);width:0%;transition:0.2s}
 
-.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer}
+.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;margin-top:6px}
 .btn:disabled{opacity:0.6;cursor:not-allowed}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border);margin-bottom:8px}
 
 .toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0;max-width:90%;text-align:center}
 .toast.show{transform:translate(-50%,0);opacity:1}
 .toast.error{background:var(--danger);color:#fff}
 .tip{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+
+/* EDITOR & DRAFTS EXTENSIONS */
+.editor-tools{display:none;flex-direction:column;gap:10px;margin-top:12px}
+.editor-tools.active{display:flex}
+.tool-row{display:flex;gap:8px;align-items:center}
+.tool-btn{flex:1;padding:8px;background:#1a1a1a;border:1px solid var(--border);border-radius:8px;color:#fff;font-size:11px;cursor:pointer;text-align:center}
+.tool-btn.active{border-color:var(--accent);color:var(--accent)}
+
+.drafts-container{display:none;margin-bottom:16px}
+.drafts-container.active{display:block}
+.draft-select{width:100%;background:#000;color:var(--accent);border:1px solid var(--border);padding:10px;border-radius:10px;font-weight:bold}
 </style>
 </head>
 <body>
 <header>
-<svg onclick="location.href='index.html'" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-<h2>Create</h2>
+  <div class="header-left">
+    <svg onclick="location.href='index.html'" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    <h2>Create & Edit</h2>
+  </div>
+  <button class="tool-btn" onclick="toggleDraftsView()">📂 Drafts (<span id="draft-count">0</span>)</button>
 </header>
 
 <div id="toast" class="toast"></div>
 
 <div class="content">
-  <!-- USER SEES: Reel, Photo, Short Story -->
-  <div class="type-grid">
-    <div class="type-btn active" data-ui="reel" onclick="setType('reel')">
-      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-      Reel
-    </div>
-    <div class="type-btn" data-ui="photo" onclick="setType('photo')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
-      Photo
-    </div>
-    <div class="type-btn" data-ui="shortstory" onclick="setType('shortstory')">
-      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4h16v13H4z"></path></svg>
-      Short Story
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="drop" id="drop">
-      <div class="drop-placeholder" id="placeholder">
-        <svg width="40" height="40" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>
-        <b>Tap to select file</b>
-        <p class="tip" id="tip-text">MP4 or MOV • Max 120s • Max 10MB</p>
-      </div>
-      <img id="img-preview" style="display:none">
-      <video id="video-preview" style="display:none" controls playsinline></video>
-      <input type="file" id="file-input" style="display:none">
-    </div>
-    <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress"></div></div>
-  </div>
+  <div class="card drafts-container" id="drafts-card">
+    <b style="font-size:13px;display:block;margin-bottom:8px">Saved Drafts & Timed-Out Uploads:</b>
+    <select class="draft-select" id="draft-dropdown" onchange="loadSelectedDraft(this.value)">
+      <option value="">-- Select a draft to resume post --</option>
+    </select>
+  </div>
 
-  <div class="card" id="details-step">
-    <input class="input" id="title" placeholder="Title">
-    <textarea class="input" id="caption" placeholder="Caption / Story text" rows="4"></textarea>
-    <button class="btn" id="publish-btn" onclick="submitPost()">Publish Post</button>
-  </div>
+  <div class="type-grid">
+    <div class="type-btn active" data-ui="reel" onclick="setType('reel')">
+      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      Reel
+    </div>
+    <div class="type-btn" data-ui="photo" onclick="setType('photo')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+      Photo
+    </div>
+    <div class="type-btn" data-ui="shortstory" onclick="setType('shortstory')">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4h16v13H4z"></path></svg>
+      Short Story
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="drop" id="drop">
+      <div class="drop-placeholder" id="placeholder">
+        <svg width="40" height="40" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>
+        <b>Tap to select video/image</b>
+        <p class="tip" id="tip-text">MP4 or MOV • Max 120s • Max 10MB</p>
+      </div>
+      <img id="img-preview" style="display:none">
+      <video id="video-preview" style="display:none" muted loop playsinline></video>
+      <canvas id="editor-canvas" style="display:none"></canvas>
+      <input type="file" id="file-input" style="display:none">
+    </div>
+
+    <div class="editor-tools" id="editor-tools">
+      <b style="font-size:12px;color:var(--accent)">Video Studio Editor</b>
+      <div class="tool-row">
+        <div class="tool-btn active" id="crop-9-16" onclick="setCrop('9:16')">Aspect 9:16</div>
+        <div class="tool-btn" id="crop-1-1" onclick="setCrop('1:1')">Aspect 1:1</div>
+        <div class="tool-btn" id="crop-16-9" onclick="setCrop('16:9')">Aspect 16:9</div>
+      </div>
+      <input class="input" id="pov-text" placeholder="Add POV Text Overlay (e.g. POV: When you win)" oninput="renderCanvasOverlay()" style="margin-bottom:6px">
+      <input class="input" id="watermark-text" placeholder="Watermark (e.g. @username)" oninput="renderCanvasOverlay()" style="margin-bottom:0">
+    </div>
+
+    <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+  </div>
+
+  <div class="card" id="details-step">
+    <input class="input" id="title" placeholder="Title">
+    <textarea class="input" id="caption" placeholder="Caption / Story text" rows="4"></textarea>
+    <button class="btn btn-secondary" onclick="saveCurrentDraft()">Save as Draft</button>
+    <button class="btn" id="publish-btn" onclick="submitPost()">Publish Post</button>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
@@ -94,204 +130,297 @@ const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 
-function parseJwt(token) {
-  try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
-    location.href='auth.html';
-  }
+let swRegistration = null;
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw-uploader.js').then(reg => {
+    swRegistration = reg;
+  });
 }
 
-const TYPE_MAP = {
-  reel: 'reel',
-  photo: 'store',
-  shortstory: 'novel'
-};
+function parseJwt(token) {
+  try { return JSON.parse(atob(token.split('.')[1])); } 
+  catch (e) { location.href='auth.html'; }
+}
 
+const TYPE_MAP = { reel: 'reel', photo: 'store', shortstory: 'novel' };
 let uiType='reel';
 let selectedFile=null;
+let activeCrop='9:16';
+let canvasRenderLoop=null;
 
 function toast(msg, isError=false){
-  const t=document.getElementById('toast');
-  t.innerText=msg;
-  t.className='toast '+(isError?'error':'');
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),4000);
+  const t=document.getElementById('toast');
+  t.innerText=msg;
+  t.className='toast '+(isError?'error':'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),4000);
 }
 
 function setType(type){
-  uiType=type;
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`[data-ui="${type}"]`).classList.add('active');
-  const drop=document.getElementById('drop');
-  const tip=document.getElementById('tip-text');
-  const fileInput=document.getElementById('file-input');
+  uiType=type;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-ui="${type}"]`).classList.add('active');
+  const drop=document.getElementById('drop');
+  const tip=document.getElementById('tip-text');
+  const fileInput=document.getElementById('file-input');
+  const tools=document.getElementById('editor-tools');
 
-  if(type==='shortstory'){
-    drop.style.display='none';
-    selectedFile=null;
-  }else{
-    drop.style.display='flex';
-    document.getElementById('placeholder').style.display='flex';
-    document.getElementById('img-preview').style.display='none';
-    document.getElementById('video-preview').style.display='none';
-    if(type==='reel'){
-      fileInput.accept='video/mp4,video/quicktime,video/mov';
-      tip.innerText='MP4 or MOV • Max 120s • Max 10MB';
-    }
-    if(type==='photo'){
-      fileInput.accept='image/jpeg,image/png,image/webp,image/gif';
-      tip.innerText='JPG, PNG, WEBP • Max 10MB';
-    }
-  }
+  if(type==='shortstory'){
+    drop.style.display='none';
+    tools.classList.remove('active');
+    selectedFile=null;
+  }else{
+    drop.style.display='flex';
+    document.getElementById('placeholder').style.display='flex';
+    document.getElementById('img-preview').style.display='none';
+    document.getElementById('video-preview').style.display='none';
+    document.getElementById('editor-canvas').style.display='none';
+    
+    if(type==='reel'){
+      fileInput.accept='video/mp4,video/quicktime,video/mov';
+      tip.innerText='MP4 or MOV • Max 120s • Max 10MB';
+    }
+    if(type==='photo'){
+      fileInput.accept='image/jpeg,image/png,image/webp,image/gif';
+      tip.innerText='JPG, PNG, WEBP • Max 10MB';
+      tools.classList.remove('active');
+    }
+  }
 }
 
 document.getElementById('drop').onclick=(e)=>{
-  if(e.target.tagName === 'VIDEO') return;
-  document.getElementById('file-input').click();
+  if(e.target.tagName === 'VIDEO' || e.target.tagName === 'CANVAS') return;
+  document.getElementById('file-input').click();
 };
 
 document.getElementById('file-input').onchange=e=>{
-  selectedFile=e.target.files[0];
-  if(!selectedFile) return;
-  const maxSize = 10*1024*1024;
-  if(selectedFile.size > maxSize){
-    toast('File too big! Max 10MB for CDN', true);
-    selectedFile=null;
-    return;
-  }
+  selectedFile=e.target.files[0];
+  if(!selectedFile) return;
+  if(selectedFile.size > 10*1024*1024){
+    toast('File too big! Max 10MB', true);
+    selectedFile=null;
+    return;
+  }
 
-  document.getElementById('placeholder').style.display='none';
+  document.getElementById('placeholder').style.display='none';
 
-  if(uiType==='photo'){
-    document.getElementById('img-preview').src = URL.createObjectURL(selectedFile);
-    document.getElementById('img-preview').style.display = 'block';
-    document.getElementById('video-preview').style.display = 'none';
-  }
-  if(uiType==='reel'){
-    document.getElementById('video-preview').src = URL.createObjectURL(selectedFile);
-    document.getElementById('video-preview').style.display = 'block';
-    document.getElementById('img-preview').style.display = 'none';
-  }
-  toast('File ready: '+selectedFile.name);
+  if(uiType==='photo'){
+    document.getElementById('img-preview').src = URL.createObjectURL(selectedFile);
+    document.getElementById('img-preview').style.display = 'block';
+  }
+  if(uiType==='reel'){
+    const video = document.getElementById('video-preview');
+    video.src = URL.createObjectURL(selectedFile);
+    video.play();
+    document.getElementById('editor-tools').classList.add('active');
+    startCanvasEditor();
+  }
+  toast('File ready for editing: '+selectedFile.name);
 };
 
-async function apiMain(path,body){
-  const res=await fetch(API+path,{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-    body:JSON.stringify(body)
-  });
-  if(res.status===401) location.href='auth.html';
-  return res.json();
+/* VIDEO EDITING & CANVAS OVERLAY ENGINE */
+function setCrop(ratio){
+  activeCrop = ratio;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  if(ratio==='9:16') document.getElementById('crop-9-16').classList.add('active');
+  if(ratio==='1:1') document.getElementById('crop-1-1').classList.add('active');
+  if(ratio==='16:9') document.getElementById('crop-16-9').classList.add('active');
 }
 
-function uploadFileWithProgress(url, formData) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', url);
-    xhr.setRequestHeader('x-api-key', CDN_KEY);
+function startCanvasEditor(){
+  const video = document.getElementById('video-preview');
+  const canvas = document.getElementById('editor-canvas');
+  canvas.style.display = 'block';
 
-    xhr.upload.onprogress = e => {
-      if(e.lengthComputable){
-        let percent = (e.loaded / e.total * 100).toFixed(0);
-        document.getElementById('progress').style.width = percent + '%';
-      }
-    };
-
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(JSON.parse(xhr.responseText));
-      } else {
-        reject(new Error(JSON.parse(xhr.responseText).error || `Upload failed ${xhr.status}`));
-      }
-    };
-    xhr.onerror = () => reject(new Error('Network error during CDN upload'));
-    xhr.send(formData);
-  });
+  function drawFrame(){
+    if(!video.paused && !video.ended){
+      renderCanvasOverlay();
+    }
+    canvasRenderLoop = requestAnimationFrame(drawFrame);
+  }
+  if(canvasRenderLoop) cancelAnimationFrame(canvasRenderLoop);
+  drawFrame();
 }
 
+function renderCanvasOverlay(){
+  const video = document.getElementById('video-preview');
+  const canvas = document.getElementById('editor-canvas');
+  const ctx = canvas.getContext('2d');
+
+  if(!video.videoWidth) return;
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  // 1. Draw Original Frame
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // 2. Render POV Overlay
+  const povText = document.getElementById('pov-text').value.trim();
+  if(povText){
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(20, 30, canvas.width - 40, 60);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 22px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(povText, canvas.width / 2, 68);
+  }
+
+  // 3. Render Watermark Overlay
+  const watermarkText = document.getElementById('watermark-text').value.trim();
+  if(watermarkText){
+    ctx.fillStyle = "rgba(0, 255, 136, 0.85)";
+    ctx.font = "bold 18px system-ui";
+    ctx.textAlign = "right";
+    ctx.fillText(watermarkText, canvas.width - 20, canvas.height - 20);
+  }
+}
+
+/* DRAFTS & TIMEOUT LOCAL STORAGE HANDLER */
+function getDrafts(){
+  return JSON.parse(localStorage.getItem('golviral_drafts') || '[]');
+}
+
+function updateDraftsDropdown(){
+  const drafts = getDrafts();
+  const select = document.getElementById('draft-dropdown');
+  document.getElementById('draft-count').innerText = drafts.length;
+  select.innerHTML = '<option value="">-- Select a draft to resume post --</option>';
+  
+  drafts.forEach((d, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.innerText = `[${d.type.toUpperCase()}] ${d.title || 'Untitled'} (${new Date(d.savedAt).toLocaleTimeString()})`;
+    select.appendChild(opt);
+  });
+}
+
+function toggleDraftsView(){
+  const card = document.getElementById('drafts-card');
+  card.classList.toggle('active');
+  updateDraftsDropdown();
+}
+
+function saveCurrentDraft(){
+  const title = document.getElementById('title').value;
+  const caption = document.getElementById('caption').value;
+  const povText = document.getElementById('pov-text').value;
+  const watermarkText = document.getElementById('watermark-text').value;
+
+  const draft = {
+    type: uiType,
+    title,
+    caption,
+    povText,
+    watermarkText,
+    savedAt: Date.now()
+  };
+
+  const drafts = getDrafts();
+  drafts.unshift(draft);
+  localStorage.setItem('golviral_drafts', JSON.stringify(drafts));
+  updateDraftsDropdown();
+  toast('Saved to drafts dropdown!');
+}
+
+function loadSelectedDraft(index){
+  if(index === "") return;
+  const drafts = getDrafts();
+  const draft = drafts[index];
+  if(!draft) return;
+
+  setType(draft.type);
+  document.getElementById('title').value = draft.title || '';
+  document.getElementById('caption').value = draft.caption || '';
+  document.getElementById('pov-text').value = draft.povText || '';
+  document.getElementById('watermark-text').value = draft.watermarkText || '';
+  toast('Draft loaded!');
+}
+
+/* BACKGROUND UPLOAD & SUBMISSION LOGIC */
 async function submitPost(){
-  if(uiType!=='shortstory' &&!selectedFile) return toast('Please select a file first', true);
+  if(uiType!=='shortstory' && !selectedFile) return toast('Please select a file first', true);
 
-  const btn = document.getElementById('publish-btn');
-  btn.disabled=true;
-  btn.innerText='Processing...';
+  const btn = document.getElementById('publish-btn');
+  btn.disabled=true;
+  btn.innerText='Preparing Upload...';
 
-  const title=document.getElementById('title').value;
-  const caption=document.getElementById('caption').value;
-  const backendType = TYPE_MAP[uiType];
-  const decoded = parseJwt(TOKEN);
-  const userId = decoded.userId || decoded.id;
+  const title=document.getElementById('title').value;
+  const caption=document.getElementById('caption').value;
+  const backendType = TYPE_MAP[uiType];
+  const decoded = parseJwt(TOKEN);
+  const userId = decoded.userId || decoded.id;
 
-  try {
-    let postId, objectKey;
+  try {
+    // STEP 1: CREATE INTENT
+    const intentRes = await fetch(API+'/api/post/create-intent', {
+      method:'POST',
+      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        postType: backendType,
+        contentType: selectedFile ? selectedFile.type : null,
+        fileExtension: selectedFile ? selectedFile.name.split('.').pop() : null,
+        caption, title, externalLink: ''
+      })
+    });
 
-    // STEP 1: GET INTENT FROM MAIN-API
-    btn.innerText='Step 1: Creating post intent...';
-    const intentRes = await fetch(API+'/api/post/create-intent', {
-      method:'POST',
-      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        postType: backendType,
-        contentType: selectedFile? selectedFile.type : null,
-        fileExtension: selectedFile? selectedFile.name.split('.').pop() : null,
-        caption,
-        title,
-        externalLink: ''
-      })
-    });
+    const intent = await intentRes.json();
+    if(intent.error) throw new Error(intent.error);
 
-    const intent = await intentRes.json();
-    if(intent.error) throw new Error(intent.error);
+    const { postId, objectKey } = intent;
 
-    postId = intent.postId; // <-- d57a0b4cf6306476 FROM MAIN
-    objectKey = intent.objectKey; // <-- uploads/raw/userId/d57a.jpg FROM MAIN
+    // STEP 2: HANDOFF TO BACKGROUND WORKER
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({
+        type: 'START_BACKGROUND_UPLOAD',
+        payload: {
+          file: selectedFile,
+          userId, postId, objectKey,
+          title, caption,
+          cdnUrl: CDN_API,
+          apiUrl: API,
+          cdnKey: CDN_KEY,
+          token: TOKEN
+        }
+      });
+      toast('Upload running in background! You can freely navigate.');
+      setTimeout(() => location.href='index.html', 1500);
+    } else {
+      // Direct Fallback Upload
+      toast('Direct uploading file...');
+      const form = new FormData();
+      form.append('video', selectedFile);
+      form.append('userId', userId);
+      form.append('postId', postId);
+      form.append('title', title);
+      form.append('caption', caption);
 
-    console.log('Intent OK:', postId, objectKey);
+      await fetch(CDN_API+'/api/cdn/upload-direct', {
+        method: 'POST',
+        headers: { 'x-api-key': CDN_KEY },
+        body: form
+      });
 
-    // STEP 2: UPLOAD TO CDN DIRECT - FIXED
-    if(selectedFile){
-      btn.innerText='Step 2: Uploading to CDN...';
-      document.getElementById('progress-wrap').style.display='block';
-      document.getElementById('progress').style.width='0%';
+      await fetch(API+'/api/post/create', {
+        method:'POST',
+        headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+        body:JSON.stringify({ postId, objectKey, title, content: caption })
+      });
 
-      const form = new FormData();
-      form.append('video', selectedFile);
-      form.append('userId', userId);
-      form.append('postId', postId); // <-- CRITICAL FIX: SEND Main's ID to CDN
-      form.append('title', title);
-      form.append('caption', caption);
+      toast('Uploaded successfully!');
+      setTimeout(()=>location.href='index.html',1500);
+    }
 
-      const uploadData = await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct', form);
-      if(uploadData.error) throw new Error(uploadData.error);
-
-      console.log('CDN Upload OK with same ID:', uploadData.postId);
-      // DO NOT overwrite objectKey - keep Main's objectKey
-    }
-
-    // STEP 3: FINALIZE
-    btn.innerText='Step 3: Finalizing...';
-    const final = await apiMain('/api/post/create', {
-      postId,
-      objectKey,
-      title,
-      content: caption
-    });
-
-    if(final.error) throw new Error(final.error);
-
-    toast('Uploaded! Waiting for admin approval 🎉');
-    setTimeout(()=>location.href='index.html',1500);
-
-  } catch(err) {
-    console.error(err);
-    toast('ERROR: '+err.message, true);
-    btn.disabled=false;
-    btn.innerText='Publish Post';
-    document.getElementById('progress-wrap').style.display='none';
-  }
+  } catch(err) {
+    console.error(err);
+    toast('Upload failed! Saved to drafts dropdown', true);
+    saveCurrentDraft();
+    btn.disabled=false;
+    btn.innerText='Publish Post';
+  }
 }
+
+updateDraftsDropdown();
 </script>
 </body>
 </html>
