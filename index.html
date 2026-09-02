@@ -125,7 +125,7 @@
   <div id="search-modal" class="modal">
     <div class="search-top-panel">
       <div class="search-header-row">
-        <input id="search-input" class="input" placeholder="Search creators..." oninput="debounceSearch(this.value)" autoFocus>
+        <input id="search-input" class="input" placeholder="Search creators..." oninput="debounceSearch(this.value)">
         <span onclick="closeSearch()" style="cursor:pointer;font-weight:700;color:var(--muted);font-size:14px">Cancel</span>
       </div>
       <div id="search-results" class="search-dropdown-list"></div>
@@ -154,6 +154,7 @@
     let searchTimer = null;
     const userCache = {};
     const followLocks = {};
+    const hlsInstances = {};
 
     function toast(msg) {
       const t = document.getElementById('toast');
@@ -330,7 +331,6 @@
       }
     }
 
-    // Modernized Media Observer supporting Telegram stream decoding
     function setupReelObserver() {
       const obs = new IntersectionObserver(entries => {
         entries.forEach(e => {
@@ -341,29 +341,26 @@
           const creatorId = e.target.dataset.creator;
 
           if (e.intersectionRatio > 0.7) {
-            // LOAD VIDEO AND DECODE STREAM
-            if (video && !video.src && !video.dataset.loaded) {
+            if (video && !video.dataset.loaded) {
               video.dataset.loaded = "true";
               console.log('[REEL] Loading video for', postId);
 
               getSignedUrl(postId).then(url => {
                 if (url) {
-                  // Check if URL is an HLS playlist or dynamic stream
                   if (url.includes('.m3u8') || url.includes('type=hls')) {
                     if (window.Hls && Hls.isSupported()) {
                       const hls = new Hls({ enableWorker: true });
                       hls.loadSource(url);
                       hls.attachMedia(video);
+                      hlsInstances[postId] = hls;
                       hls.on(Hls.Events.MANIFEST_PARSED, () => {
                         video.play().catch(() => { if (overlay) overlay.style.display = 'flex'; });
                       });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                      // Safari Native Support
                       video.src = url;
                       video.play().catch(() => { if (overlay) overlay.style.display = 'flex'; });
                     }
                   } else {
-                    // Standard video file or proxied stream URL
                     video.src = url;
                     video.play().catch(() => { if (overlay) overlay.style.display = 'flex'; });
                   }
@@ -375,7 +372,6 @@
               video.play().catch(() => { if (overlay) overlay.style.display = 'flex'; });
             }
 
-            // LOAD IMAGE
             if (img && !img.src) {
               console.log('[REEL] Loading image for', postId);
               getSignedUrl(postId).then(url => {
@@ -475,7 +471,7 @@
 
     function openSearch() {
       document.getElementById('search-modal').classList.add('active');
-      document.getElementById('search-input').focus();
+      setTimeout(() => document.getElementById('search-input').focus(), 50);
     }
 
     function closeSearch() {
@@ -488,7 +484,7 @@
     async function searchUsers(q) {
       const resultsDiv = document.getElementById('search-results');
       if (!q || q.length < 2) { resultsDiv.innerHTML = ''; return; }
-      const users = await api(`/api/search/users?q=${q}`);
+      const users = await api(`/api/search/users?q=${encodeURIComponent(q)}`);
       if (!users || users.length === 0) {
         resultsDiv.innerHTML = '<p style="padding:10px;color:var(--muted);text-align:center;font-size:13px">No users found</p>';
         return;
