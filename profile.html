@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,16 +45,14 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .tab{flex:1;padding:12px 0;color:var(--muted);cursor:pointer;display:flex;justify-content:center;align-items:center;gap:6px;font-weight:700;font-size:13px;border-bottom:2px solid transparent}
 .tab.active{color:var(--green);border-bottom-color:var(--green)}
 
-.content{padding:16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
-.grid-item{aspect-ratio:1;background:#141414;border-radius:8px;border:1px solid var(--border);position:relative}
+.content{padding:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin:16px}
 .input{width:100%;background:#141414;border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;margin-bottom:10px;outline:none}
 .input:focus{border-color:var(--green)}
 .btn{background:var(--gradient);color:#000;border:none;padding:12px;border-radius:12px;font-weight:800;width:100%;cursor:pointer;font-size:14px}
 .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
 .btn[disabled]{opacity:0.4;pointer-events:none}
-.progress{height:8px;background:#1a1a1a;border-radius:10px;overflow:hidden;margin:6px 0 12px}
+.progress{height:8px;background:#1a;border-radius:10px;overflow:hidden;margin:6px 0 12px}
 .progress-bar{height:100%;background:var(--gradient);border-radius:10px;transition:width 0.3s}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:200}
 .modal.active{display:flex}
@@ -64,14 +61,26 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .toast.show{transform:translate(-50%,0);opacity:1}
 .gift-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;margin-bottom:10px;cursor:pointer;border:1px solid var(--border);background:#121212}
 
-/* LINE AREA CHART STYLING */
+/* VERTICAL FEED */
+.feed{padding:0}
+.feed-post{border-bottom:1px solid var(--border);padding:12px 0;background:#0a0a0a}
+.feed-video{width:100%;aspect-ratio:9/16;background:#000;border-radius:0;object-fit:cover}
+.feed-info{padding:10px 16px}
+.feed-caption{font-size:13px;line-height:1.4;margin-bottom:6px}
+.feed-stats{display:flex;gap:16px;color:var(--muted);font-size:12px;font-weight:600}
+
+/* FOLLOW LIST */
+.user-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.user-row:last-child{border:0}
+
+/* CHART */
 .chart-box{margin-top:12px;background:#121212;border:1px solid var(--border);border-radius:14px;padding:14px}
 .trend-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700}
 .trend-up{background:rgba(0,255,136,0.15);color:var(--green)}
 .trend-down{background:rgba(239,68,68,0.15);color:var(--red)}
 
 /* AUTO EARNINGS CARD */
-.earn-badge{background:linear-gradient(135deg,rgba(0,255,136,0.15),rgba(59,130,246,0.15));border:1px solid var(--green);padding:14px;border-radius:14px;margin-bottom:14px}
+.earn-badge{background:linear-gradient(135deg,rgba(0,255,136,0.15),rgba(59,130,246,0.15));border:1px solid var(--green);padding:14px;border-radius:14px;margin:16px}
 .earn-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 
 .copy-box{display:flex;justify-content:space-between;align-items:center;background:#141414;border:1px solid var(--border);padding:10px;border-radius:10px;margin-top:8px;font-size:12px;word-break:break-all}
@@ -103,17 +112,17 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
   <div class="avatar-wrap">
     <div class="avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"></div>
   </div>
-  
+
   <h2 id="username-display" style="font-size:18px;font-weight:800;"></h2>
   <div id="badges" class="badges-wrap"></div>
   <p id="bio-text" class="bio-display"></p>
 
   <div class="tiktok-stats">
-    <div class="tiktok-stat-item">
+    <div class="tiktok-stat-item" onclick="showList('following')">
       <b id="following">0</b>
       <span>Following</span>
     </div>
-    <div class="tiktok-stat-item">
+    <div class="tiktok-stat-item" onclick="showList('followers')">
       <b id="followers">0</b>
       <span>Followers</span>
     </div>
@@ -179,6 +188,17 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
   <div id="tab-support" style="display:none"></div>
 </div>
 
+<!-- Follow List Modal -->
+<div id="list-modal" class="modal">
+  <div class="glass-modal" style="max-height:70dvh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+      <h3 id="list-title">Followers</h3>
+      <svg onclick="closeList()" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <div id="list-content"></div>
+  </div>
+</div>
+
 <div id="otp-modal" class="modal">
   <div class="glass-modal">
     <h3 style="margin-bottom:12px">Verify Withdrawal</h3>
@@ -196,7 +216,7 @@ const profileId=new URLSearchParams(location.search).get('id')||localStorage.use
 const isSelf=profileId===localStorage.userId;
 let pendingWithdraw=null;
 let followLock=false;
-let videoModal=null;
+let profileData={};
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -205,10 +225,16 @@ function escapeHtml(str) {
   });
 }
 
+function formatNumber(num) {
+  if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+  if(num >= 1000) return (num/1000).toFixed(1) + 'K';
+  return num;
+}
+
 function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 async function api(path,opt={}){try{const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});if(res.status===401)location.href='auth.html';return res.json()}catch{toast('Network error');return {}}}
 
-function getPercent(str){if(!str)return 0;const [a,b]=str.split('/').map(Number);return b ? Math.min(100,Math.round(a/b*100)) : 0}
+function getPercent(str){if(!str)return 0;const [a,b]=str.split('/').map(Number);return b? Math.min(100,Math.round(a/b*100)) : 0}
 
 function checkIsNigeria() {
   try {
@@ -235,18 +261,15 @@ function getAndSaveDailyScores(uid, currentViews, currentLikes) {
   const key = `golviral_daily_scores_${uid}`;
   let history = [];
   try { history = JSON.parse(localStorage.getItem(key)) || []; } catch(e) { history = []; }
-
   const todayStr = new Date().toISOString().split('T')[0];
   const dayName = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-
   const existingIdx = history.findIndex(item => item.date === todayStr);
-  if (existingIdx !== -1) {
+  if (existingIdx!== -1) {
     history[existingIdx].views = currentViews;
     history[existingIdx].likes = currentLikes;
   } else {
     history.push({ date: todayStr, day: dayName, views: currentViews, likes: currentLikes });
   }
-
   if (history.length > 7) history = history.slice(-7);
   localStorage.setItem(key, JSON.stringify(history));
   return history;
@@ -256,61 +279,34 @@ function buildLineAreaChart(data, key, mainColor, gradId) {
   if (!data || data.length === 0) {
     return `<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;">No daily data tracked yet</div>`;
   }
-
-  const width = 320;
-  const height = 110;
-  const paddingX = 25;
-  const paddingY = 20;
-  const usableW = width - (paddingX * 2);
-  const usableH = height - (paddingY * 2);
-
+  const width = 320; const height = 110; const paddingX = 25; const paddingY = 20;
+  const usableW = width - (paddingX * 2); const usableH = height - (paddingY * 2);
   const values = data.map(d => Number(d[key]) || 0);
-  const maxVal = Math.max(...values, 1);
-  const minVal = 0;
-
+  const maxVal = Math.max(...values, 1); const minVal = 0;
   const points = values.map((val, idx) => {
     const x = paddingX + (idx / Math.max(values.length - 1, 1)) * usableW;
     const y = (height - paddingY) - ((val - minVal) / Math.max(maxVal - minVal, 1)) * usableH;
     return { x: Math.round(x), y: Math.round(y), val, day: data[idx].day || '' };
   });
-
-  const lineD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  const lineD = points.map((p, i) => `${i === 0? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
   const areaD = `${lineD} L ${points[points.length - 1].x} ${height - 10} L ${points[0].x} ${height - 10} Z`;
-
-  const nodes = points.map(p => `
-    <circle cx="${p.x}" cy="${p.y}" r="4" fill="${mainColor}" stroke="#121212" stroke-width="2"/>
-    <text x="${p.x}" y="${height + 5}" font-size="9" font-weight="600" fill="var(--muted)" text-anchor="middle">${p.day}</text>
-    <text x="${p.x}" y="${Math.max(p.y - 7, 10)}" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">${p.val}</text>
-  `).join('');
-
-  return `
-  <svg viewBox="0 0 ${width} ${height + 15}" style="width:100%;height:auto;overflow:visible;">
-    <defs>
-      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${mainColor}" stop-opacity="0.45"/>
-        <stop offset="100%" stop-color="${mainColor}" stop-opacity="0.0"/>
-      </linearGradient>
-    </defs>
-    <line x1="${paddingX}" y1="${height - 10}" x2="${width - paddingX}" y2="${height - 10}" stroke="var(--border)" stroke-width="1"/>
-    <path d="${areaD}" fill="url(#${gradId})"/>
-    <path d="${lineD}" fill="none" stroke="${mainColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    ${nodes}
-  </svg>`;
+  const nodes = points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="${mainColor}" stroke="#121212" stroke-width="2"/><text x="${p.x}" y="${height + 5}" font-size="9" font-weight="600" fill="var(--muted)" text-anchor="middle">${p.day}</text><text x="${p.x}" y="${Math.max(p.y - 7, 10)}" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">${p.val}</text>`).join('');
+  return `<svg viewBox="0 0 ${width} ${height + 15}" style="width:100%;height:auto;overflow:visible;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${mainColor}" stop-opacity="0.45"/><stop offset="100%" stop-color="${mainColor}" stop-opacity="0.0"/></linearGradient></defs><line x1="${paddingX}" y1="${height - 10}" x2="${width - paddingX}" y2="${height - 10}" stroke="var(--border)" stroke-width="1"/><path d="${areaD}" fill="url(#${gradId})"/><path d="${lineD}" fill="none" stroke="${mainColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${nodes}</svg>`;
 }
 
 async function loadProfile(){
   const u=await api(`/api/user/${profileId}`);
-  if(!u || !u.username) return toast('User not found');
+  if(!u ||!u.username) return toast('User not found');
+  profileData = u; // SAVE FOR MODAL
 
   document.getElementById('username').innerText='@'+u.username;
   document.getElementById('username-display').innerText=u.username;
-  document.getElementById('followers').innerText=u.followers||0;
-  document.getElementById('following').innerText=u.following||0;
-  document.getElementById('likes').innerText=u.totalLikes||0;
-  document.getElementById('views').innerText=u.totalViews||0;
+  document.getElementById('followers').innerText=formatNumber(u.followers||0);
+  document.getElementById('following').innerText=formatNumber(u.following||0);
+  document.getElementById('likes').innerText=formatNumber(u.totalLikes||0);
+  document.getElementById('views').innerText=formatNumber(u.totalViews||0);
 
   getAndSaveDailyScores(profileId, u.totalViews || 0, u.totalLikes || 0);
-
   document.getElementById('bio-text').innerText = u.bio || '';
 
   let badges='';
@@ -327,7 +323,7 @@ async function loadProfile(){
     document.getElementById('bio-input').value = u.bio || '';
     await loadKYCStatus();
   }else{
-    document.getElementById('follow-btn').innerText=u.isFollowing ? 'Unfollow' : 'Follow';
+    document.getElementById('follow-btn').innerText=u.isFollowing? 'Unfollow' : 'Follow';
     const msgBtn = document.getElementById('message-btn');
     msgBtn.style.display = 'inline-flex';
     if(u.dmUnlocked || u.isVerified){
@@ -352,57 +348,51 @@ function copyLink(id){
 async function loadPosts(){
   const d = await api(`/api/user/${profileId}/posts`);
   if(!d || d.length === 0) {
-    document.getElementById('tab-posts').innerHTML = `<p style="text-align:center;color:var(--muted);padding:20px">No posts yet</p>`;
+    document.getElementById('tab-posts').innerHTML = `<p style="text-align:center;color:var(--muted);padding:40px">No posts yet</p>`;
     return;
   }
-  
+
   document.getElementById('tab-posts').innerHTML = `
-    <div class="grid">
+    <div class="feed">
       ${d.map(p => `
-        <div class="grid-item" onclick="playPost('${p.id}', '${p.type}')">
-          ${p.type === 'reel' || p.type === 'story' ? 
-            `<img src="${p.cdn_url || 'https://placehold.co/300x300/141414/00ff88?text=VIDEO'}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" />` : 
-            `<div style="padding:10px;font-size:12px;overflow:hidden">${escapeHtml(p.title || p.caption || 'Text Post')}</div>`
-          }
-          ${p.type === 'reel' ? '<svg style="position:absolute;bottom:6px;right:6px;color:#fff;width:18px;height:18px" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : ''}
+        <div class="feed-post">
+          ${p.cdn_url? `
+            <video class="feed-video" controls playsinline preload="metadata" poster="${p.cdn_url}">
+              <source src="${p.cdn_url}" type="video/mp4">
+            </video>
+          ` : `
+            <div style="padding:20px;font-size:14px">${escapeHtml(p.title || p.caption || 'Text Post')}</div>
+          `}
+          <div class="feed-info">
+            <div class="feed-caption">${escapeHtml(p.caption || p.title || '')}</div>
+            <div class="feed-stats">
+              <span>👁️ ${formatNumber(p.views || 0)}</span>
+              <span>❤️ ${formatNumber(p.likes || 0)}</span>
+            </div>
+          </div>
         </div>
       `).join('')}
     </div>
   `;
+}
 
-  if(!videoModal) {
-    videoModal = document.createElement('div');
-    videoModal.className = 'modal';
-    videoModal.innerHTML = `
-      <div class="glass-modal" style="max-width:500px;width:95%;padding:0;background:#000;position:relative">
-        <svg onclick="closeVideo()" style="position:absolute;top:12px;right:12px;z-index:10;color:#fff;width:24px;height:24px" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        <video id="profile-video" controls autoplay playsinline style="width:100%;height:80dvh;border-radius:20px;background:#000"></video>
+// FOLLOWERS MODAL
+function showList(type){
+  const list = type === 'followers'? profileData.followersList : profileData.followingList;
+  document.getElementById('list-title').innerText = type === 'followers'? 'Followers' : 'Following';
+  document.getElementById('list-content').innerHTML = list.map(u=>`
+    <div class="user-row" onclick="location.href='profile.html?id=${u.id}'">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--card);border:1px solid var(--border)"></div>
+      <div>
+        <b>@${u.username}</b>
+        ${u.isVerified? '<span style="color:var(--blue)"> ✓</span>' : ''}
       </div>
-    `;
-    document.body.appendChild(videoModal);
-    videoModal.onclick = (e) => { if(e.target === videoModal) closeVideo(); }
-  }
+    </div>
+  `).join('');
+  document.getElementById('list-modal').classList.add('active');
 }
-
-async function playPost(postId, type) {
-  if(type !== 'reel' && type !== 'story') return toast('This is a text post');
-  
-  toast('Loading video...');
-  const res = await api(`/api/media/sign?postId=${postId}`);
-  if(res.url) {
-    const video = document.getElementById('profile-video');
-    video.src = res.url;
-    videoModal.classList.add('active');
-  } else {
-    toast(res.error || 'Video not ready');
-  }
-}
-
-function closeVideo(){
-  const video = document.getElementById('profile-video');
-  video.pause();
-  video.src = '';
-  videoModal.classList.remove('active');
+function closeList(){
+  document.getElementById('list-modal').classList.remove('active');
 }
 
 function showTab(tab,el){
@@ -420,103 +410,17 @@ async function loadAnalytics(){
   const u = await api(`/api/user/${profileId}`);
   const dailyScores = getAndSaveDailyScores(profileId, u.totalViews || 0, u.totalLikes || 0);
   const w = await api('/api/wallet');
-
   const usdToNgnRate = await fetchUSDToNGNRate();
   const isNigeria = checkIsNigeria();
-
   const rawNairaBalance = w.cashBalance || 0;
   const usdtValue = (rawNairaBalance / usdToNgnRate).toFixed(2);
   const formattedNaira = rawNairaBalance.toLocaleString();
-
-  let likesTrend = 'up';
-  if (dailyScores.length > 1) {
-    const prevLikes = dailyScores[dailyScores.length - 2].likes || 0;
-    const currLikes = dailyScores[dailyScores.length - 1].likes || 0;
-    likesTrend = currLikes >= prevLikes ? 'up' : 'down';
-  }
-
-  let viewsTrend = 'up';
-  if (dailyScores.length > 1) {
-    const prevViews = dailyScores[dailyScores.length - 2].views || 0;
-    const currViews = dailyScores[dailyScores.length - 1].views || 0;
-    viewsTrend = currViews >= prevViews ? 'up' : 'down';
-  }
-
+  let likesTrend = 'up'; if (dailyScores.length > 1) {const prevLikes = dailyScores[dailyScores.length - 2].likes || 0; const currLikes = dailyScores[dailyScores.length - 1].likes || 0; likesTrend = currLikes >= prevLikes? 'up' : 'down';}
+  let viewsTrend = 'up'; if (dailyScores.length > 1) {const prevViews = dailyScores[dailyScores.length - 2].views || 0; const currViews = dailyScores[dailyScores.length - 1].views || 0; viewsTrend = currViews >= prevViews? 'up' : 'down';}
   const likesChartSvg = buildLineAreaChart(dailyScores, 'likes', '#ec4899', 'likesGradient');
   const viewsChartSvg = buildLineAreaChart(dailyScores, 'views', '#00ff88', 'viewsGradient');
-
-  let earningsDisplayHTML = isNigeria ? `
-    <div class="earn-row">
-      <span>Naira Earned:</span>
-      <b style="color:var(--green);font-size:16px;">₦${formattedNaira}</b>
-    </div>
-    <div class="earn-row">
-      <span>US Dollar ($) Equivalent:</span>
-      <b style="color:var(--blue);font-size:16px;">$${usdtValue} USDT</b>
-    </div>
-    <p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right;">Auto-rate: 1 USD = ₦${usdToNgnRate.toFixed(2)} </p>
-  ` : `
-    <div class="earn-row">
-      <span>Total Earned:</span>
-      <b style="color:var(--green);font-size:18px;">$${usdtValue} USDT</b>
-    </div>
-    <p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right;">Calculated via open.er-api.com</p>
-  `;
-
-  document.getElementById('tab-analytics').innerHTML = `
-  <div class="earn-badge">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-      <b style="font-size:13px;color:var(--text)">💰 Auto Estimated Cash Earnings</b>
-      <span style="font-size:10px;background:rgba(0,255,136,0.2);color:var(--green);padding:2px 6px;border-radius:6px;font-weight:700">LIVE</span>
-    </div>
-    ${earningsDisplayHTML}
-  </div>
-
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <h4 style="font-size:15px;color:var(--pink);">Daily Likes Analytics 💖</h4>
-        <p style="font-size:11px;color:var(--muted);">Tracked via real user engagement</p>
-      </div>
-      <span class="trend-pill ${likesTrend === 'up' ? 'trend-up' : 'trend-down'}">
-        <svg class="icon-inline" viewBox="0 0 24 24"><polyline points="${likesTrend==='up'?'23 6 13.5 15.5 8.5 10.5 1 18':'23 18 13.5 8.5 8.5 13.5 1 6'}"/></svg>
-        ${likesTrend === 'up' ? 'Likes Up' : 'Likes Down'}
-      </span>
-    </div>
-
-    <div class="chart-box">
-      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:10px;color:var(--muted)">
-        <span>Likes Performance Curve</span>
-        <span style="color:var(--pink);font-weight:700">Total: ${u.totalLikes || 0}</span>
-      </div>
-      ${likesChartSvg}
-    </div>
-  </div>
-
-  <div style="text-align:center;padding:10px 0;font-size:12px;color:var(--muted);font-weight:700;">
-    ↓ Scroll down to see Views Analytics ↓
-  </div>
-
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <h4 style="font-size:15px;color:var(--green);">Daily Views Analytics 👁️</h4>
-        <p style="font-size:11px;color:var(--muted);">Tracked via real video views</p>
-      </div>
-      <span class="trend-pill ${viewsTrend === 'up' ? 'trend-up' : 'trend-down'}">
-        <svg class="icon-inline" viewBox="0 0 24 24"><polyline points="${viewsTrend==='up'?'23 6 13.5 15.5 8.5 10.5 1 18':'23 18 13.5 8.5 8.5 13.5 1 6'}"/></svg>
-        ${viewsTrend === 'up' ? 'Views Up' : 'Views Down'}
-      </span>
-    </div>
-
-    <div class="chart-box">
-      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:10px;color:var(--muted)">
-        <span>Views Performance Curve</span>
-        <span style="color:var(--green);font-weight:700">Total: ${u.totalViews || 0}</span>
-      </div>
-      ${viewsChartSvg}
-    </div>
-  </div>`;
+  let earningsDisplayHTML = isNigeria? `<div class="earn-row"><span>Naira Earned:</span><b style="color:var(--green);font-size:16px;">₦${formattedNaira}</b></div><div class="earn-row"><span>US Dollar ($) Equivalent:</span><b style="color:var(--blue);font-size:16px;">$${usdtValue} USDT</b></div><p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right;">Auto-rate: 1 USD = ₦${usdToNgnRate.toFixed(2)} </p>` : `<div class="earn-row"><span>Total Earned:</span><b style="color:var(--green);font-size:18px;">$${usdtValue} USDT</b></div><p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right;">Calculated via open.er-api.com</p>`;
+  document.getElementById('tab-analytics').innerHTML = `<div class="earn-badge"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><b style="font-size:13px;color:var(--text)">💰 Auto Estimated Cash Earnings</b><span style="font-size:10px;background:rgba(0,255,136,0.2);color:var(--green);padding:2px 6px;border-radius:6px;font-weight:700">LIVE</span></div>${earningsDisplayHTML}</div><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="font-size:15px;color:var(--pink);">Daily Likes Analytics 💖</h4><p style="font-size:11px;color:var(--muted);">Tracked via real user engagement</p></div><span class="trend-pill ${likesTrend === 'up'? 'trend-up' : 'trend-down'}"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="${likesTrend==='up'?'23 6 13.5 15.5 8.5 10.5 1 18':'23 18 13.5 8.5 8.5 13.5 1 6'}"/></svg>${likesTrend === 'up'? 'Likes Up' : 'Likes Down'}</span></div><div class="chart-box"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:10px;color:var(--muted)"><span>Likes Performance Curve</span><span style="color:var(--pink);font-weight:700">Total: ${u.totalLikes || 0}</span></div>${likesChartSvg}</div></div><div style="text-align:center;padding:10px 0;font-size:12px;color:var(--muted);font-weight:700;">↓ Scroll down to see Views Analytics ↓</div><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="font-size:15px;color:var(--green);">Daily Views Analytics 👁️</h4><p style="font-size:11px;color:var(--muted);">Tracked via real video views</p></div><span class="trend-pill ${viewsTrend === 'up'? 'trend-up' : 'trend-down'}"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="${viewsTrend==='up'?'23 6 13.5 15.5 8.5 10.5 1 18':'23 18 13.5 8.5 8.5 13.5 1 6'}"/></svg>${viewsTrend === 'up'? 'Views Up' : 'Views Down'}</span></div><div class="chart-box"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:10px;color:var(--muted)"><span>Views Performance Curve</span><span style="color:var(--green);font-weight:700">Total: ${u.totalViews || 0}</span></div>${viewsChartSvg}</div></div>`;
 }
 
 async function loadWallet(){
@@ -687,6 +591,7 @@ async function toggleFollow(){
     toast(res.error);
   }else{
     toast(isFollowing ? 'Unfollowed' : 'Following');
+    loadProfile(); // refresh counts
   }
   setTimeout(()=>{btn.disabled=false; followLock=false},2000);
 }
