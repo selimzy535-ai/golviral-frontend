@@ -61,14 +61,12 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .toast.show{transform:translate(-50%,0);opacity:1}
 .gift-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;margin-bottom:10px;cursor:pointer;border:1px solid var(--border);background:#121212}
 
-/* VERTICAL FEED */
-.feed{padding:0}
-.feed-post{border-bottom:1px solid var(--border);padding:12px 0;background:#0a0a0a}
-.feed-video{width:100%;aspect-ratio:9/16;background:#000;border-radius:0;object-fit:cover}
-.feed-info{padding:10px 16px}
-.feed-caption{font-size:13px;line-height:1.4;margin-bottom:6px}
-.feed-stats{display:flex;gap:16px;color:var(--muted);font-size:12px;font-weight:600}
-
+/* 3 GRID POSTS INLINE PLAY */
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:16px}
+.grid-item{aspect-ratio:9/16;background:#000;border-radius:8px;border:1px solid var(--border);position:relative;overflow:hidden;cursor:pointer}
+.grid-item video,.grid-item img{width:100%;height:100%;object-fit:cover;display:block}
+.grid-overlay{position:absolute;bottom:0;left:0;right:0;padding:6px;background:linear-gradient(transparent,rgba(0,0,0,0.75));display:flex;align-items:center;gap:4px;color:#fff;font-size:11px;font-weight:700;pointer-events:none}
+.grid-play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center}
 /* FOLLOW LIST */
 .user-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
 .user-row:last-child{border:0}
@@ -345,6 +343,8 @@ function copyLink(id){
   toast('Copied to clipboard');
 }
 
+let playingVideoId = null;
+
 async function loadPosts(){
   const d = await api(`/api/user/${profileId}/posts`);
   if(!d || d.length === 0) {
@@ -353,27 +353,62 @@ async function loadPosts(){
   }
 
   document.getElementById('tab-posts').innerHTML = `
-    <div class="feed">
+    <div class="grid">
       ${d.map(p => `
-        <div class="feed-post">
+        <div class="grid-item" id="post-${p.id}" onclick="playInGrid('${p.id}')">
           ${p.cdn_url? `
-            <video class="feed-video" controls playsinline preload="metadata" poster="${p.cdn_url}">
+            <video id="video-${p.id}" poster="${p.cdn_url}" playsinline preload="metadata">
               <source src="${p.cdn_url}" type="video/mp4">
             </video>
-          ` : `
-            <div style="padding:20px;font-size:14px">${escapeHtml(p.title || p.caption || 'Text Post')}</div>
-          `}
-          <div class="feed-info">
-            <div class="feed-caption">${escapeHtml(p.caption || p.title || '')}</div>
-            <div class="feed-stats">
-              <span>👁️ ${formatNumber(p.views || 0)}</span>
-              <span>❤️ ${formatNumber(p.likes || 0)}</span>
+            <div class="grid-play-btn" id="btn-${p.id}">
+              <svg style="width:20px;height:20px;color:#fff" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </div>
-          </div>
+            <div class="grid-overlay">
+              <svg style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              ${formatNumber(p.views || 0)}
+            </div>
+          ` : `
+            <div style="padding:10px;font-size:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100%;text-align:center">
+              ${escapeHtml(p.title || p.caption || 'Text')}
+            </div>
+          `}
         </div>
       `).join('')}
     </div>
   `;
+}
+
+async function playInGrid(postId) {
+  const video = document.getElementById(`video-${postId}`);
+  const btn = document.getElementById(`btn-${postId}`);
+  if(!video) return;
+
+  // pause any other video playing
+  if(playingVideoId && playingVideoId !== postId){
+    const prevVideo = document.getElementById(`video-${playingVideoId}`);
+    const prevBtn = document.getElementById(`btn-${playingVideoId}`);
+    if(prevVideo){ prevVideo.pause(); prevBtn.style.display='flex'; }
+  }
+
+  if(video.paused){
+    // get signed url on first tap
+    if(!video.src || video.src === window.location.href){
+      const res = await api(`/api/media/sign?postId=${postId}`);
+      if(res.url) video.src = res.url; else return toast('Video not ready');
+    }
+    video.play();
+    btn.style.display='none';
+    playingVideoId = postId;
+  } else {
+    video.pause();
+    btn.style.display='flex';
+    playingVideoId = null;
+  }
+
+  video.onended = () => {
+    btn.style.display='flex';
+    playingVideoId = null;
+  }
 }
 
 // FOLLOWERS MODAL
