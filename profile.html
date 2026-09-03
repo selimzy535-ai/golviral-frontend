@@ -345,9 +345,63 @@ function copyLink(id){
   toast('Copied to clipboard');
 }
 
+let videoModal = null;
+
 async function loadPosts(){
-const d=await api(`/api/user/${profileId}/posts`);
-document.getElementById('tab-posts').innerHTML=`<div class="grid">${(d||[]).map(()=>`<div class="grid-item"></div>`).join('')}</div>`;
+  const d = await api(`/api/user/${profileId}/posts`);
+  if(!d || d.length === 0) {
+    document.getElementById('tab-posts').innerHTML = `<p style="text-align:center;color:var(--muted);padding:20px">No posts yet</p>`;
+    return;
+  }
+  
+  document.getElementById('tab-posts').innerHTML = `
+    <div class="grid">
+      ${d.map(p => `
+        <div class="grid-item" onclick="playPost('${p.id}', '${p.type}')">
+          ${p.type === 'reel' || p.type === 'story' ? 
+            `<img src="${p.cdn_url || 'https://placehold.co/300x300/141414/00ff88?text=VIDEO'}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" />` : 
+            `<div style="padding:10px;font-size:12px;overflow:hidden">${p.title || p.caption || 'Text Post'}</div>`
+          }
+          ${p.type === 'reel' ? '<svg style="position:absolute;bottom:6px;right:6px;color:#fff;width:18px;height:18px" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // Create video modal once
+  if(!videoModal) {
+    videoModal = document.createElement('div');
+    videoModal.className = 'modal';
+    videoModal.innerHTML = `
+      <div class="glass-modal" style="max-width:500px;width:95%;padding:0;background:#000;position:relative">
+        <svg onclick="closeVideo()" style="position:absolute;top:12px;right:12px;z-index:10;color:#fff;width:24px;height:24px" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <video id="profile-video" controls autoplay playsinline style="width:100%;height:80dvh;border-radius:20px;background:#000"></video>
+      </div>
+    `;
+    document.body.appendChild(videoModal);
+    videoModal.onclick = (e) => { if(e.target === videoModal) closeVideo() }
+  }
+}
+
+async function playPost(postId, type) {
+  if(type !== 'reel' && type !== 'story') return toast('This is a text post');
+  
+  toast('Loading video...');
+  const res = await api(`/api/media/sign?postId=${postId}`);
+  if(res.url) {
+    const video = document.getElementById('profile-video');
+    video.src = res.url;
+    videoModal.classList.add('active');
+  } else {
+    toast(res.error || 'Video not ready');
+  }
+}
+
+function closeVideo(){
+  const video = document.getElementById('profile-video');
+  video.pause();
+  video.src = '';
+  videoModal.classList.remove('active');
 }
 
 function showTab(tab,el){
