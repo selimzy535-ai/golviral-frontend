@@ -1,3 +1,4 @@
+So does this need update 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,60 +20,70 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="manifest" href="/golviral-frontend/manifest.json">
   <link rel="apple-touch-icon" href="/golviral-frontend/icon-192.png">
+
+  <!-- Universal Video Decoder / Stream Player Library -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
   <style>
-    :root {--bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.85);--accent:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;--text:#fff;--muted:#888;--border:#1f1f1f;--nav:70px;--top:100px;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)}
-    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
-    body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;overflow:hidden}
-    header{height:var(--top);background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
-   .topbar{display:flex;justify-content:space-between;align-items:center;padding:15px}
-   .logo{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-   .tabs{display:flex;gap:20px;padding:0 15px;overflow-x:auto;scrollbar-width:none}
-   .tabs::-webkit-scrollbar{display:none}
-   .tab{color:var(--muted);font-weight:700;cursor:pointer;padding-bottom:10px;position:relative;white-space:nowrap}
-   .tab.active{color:#000;background:var(--gradient);padding:6px 12px;border-radius:20px}
-    main{height:calc(100dvh - var(--nav) - var(--top));overflow-y:auto;scroll-snap-type:y mandatory}
-   .bottom-nav{height:var(--nav);background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;position:fixed;bottom:0;left:0;right:0;max-width:500px;margin:0 auto;z-index:10}
-   .nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);cursor:pointer;font-size:12px}
-   .nav-btn.active{color:var(--accent)}
-   .fab{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--gradient);box-shadow:0 0 20px rgba(0,255,136,0.4);border:none;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:9}
-   .reel{height:calc(100dvh - var(--nav) - var(--top));scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end}
-   .reel video,.reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
-   .reel.story{background:linear-gradient(135deg,#1a1a1a,#0f0f0f)}
-   .reel.novel{background:linear-gradient(135deg,#1a0a2e,#0f0f0f)}
-   .actions{position:absolute;right:10px;bottom:80px;display:flex;flex-direction:column;gap:18px}
-   .action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;cursor:pointer}
-   .action-btn[disabled]{opacity:0.4;pointer-events:none}
-    svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
-   .modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);display:none;z-index:200}
-   .modal.active{display:block}
-   .sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg);border-radius:20px 20px 0 0;padding:16px;max-height:75vh;display:flex;flex-direction:column;border-top:1px solid var(--border)}
-   .reader{position:fixed;inset:0;background:var(--bg);transform:translateX(100%);transition:0.3s;z-index:300;padding:20px;overflow-y:auto}
-   .reader.active{transform:translateX(0)}
-   .input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:24px;outline:none;font-size:14px}
-   .input:focus{border-color:var(--accent)}
-   .btn{background:var(--gradient);color:#000;border:none;padding:8px 16px;border-radius:20px;font-weight:800;cursor:pointer;width:auto;font-size:12px}
-   .btn[disabled]{opacity:0.5;pointer-events:none}
-   .toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
-   .toast.show{transform:translate(-50%,0);opacity:1}
-   .play-overlay{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,0.3);z-index:5;cursor:pointer}
-   .play-overlay svg{width:80px;height:80px;fill:var(--accent);stroke:none}
-   .comment-item{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
-   .comment-avatar{width:34px;height:34px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:bold;color:#000;font-size:12px;flex-shrink:0}
-   .comment-bubble{background:var(--card);border:1px solid var(--border);padding:10px 14px;border-radius:16px;max-width:85%}
-   .comment-user{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
-   .comment-text{font-size:13.5px;color:#ddd;line-height:1.4}
-   .search-top-panel{position:absolute;top:0;left:0;right:0;background:var(--glass);backdrop-filter:blur(25px);padding:16px;border-bottom:1px solid var(--border);max-width:500px;margin:0 auto;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
-   .search-header-row{display:flex;align-items:center;gap:12px}
-   .search-dropdown-list{max-height:50vh;overflow-y:auto;margin-top:12px;display:flex;flex-direction:column;gap:8px}
-   .search-user-card{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;cursor:pointer}
-    /* NEW GIFT/BOOST SHEET */
-   .gift-option{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;cursor:pointer;margin-bottom:10px}
-   .gift-option:hover{border-color:var(--accent)}
+    :root {
+      --bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.85);
+      --accent:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;
+      --text:#fff;--muted:#888;--border:#1f1f1f;--nav:70px;--top:100px;
+      --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)
+    }
+    * { box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent }
+    body { background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;overflow:hidden }
+    header { height:var(--top);background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10 }
+    .topbar { display:flex;justify-content:space-between;align-items:center;padding:15px }
+    .logo { display:flex;align-items:center;gap:8px;font-size:20px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent }
+    .tabs { display:flex;gap:20px;padding:0 15px;overflow-x:auto;scrollbar-width:none }
+    .tabs::-webkit-scrollbar { display:none }
+    .tab { color:var(--muted);font-weight:700;cursor:pointer;padding-bottom:10px;position:relative;white-space:nowrap }
+    .tab.active { color:#000;background:var(--gradient);padding:6px 12px;border-radius:20px }
+    main { height:calc(100dvh - var(--nav) - var(--top));overflow-y:auto;scroll-snap-type:y mandatory }
+    .bottom-nav { height:var(--nav);background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;position:fixed;bottom:0;left:0;right:0;max-width:500px;margin:0 auto;z-index:10 }
+    .nav-btn { display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);cursor:pointer;font-size:12px }
+    .nav-btn.active { color:var(--accent) }
+    .fab { position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--gradient);box-shadow:0 0 20px rgba(0,255,136,0.4);border:none;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:9 }
+    .reel { height:calc(100dvh - var(--nav) - var(--top));scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end }
+    .reel video,.reel img { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000 }
+    .reel.story { background:linear-gradient(135deg,#1a1a1a,#0f0f0f) }
+    .reel.novel { background:linear-gradient(135deg,#1a0a2e,#0f0f0f) }
+    .actions { position:absolute;right:10px;bottom:80px;display:flex;flex-direction:column;gap:18px }
+    .action-btn { display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;cursor:pointer }
+    .action-btn[disabled] { opacity:0.4;pointer-events:none }
+    svg { width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2 }
+    .modal { position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);display:none;z-index:200 }
+    .modal.active { display:block }
+    .sheet { position:absolute;bottom:0;left:0;right:0;background:var(--bg);border-radius:20px 20px 0 0;padding:16px;max-height:75vh;display:flex;flex-direction:column;border-top:1px solid var(--border) }
+    .reader { position:fixed;inset:0;background:var(--bg);transform:translateX(100%);transition:0.3s;z-index:300;padding:20px;overflow-y:auto }
+    .reader.active { transform:translateX(0) }
+    .input { width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:24px;outline:none;font-size:14px }
+    .input:focus { border-color:var(--accent) }
+    .btn { background:var(--gradient);color:#000;border:none;padding:8px 16px;border-radius:20px;font-weight:800;cursor:pointer;width:auto;font-size:12px }
+    .btn[disabled] { opacity:0.5;pointer-events:none }
+    .toast { position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0 }
+    .toast.show { transform:translate(-50%,0);opacity:1 }
+    .play-overlay { position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,0.3);z-index:5;cursor:pointer }
+    .play-overlay svg { width:80px;height:80px;fill:var(--accent);stroke:none }
+
+    /* FB-Style Comments */
+    .comment-item { display:flex;gap:10px;margin-bottom:12px;align-items:flex-start }
+    .comment-avatar { width:34px;height:34px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:bold;color:#000;font-size:12px;flex-shrink:0 }
+    .comment-bubble { background:var(--card);border:1px solid var(--border);padding:10px 14px;border-radius:16px;max-width:85% }
+    .comment-user { font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px }
+    .comment-text { font-size:13.5px;color:#ddd;line-height:1.4 }
+
+    /* Top-Dropdown Search Modal */
+    .search-top-panel { position:absolute;top:0;left:0;right:0;background:var(--glass);backdrop-filter:blur(25px);padding:16px;border-bottom:1px solid var(--border);max-width:500px;margin:0 auto;box-shadow:0 10px 30px rgba(0,0,0,0.5) }
+    .search-header-row { display:flex;align-items:center;gap:12px }
+    .search-dropdown-list { max-height:50vh;overflow-y:auto;margin-top:12px;display:flex;flex-direction:column;gap:8px }
+    .search-user-card { display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;cursor:pointer }
   </style>
 </head>
 <body>
   <div id="toast" class="toast"></div>
+
   <header>
     <div class="topbar">
       <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>GolViral</div>
@@ -85,8 +96,11 @@
       <div class="tab" onclick="loadFeed('Stories',this)">Memes</div>
     </div>
   </header>
+
   <main id="feed"></main>
+
   <button class="fab" onclick="location.href='post.html'"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+
   <nav class="bottom-nav">
     <div class="nav-btn active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
     <div class="nav-btn" onclick="openSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Search</span></div>
@@ -94,6 +108,7 @@
     <div class="nav-btn" onclick="location.href='messages.html'"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>DM</span></div>
     <div class="nav-btn" onclick="location.href='profile.html'"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Me</span></div>
   </nav>
+
   <div id="comment-sheet" class="modal">
     <div class="sheet">
       <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:12px">
@@ -107,20 +122,7 @@
       </div>
     </div>
   </div>
-  <div id="gift-sheet" class="modal">
-    <div class="sheet">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><b>Send Gift 🎁</b><span onclick="closeGift()" style="cursor:pointer;color:var(--muted)">✕</span></div>
-      <div id="gift-list"></div>
-    </div>
-  </div>
-  <div id="boost-sheet" class="modal">
-    <div class="sheet">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><b>Boost Post 🚀</b><span onclick="closeBoost()" style="cursor:pointer;color:var(--muted)">✕</span></div>
-      <div class="gift-option" onclick="doBoost(3500)"><div><b>1 Day Boost</b><div style="font-size:12px;color:var(--muted)">Top feed for 24h</div></div><b style="color:var(--accent)">₦3500</b></div>
-      <div class="gift-option" onclick="doBoost(7500)"><div><b>3 Days Boost</b><div style="font-size:12px;color:var(--muted)">Best value</div></div><b style="color:var(--accent)">₦7500</b></div>
-      <div class="gift-option" onclick="doBoost(17000)"><div><b>7 Days Boost</b><div style="font-size:12px;color:var(--muted)">Maximum reach</div></div><b style="color:var(--accent)">₦17000</b></div>
-    </div>
-  </div>
+
   <div id="search-modal" class="modal">
     <div class="search-top-panel">
       <div class="search-header-row">
@@ -130,62 +132,391 @@
       <div id="search-results" class="search-dropdown-list"></div>
     </div>
   </div>
+
   <div id="reader-tab" class="reader">
     <svg onclick="closeReader()" viewBox="0 0 24 24" style="margin-bottom:20px;cursor:pointer"><path d="M15 18l-6-6 6-6"/></svg>
     <h2 id="reader-title"></h2>
     <p id="reader-content" style="line-height:1.8;margin-top:16px;white-space:pre-wrap"></p>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-  <script>if(typeof eruda!=='undefined'){eruda.init();}</script>
   <script>
-    const API='https://golviral-api.onrender.com';
-    const TOKEN=localStorage.token;
-    const USER_ID=localStorage.userId;
-    if(!TOKEN) location.href='auth.html';
-    let feedData=[];let currentPost=null;let searchTimer=null;let currentBoostPostId=null;let currentGiftUserId=null;
-    const userCache={};const followLocks={};const hlsInstances={};
-    function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
-    async function api(path,opt={}){try{const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});if(res.status===401) location.href='auth.html';const data=await res.json().catch(()=>({}));if(res.status>=400) return{error:data.error||'Request failed'};return data;}catch{toast('Network error');return{};}}
-    async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
-    async function getSignedUrl(postId){const d=await api(`/api/media/sign?postId=${postId}`);return d?d.url:null;}
-    async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const typeMap={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const targetType=typeMap[type];let filtered=targetType==='all'?feedData:feedData.filter(p=>p.type===targetType);renderFeed(filtered,type);}
-    async function renderFeed(posts,type){const container=document.getElementById('feed');container.innerHTML='';if(!posts||posts.length===0){container.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}container.style.overflowY='scroll';for(const p of posts){if(p.type==='reel') container.appendChild(await createReel(p));else if(p.type==='store') container.appendChild(await createImageReel(p));else container.appendChild(await createTextReel(p));}setupReelObserver();}
-    async function createReel(p){const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;const user=await getUser(p.userId);const isMe=p.userId===USER_ID;div.innerHTML=`<video muted loop playsinline webkit-playsinline preload="metadata" data-postid="${p.id}"></video><div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username||p.userId}</b>${!isMe?`<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>`:''}</div><p>${p.caption||''}</p>${p.externalLink&&p.isBoosted?`<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>`:''}</div><div class="actions"><div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div><div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>${!isMe?`<div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>`:''}<div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div><div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="action-btn" onclick="toggleSound(this)"><svg viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div></div>`;let lastTap=0;div.ontouchend=e=>{const now=Date.now();if(now-lastTap<300) likePost(p.id,p.userId,div.querySelector('.action-btn'));lastTap=now;};return div;}
-    async function createImageReel(p){const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;const user=await getUser(p.userId);const isMe=p.userId===USER_ID;div.innerHTML=`<img data-postid="${p.id}" alt="Feed Post"><div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username||p.userId}</b>${!isMe?`<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>`:''}</div><p>${p.caption||''}</p></div><div class="actions"><div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div><div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>${!isMe?`<div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>`:''}<div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div></div>`;return div;}
-    async function createTextReel(p){const div=document.createElement('div');div.className=`reel ${p.type}`;div.dataset.id=p.id;div.dataset.creator=p.userId;const user=await getUser(p.userId);const isMe=p.userId===USER_ID;div.innerHTML=`<div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px"><h2 style="font-size:28px;margin-bottom:12px">${p.title||'Untitled'}</h2><p style="color:var(--muted)">@${user.username||p.userId}</p><p style="margin-top:20px;opacity:0.7">Double tap to read</p></div><div class="actions"><div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div><div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments||0}</span></div>${!isMe?`<div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>`:''}<div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div></div>`;let lastTap=0;div.ontouchend=e=>{const now=Date.now();if(now-lastTap<300) openReader(p.id);lastTap=now;};return div;}
-    function manualPlay(o){const v=o.parentElement.querySelector('video');if(v){v.play();o.style.display='none';}}
-    function setupReelObserver(){const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{const video=e.target.querySelector('video');const img=e.target.querySelector('img');const overlay=e.target.querySelector('.play-overlay');const postId=e.target.dataset.id;const creatorId=e.target.dataset.creator;if(e.intersectionRatio>0.7){if(video&&!video.dataset.loaded){video.dataset.loaded="true";getSignedUrl(postId).then(url=>{if(url){if(url.includes('.m3u8')||url.includes('type=hls')){if(window.Hls&&Hls.isSupported()){const hls=new Hls({enableWorker:true});hls.loadSource(url);hls.attachMedia(video);hlsInstances[postId]=hls;hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});}else if(video.canPlayType('application/vnd.apple.mpegurl')){video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}}else{video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}}});}else if(video){video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}if(img&&!img.src){getSignedUrl(postId).then(url=>{if(url) img.src=url;});}api('/api/view',{method:'POST',body:JSON.stringify({postId:postId,userId:creatorId,viewerId:USER_ID})});}else{if(video) video.pause();if(overlay) overlay.style.display='none';}});},{threshold:0.7});document.querySelectorAll('.reel').forEach(r=>obs.observe(r));}
-    async function likePost(postId,creatorId,btn){if(btn.dataset.locked) return;btn.dataset.locked=1;const span=document.getElementById(`like-${postId}`);if(span) span.innerText=parseInt(span.innerText||0)+1;btn.style.color='var(--pink)';await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})});setTimeout(()=>delete btn.dataset.locked,1000);}
-    async function toggleFollow(userId,btn){if(followLocks[userId]) return;followLocks[userId]=true;btn.disabled=true;const isFollowing=btn.innerText==='Following';const oldText=btn.innerText;btn.innerText=isFollowing?'Follow':'Following';const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});if(res.error){btn.innerText=oldText;toast(res.error);}setTimeout(()=>{btn.disabled=false;delete followLocks[userId];},2000);}
-    function toggleSound(btn){const video=btn.closest('.reel').querySelector('video');if(video){video.muted=!video.muted;toast(video.muted?'Muted':'Unmuted');}}
-    async function sharePost(){const url=`${location.origin}/golviral-frontend/index.html`;navigator.clipboard.writeText(url);toast('App link copied');}
+    if (typeof eruda !== 'undefined') { eruda.init(); }
+  </script>
 
-    // ===== NEW GIFT FLOW WITH SHEET =====
-    function openGiftSheet(userId){currentGiftUserId=userId;document.getElementById('gift-list').innerHTML=`<div class="gift-option" onclick="doGift('RUBY')"><div><b>💎 Ruby Gift</b><div style="font-size:12px;color:var(--muted)">200 pts per gift x100</div></div><b style="color:var(--accent)">₦5000</b></div><div class="gift-option" onclick="doGift('GOLD')"><div><b>👑 Gold Gift</b><div style="font-size:12px;color:var(--muted)">500 pts per gift x100</div></div><b style="color:var(--accent)">₦10000</b></div><div class="gift-option" onclick="doGift('DIAMOND')"><div><b>💠 Diamond Gift</b><div style="font-size:12px;color:var(--muted)">1000 pts per gift x100</div></div><b style="color:var(--accent)">₦15000</b></div><div style="height:1px;background:var(--border);margin:10px 0"></div><button class="btn" style="width:100%;padding:12px" onclick="trySendExistingGift()">I already have gift pack - Send now</button>`;document.getElementById('gift-sheet').classList.add('active');}
-    function closeGift(){document.getElementById('gift-sheet').classList.remove('active');}
-    document.getElementById('gift-sheet').onclick=e=>{if(e.target.id==='gift-sheet') closeGift();};
-    async function trySendExistingGift(){if(!currentGiftUserId) return;const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:currentGiftUserId})});if(res.success){toast(`Gift sent! +${res.pointsSent} pts`);closeGift();}else{toast(res.error||'No active pack, please buy one');}}
-    async function doGift(type){if(!currentGiftUserId) return;closeGift();const init=await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});if(init.selarLink){localStorage.setItem('last_payment',JSON.stringify({token:init.token,type}));toast(`Opening Selar for ${type}...`);window.open(init.selarLink,'_blank');}else toast(init.error||'Gift init failed');}
+  <script>
+    const API = 'https://golviral-api.onrender.com';
+    const TOKEN = localStorage.token;
+    const USER_ID = localStorage.userId;
+    if (!TOKEN) location.href = 'auth.html';
 
-    // ===== NEW BOOST FLOW WITH SHEET =====
-    function openBoostSheet(postId){currentBoostPostId=postId;document.getElementById('boost-sheet').classList.add('active');}
-    function closeBoost(){document.getElementById('boost-sheet').classList.remove('active');}
-    document.getElementById('boost-sheet').onclick=e=>{if(e.target.id==='boost-sheet') closeBoost();};
-    async function doBoost(tierAmount){if(!currentBoostPostId) return;closeBoost();const init=await api('/api/boost/init',{method:'POST',body:JSON.stringify({postId:currentBoostPostId,tierAmount})});if(init.selarLink){localStorage.setItem('last_payment',JSON.stringify({token:init.token,postId:currentBoostPostId,tierAmount}));toast(`Opening Selar for ${tierAmount} boost...`);window.open(init.selarLink,'_blank');}else toast(init.error||'Boost init failed');}
+    let feedData = [];
+    let currentPost = null;
+    let searchTimer = null;
+    const userCache = {};
+    const followLocks = {};
+    const hlsInstances = {};
 
-    async function openComments(postId,creatorId){currentPost={postId,creatorId};document.getElementById('comment-sheet').classList.add('active');const d=await api(`/api/comments/${postId}`);const list=document.getElementById('comment-list');if(!d.comments||d.comments.length===0){list.innerHTML='<p style="text-align:center;color:var(--muted);padding:20px">No comments yet. Be the first!</p>';}else{list.innerHTML=d.comments.map(c=>{const name=c.user?.username||'User';const initial=name.charAt(0).toUpperCase();return`<div class="comment-item"><div class="comment-avatar">${initial}</div><div class="comment-bubble"><div class="comment-user">@${name}</div><div class="comment-text">${c.text}</div></div></div>`;}).join('');}}
-    function closeSheet(){document.getElementById('comment-sheet').classList.remove('active');}
-    document.getElementById('comment-sheet').onclick=e=>{if(e.target.id==='comment-sheet') closeSheet();};
-    async function sendComment(){const input=document.getElementById('comment-input');const text=input.value.trim();if(!text) return;await api('/api/comment',{method:'POST',body:JSON.stringify({...currentPost,text})});input.value='';openComments(currentPost.postId,currentPost.creatorId);}
-    function openSearch(){document.getElementById('search-modal').classList.add('active');setTimeout(()=>document.getElementById('search-input').focus(),50);}
-    function closeSearch(){document.getElementById('search-modal').classList.remove('active');}
-    document.getElementById('search-modal').onclick=e=>{if(e.target.id==='search-modal') closeSearch();};
-    function debounceSearch(q){clearTimeout(searchTimer);searchTimer=setTimeout(()=>searchUsers(q),300);}
-    async function searchUsers(q){const resultsDiv=document.getElementById('search-results');if(!q||q.length<2){resultsDiv.innerHTML='';return;}const users=await api(`/api/search/users?q=${encodeURIComponent(q)}`);if(!users||users.length===0){resultsDiv.innerHTML='<p style="padding:10px;color:var(--muted);text-align:center;font-size:13px">No users found</p>';return;}resultsDiv.innerHTML=users.map(u=>`<div class="search-user-card" onclick="location.href='profile.html?id=${u.id}'"><div><b style="font-size:14px">@${u.username}</b><div style="font-size:12px;color:var(--muted)">${u.followers||0} followers</div></div><span style="font-size:12px;color:var(--accent);font-weight:700">View</span></div>`).join('');}
-    async function openReader(id){const p=await api(`/api/post/${id}`);document.getElementById('reader-title').innerText=p.title||'No Title';document.getElementById('reader-content').innerText=p.content||'No Content';document.getElementById('reader-tab').classList.add('active');api('/api/read-session',{method:'POST',body:JSON.stringify({contentId:id,authorId:p.userId,contentType:p.type})});}
-    function closeReader(){document.getElementById('reader-tab').classList.remove('active');}
-    loadFeed('ForYou',document.querySelector('.tab'));
-    if('serviceWorker' in navigator){navigator.serviceWorker.register('/golviral-frontend/sw.js',{scope:'/golviral-frontend/'}).then(()=>console.log('SW registered')).catch(e=>console.error('SW failed',e));}
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function api(path, opt = {}) {
+      try {
+        const res = await fetch(API + path, {
+          ...opt,
+          headers: {
+            'Authorization': 'Bearer ' + TOKEN,
+            'Content-Type': 'application/json',
+            ...opt.headers
+          }
+        });
+        if (res.status === 401) location.href = 'auth.html';
+        const data = await res.json().catch(() => ({}));
+        if (res.status >= 400) return { error: data.error || 'Request failed' };
+        return data;
+      } catch {
+        toast('Network error');
+        return {};
+      }
+    }
+
+    async function getUser(id) {
+      if (userCache[id]) return userCache[id];
+      const u = await api(`/api/user/${id}`);
+      userCache[id] = u;
+      return u;
+    }
+
+    async function getSignedUrl(postId) {
+      console.log('[SIGN] Fetching url for', postId);
+      const d = await api(`/api/media/sign?postId=${postId}`);
+      console.log('[SIGN] Result', d);
+      return d ? d.url : null;
+    }
+
+    async function loadFeed(type, el) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      if (el) el.classList.add('active');
+      const res = await api('/api/feed');
+      feedData = Array.isArray(res) ? res : [];
+
+      const typeMap = { ForYou: 'all', Reels: 'reel', Novels: 'novel', Stories: 'store' };
+      const targetType = typeMap[type];
+      let filtered = targetType === 'all' ? feedData : feedData.filter(p => p.type === targetType);
+      renderFeed(filtered, type);
+    }
+
+    async function renderFeed(posts, type) {
+      const container = document.getElementById('feed');
+      container.innerHTML = '';
+      if (!posts || posts.length === 0) {
+        container.innerHTML = '<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';
+        return;
+      }
+
+      container.style.overflowY = 'scroll';
+      for (const p of posts) {
+        if (p.type === 'reel') container.appendChild(await createReel(p));
+        else if (p.type === 'store') container.appendChild(await createImageReel(p));
+        else container.appendChild(await createTextReel(p));
+      }
+      setupReelObserver();
+    }
+
+    async function createReel(p) {
+      const div = document.createElement('div');
+      div.className = 'reel';
+      div.dataset.id = p.id;
+      div.dataset.creator = p.userId;
+
+      const user = await getUser(p.userId);
+      const isMe = p.userId === USER_ID;
+
+      div.innerHTML = `
+        <video muted loop playsinline webkit-playsinline preload="metadata" data-postid="${p.id}"></video>
+        <div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username || p.userId}</b>
+            ${!isMe ? `<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing ? 'Following' : 'Follow'}</button>` : ''}
+          </div>
+          <p>${p.caption || ''}</p>
+          ${p.externalLink && p.isBoosted ? `<a href="${p.externalLink}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ''}
+        </div>
+        <div class="actions">
+          <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes || 0}</span></div>
+          <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments || 0}</span></div>
+          ${!isMe ? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
+          <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+          <div class="action-btn" onclick="boostPost('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+          <div class="action-btn" onclick="toggleSound(this)"><svg viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div>
+        </div>`;
+
+      let lastTap = 0;
+      div.ontouchend = e => {
+        const now = Date.now();
+        if (now - lastTap < 300) likePost(p.id, p.userId, div.querySelector('.action-btn'));
+        lastTap = now;
+      };
+      return div;
+    }
+
+    async function createImageReel(p) {
+      const div = document.createElement('div');
+      div.className = 'reel';
+      div.dataset.id = p.id;
+      div.dataset.creator = p.userId;
+
+      const user = await getUser(p.userId);
+      const isMe = p.userId === USER_ID;
+
+      div.innerHTML = `
+        <img data-postid="${p.id}" alt="Feed Post">
+        <div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username || p.userId}</b>
+            ${!isMe ? `<button id="follow-${p.userId}" class="btn" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing ? 'Following' : 'Follow'}</button>` : ''}
+          </div>
+          <p>${p.caption || ''}</p>
+        </div>
+        <div class="actions">
+          <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes || 0}</span></div>
+          <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments || 0}</span></div>
+          ${!isMe ? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
+          <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+        </div>`;
+
+      return div;
+    }
+
+    async function createTextReel(p) {
+      const div = document.createElement('div');
+      div.className = `reel ${p.type}`;
+      div.dataset.id = p.id;
+      div.dataset.creator = p.userId;
+
+      const user = await getUser(p.userId);
+      const isMe = p.userId === USER_ID;
+
+      div.innerHTML = `
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px">
+          <h2 style="font-size:28px;margin-bottom:12px">${p.title || 'Untitled'}</h2>
+          <p style="color:var(--muted)">@${user.username || p.userId}</p>
+          <p style="margin-top:20px;opacity:0.7">Double tap to read</p>
+        </div>
+        <div class="actions">
+          <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes || 0}</span></div>
+          <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${p.comments || 0}</span></div>
+          ${!isMe ? `<div class="action-btn" onclick="sendGift('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>` : ''}
+          <div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+        </div>`;
+
+      let lastTap = 0;
+      div.ontouchend = e => {
+        const now = Date.now();
+        if (now - lastTap < 300) openReader(p.id);
+        lastTap = now;
+      };
+      return div;
+    }
+
+    function manualPlay(overlay) {
+      const video = overlay.parentElement.querySelector('video');
+      if (video) {
+        video.play();
+        overlay.style.display = 'none';
+      }
+    }
+
+    function setupReelObserver() {
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          const video = e.target.querySelector('video');
+          const img = e.target.querySelector('img');
+          const overlay = e.target.querySelector('.play-overlay');
+          const postId = e.target.dataset.id;
+          const creatorId = e.target.dataset.creator;
+
+          if (e.intersectionRatio > 0.7) {
+            if (video && !video.dataset.loaded) {
+              video.dataset.loaded = "true";
+              console.log('[REEL] Loading video for', postId);
+
+              getSignedUrl(postId).then(url => {
+                if (url) {
+                  if (url.includes('.m3u8') || url.includes('type=hls')) {
+                    if (window.Hls && Hls.isSupported()) {
+                      const hls = new Hls({ enableWorker: true });
+                      hls.loadSource(url);
+                      hls.attachMedia(video);
+                      hlsInstances[postId] = hls;
+                      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play().catch(() => { if (overlay) overlay.style.display = 'flex'; });
+                      });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                      video.src = url;
+                      video.play().catch(() => { if (overlay) overlay.style.display = 'flex'; });
+                    }
+                  } else {
+                    video.src = url;
+                    video.play().catch(() => { if (overlay) overlay.style.display = 'flex'; });
+                  }
+                } else {
+                  toast('Media failed to load');
+                }
+              });
+            } else if (video) {
+              video.play().catch(() => { if (overlay) overlay.style.display = 'flex'; });
+            }
+
+            if (img && !img.src) {
+              console.log('[REEL] Loading image for', postId);
+              getSignedUrl(postId).then(url => {
+                if (url) { img.src = url; } else { toast('Image failed to load'); }
+              });
+            }
+
+            api('/api/view', { method: 'POST', body: JSON.stringify({ postId: postId, userId: creatorId, viewerId: USER_ID }) });
+          } else {
+            if (video) video.pause();
+            if (overlay) overlay.style.display = 'none';
+          }
+        });
+      }, { threshold: 0.7 });
+
+      document.querySelectorAll('.reel').forEach(r => obs.observe(r));
+    }
+
+    async function likePost(postId, creatorId, btn) {
+      if (btn.dataset.locked) return;
+      btn.dataset.locked = 1;
+      const span = document.getElementById(`like-${postId}`);
+      if (span) span.innerText = parseInt(span.innerText || 0) + 1;
+      btn.style.color = 'var(--pink)';
+      await api('/api/like', { method: 'POST', body: JSON.stringify({ postId, creatorId }) });
+      setTimeout(() => delete btn.dataset.locked, 1000);
+    }
+
+    async function toggleFollow(userId, btn) {
+      if (followLocks[userId]) return;
+      followLocks[userId] = true;
+      btn.disabled = true;
+      const isFollowing = btn.innerText === 'Following';
+      const oldText = btn.innerText;
+      btn.innerText = isFollowing ? 'Follow' : 'Following';
+      const res = await api(isFollowing ? '/api/unfollow' : '/api/follow', { method: 'POST', body: JSON.stringify({ followingId: userId }) });
+      if (res.error) { btn.innerText = oldText; toast(res.error); }
+      setTimeout(() => { btn.disabled = false; delete followLocks[userId]; }, 2000);
+    }
+
+    async function sendGift(userId) {
+      const res = await api('/api/gift/send', { method: 'POST', body: JSON.stringify({ receiverId: userId, giftType: 'RUBY' }) });
+      if (res.success) toast('Gift sent!');
+      else toast(res.error || 'Failed to send gift');
+    }
+
+    function boostPost(id) { location.href = `post.html?boost=${id}`; }
+
+    function toggleSound(btn) {
+      const video = btn.closest('.reel').querySelector('video');
+      if (video) {
+        video.muted = !video.muted;
+        toast(video.muted ? 'Muted' : 'Unmuted');
+      }
+    }
+
+    async function sharePost() {
+      const url = `${location.origin}/golviral-frontend/index.html`;
+      navigator.clipboard.writeText(url);
+      toast('App link copied');
+    }
+
+    async function openComments(postId, creatorId) {
+      currentPost = { postId, creatorId };
+      document.getElementById('comment-sheet').classList.add('active');
+      const d = await api(`/api/comments/${postId}`);
+      const list = document.getElementById('comment-list');
+      if (!d.comments || d.comments.length === 0) {
+        list.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">No comments yet. Be the first!</p>';
+      } else {
+        list.innerHTML = d.comments.map(c => {
+          const name = c.user?.username || 'User';
+          const initial = name.charAt(0).toUpperCase();
+          return `
+            <div class="comment-item">
+              <div class="comment-avatar">${initial}</div>
+              <div class="comment-bubble">
+                <div class="comment-user">@${name}</div>
+                <div class="comment-text">${c.text}</div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+    }
+
+    function closeSheet() { document.getElementById('comment-sheet').classList.remove('active'); }
+    document.getElementById('comment-sheet').onclick = e => { if (e.target.id === 'comment-sheet') closeSheet(); };
+
+    async function sendComment() {
+      const input = document.getElementById('comment-input');
+      const text = input.value.trim();
+      if (!text) return;
+      await api('/api/comment', { method: 'POST', body: JSON.stringify({ ...currentPost, text }) });
+      input.value = '';
+      openComments(currentPost.postId, currentPost.creatorId);
+    }
+
+    function openSearch() {
+      document.getElementById('search-modal').classList.add('active');
+      setTimeout(() => document.getElementById('search-input').focus(), 50);
+    }
+
+    function closeSearch() {
+      document.getElementById('search-modal').classList.remove('active');
+    }
+    document.getElementById('search-modal').onclick = e => { if (e.target.id === 'search-modal') closeSearch(); };
+
+    function debounceSearch(q) { clearTimeout(searchTimer); searchTimer = setTimeout(() => searchUsers(q), 300); }
+
+    async function searchUsers(q) {
+      const resultsDiv = document.getElementById('search-results');
+      if (!q || q.length < 2) { resultsDiv.innerHTML = ''; return; }
+      const users = await api(`/api/search/users?q=${encodeURIComponent(q)}`);
+      if (!users || users.length === 0) {
+        resultsDiv.innerHTML = '<p style="padding:10px;color:var(--muted);text-align:center;font-size:13px">No users found</p>';
+        return;
+      }
+      resultsDiv.innerHTML = users.map(u => `
+        <div class="search-user-card" onclick="location.href='profile.html?id=${u.id}'">
+          <div>
+            <b style="font-size:14px">@${u.username}</b>
+            <div style="font-size:12px;color:var(--muted)">${u.followers || 0} followers</div>
+          </div>
+          <span style="font-size:12px;color:var(--accent);font-weight:700">View</span>
+        </div>`).join('');
+    }
+
+    async function openReader(id) {
+      const p = await api(`/api/post/${id}`);
+      document.getElementById('reader-title').innerText = p.title || 'No Title';
+      document.getElementById('reader-content').innerText = p.content || 'No Content';
+      document.getElementById('reader-tab').classList.add('active');
+      api('/api/read-session', { method: 'POST', body: JSON.stringify({ contentId: id, authorId: p.userId, contentType: p.type }) });
+    }
+
+    function closeReader() { document.getElementById('reader-tab').classList.remove('active'); }
+
+    loadFeed('ForYou', document.querySelector('.tab'));
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/golviral-frontend/sw.js', { scope: '/golviral-frontend/' })
+        .then(() => console.log('SW registered'))
+        .catch(e => console.error('SW failed', e));
+    }
   </script>
 </body>
 </html>
