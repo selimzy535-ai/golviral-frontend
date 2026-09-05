@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Payment Success - GolViral</title>
+<meta name="theme-color" content="#00ff88">
+<style>
+  :root{--bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.85);--accent:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--text:#fff;--muted:#888;--border:#1f1f1f;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
+  body{background:var(--bg);color:var(--text);display:flex;justify-content:center;align-items:center;min-height:100dvh;padding:20px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:28px;width:100%;max-width:400px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.6)}
+  .check{width:80px;height:80px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:40px;animation:pop .5s ease}
+  @keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+  h2{font-size:22px;margin-bottom:8px}
+  p{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:16px}
+  .status{background:#111;border:1px solid var(--border);border-radius:12px;padding:12px;font-size:13px;margin:16px 0;text-align:left;word-break:break-all}
+  .btn{background:var(--gradient);color:#000;border:none;padding:14px 20px;border-radius:24px;font-weight:800;width:100%;cursor:pointer;font-size:15px;margin-top:10px}
+  .btn:disabled{opacity:.5;pointer-events:none}
+  .muted{font-size:12px;color:var(--muted);margin-top:12px}
+  .spinner{width:20px;height:20px;border:2px solid rgba(0,0,0,.2);border-top:2px solid #000;border-radius:50%;display:inline-block;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="check">✓</div>
+  <h2 id="title">Payment Received!</h2>
+  <p id="subtitle">Verifying your payment... please wait</p>
+  <div class="status" id="statusBox">
+    tx_ref: loading...<br>
+    token: loading...
+  </div>
+  <button class="btn" id="actionBtn" disabled><span class="spinner"></span>Verifying</button>
+  <div class="muted">Do not close this page until verified. Your gift/boost will be credited automatically.</div>
+</div>
+
+<script>
+const API = 'https://golviral-api.onrender.com';
+const qs = new URLSearchParams(location.search);
+let tx_ref = qs.get('tx_ref') || qs.get('txRef') || qs.get('transaction_id') || '';
+let token = qs.get('custom_field_1') || qs.get('token') || '';
+let postId = qs.get('custom_field_2') || qs.get('postId') || '';
+// Selar sometimes nests in custom_fields
+if(!token && qs.get('custom_fields')){
+  try{ const cf = JSON.parse(qs.get('custom_fields')); token = cf.custom_field_1 || token; postId = cf.custom_field_2 || postId; }catch{}
+}
+// fallback from localStorage if redirect lost params
+if(!token){
+  try{ const last = JSON.parse(localStorage.getItem('last_payment')||'{}'); token = last.token || ''; postId = last.postId || postId; }catch{}
+}
+
+const titleEl = document.getElementById('title');
+const subEl = document.getElementById('subtitle');
+const statusBox = document.getElementById('statusBox');
+const btn = document.getElementById('actionBtn');
+
+statusBox.innerHTML = `tx_ref: ${tx_ref || 'missing'}<br>token: ${token || 'missing'}<br>${postId ? `postId: ${postId}<br>` : ''}status: pending verification`;
+
+localStorage.setItem('last_payment', JSON.stringify({tx_ref, token, postId, at: Date.now()}));
+
+async function verify(){
+  if(!token){ 
+    titleEl.innerText = 'Missing Token';
+    subEl.innerText = 'We could not find your payment token. Contact support with your Selar receipt.';
+    btn.innerText = 'Go Home'; btn.disabled=false;
+    btn.onclick = ()=> location.href='index.html';
+    return;
+  }
+  if(!tx_ref){
+    // Selar sometimes does not send tx_ref in redirect, use token as tx_ref fallback
+    tx_ref = 'SELAR_'+token.slice(0,12)+'_'+Date.now();
+  }
+
+  const authToken = localStorage.getItem('token');
+  if(!authToken){
+    subEl.innerText = 'Login session expired. Please login and we will retry.';
+    btn.innerText = 'Login'; btn.disabled=false;
+    btn.onclick = ()=> location.href='auth.html';
+    return;
+  }
+
+  try{
+    const res = await fetch(API+'/api/payment/verify', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
+      body: JSON.stringify({tx_ref, token})
+    });
+    const data = await res.json();
+
+    if(res.ok && data.success){
+      titleEl.innerText = 'Success! 🎉';
+      if(data.gift){
+        subEl.innerText = `Your ${data.gift} gift pack (100 gifts) has been credited! You can now send gifts.`;
+      } else if(data.boosted){
+        subEl.innerText = `Post boosted successfully! Your post will stay on top until ${new Date(data.expiresAt).toLocaleString()}`;
+      } else if(data.credited){
+        subEl.innerText = `${data.credited} points credited to your wallet!`;
+      } else {
+        subEl.innerText = data.message || 'Payment verified successfully!';
+      }
+      statusBox.innerHTML = `✅ Verified<br>tx_ref: ${tx_ref}<br>${data.gift ? 'Gift: '+data.gift : ''} ${data.boosted ? 'Boosted: '+data.boosted : ''}`;
+      btn.innerHTML = 'Continue to App'; btn.disabled=false;
+      btn.onclick = ()=> location.href='index.html';
+      localStorage.removeItem('last_payment');
+    } else {
+      // If already processed, treat as success
+      if(data.message && data.message.includes('already processed')){
+        titleEl.innerText = 'Already Credited';
+        subEl.innerText = 'This payment was already credited before. Check your wallet/gifts.';
+        btn.innerText='Go Home'; btn.disabled=false;
+        btn.onclick = ()=> location.href='index.html';
+        return;
+      }
+      throw new Error(data.error || 'Verification failed');
+    }
+  }catch(e){
+    console.error(e);
+    titleEl.innerText = 'Verification Failed';
+    subEl.innerText = e.message + '. Retrying in 3 seconds... (do not close)';
+    statusBox.innerHTML += `<br><span style="color:#f97316">Error: ${e.message}</span>`;
+    setTimeout(verify, 3000);
+  }
+}
+
+// Auto start after 1s
+setTimeout(verify, 1000);
+
+btn.addEventListener('click', ()=>{
+  if(btn.innerText.includes('Home') || btn.innerText.includes('App')) location.href='index.html';
+});
+</script>
+</body>
+  </html>
