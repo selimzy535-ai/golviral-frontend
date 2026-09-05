@@ -182,34 +182,22 @@ async function createReel(p){
   const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;
   const user=await getUser(p.userId);const isMe=p.userId===USER_ID;
   const followHtml =!isMe? `<button class="btn" data-userid="${p.userId}" data-following="${user.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>` : '';
-  div.innerHTML=`<video muted loop playsinline webkit-playsinline preload="metadata" data-postid="${p.id}" crossorigin="anonymous"></video><div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username||p.userId}</b>${followHtml}</div><p>${p.caption||''}</p></div><div class="actions"><div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div><div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div><div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="action-btn" onclick="toggleSound(this)"><svg viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div></div>`;
+  // REMOVED crossorigin="anonymous" - this was breaking Telegram
+  div.innerHTML=`<video muted loop playsinline webkit-playsinline preload="metadata" data-postid="${p.id}"></video><div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b onclick="location.href='profile.html?id=${p.userId}'" style="cursor:pointer">@${user.username||p.userId}</b>${followHtml}</div><p>${p.caption||''}</p></div><div class="actions"><div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div><div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><div class="action-btn" onclick="sharePost()"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div><div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="action-btn" onclick="toggleSound(this)"><svg viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div></div>`;
   let lastTap=0;div.ontouchend=()=>{const now=Date.now();if(now-lastTap<300) likePost(p.id,p.userId,div.querySelector('.action-btn'));lastTap=now;};return div;
 }
+
 async function createImageReel(p){
   const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;
   const u=await getUser(p.userId);const isMe=p.userId===USER_ID;
   const followHtml =!isMe? `<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="margin-left:8px">${u.isFollowing?'Following':'Follow'}</button>` : '';
-  div.innerHTML=`<img data-postid="${p.id}" crossorigin="anonymous" style="background:#111"><div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))"><div style="display:flex;align-items:center;gap:8px"><b>@${u.username||p.userId}</b>${followHtml}</div><p style="margin-top:6px">${p.caption||''}</p></div><div class="actions"><div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div><div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2z"/></svg></div><div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div></div>`;
+  div.innerHTML=`<img data-postid="${p.id}" style="background:#111"><div style="position:relative;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.8))"><div style="display:flex;align-items:center;gap:8px"><b>@${u.username||p.userId}</b>${followHtml}</div><p style="margin-top:6px">${p.caption||''}</p></div><div class="actions"><div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div><div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2z"/></svg></div><div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div></div>`;
   return div;
-}
-async function createTextReel(p){
-  const div=document.createElement('div');div.className=`reel ${p.type}`;div.dataset.id=p.id;div.dataset.creator=p.userId;
-  const u=await getUser(p.userId);const isMe=p.userId===USER_ID;
-  const followHtml =!isMe? `<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="margin-top:10px">${u.isFollowing?'Following':'Follow'}</button>` : '';
-  div.innerHTML=`<div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px"><h2 style="font-size:28px">${p.title||'Untitled'}</h2><p style="color:var(--muted)">@${u.username||p.userId}</p>${followHtml}</div><div class="actions"><div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}">${p.likes||0}</span></div><div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div></div>`;
-  let lastTap=0;div.ontouchend=()=>{const now=Date.now();if(now-lastTap<300) openReader(p.id);lastTap=now;};return div;
-}
-
-function manualPlay(o){
-  const v=o.parentElement.querySelector('video');
-  console.log('[VIDEO] manualPlay clicked for', v?.dataset.postid);
-  if(v){
-    v.play().then(()=>{ console.log('[VIDEO] manualPlay success'); o.style.display='none'; }).catch(e=>{ console.error('[VIDEO] manualPlay failed', e); });
-  }
 }
 
 function setupReelObserver(){
-  console.log('[OBSERVER] Setting up IntersectionObserver');
+  console.log('[OBSERVER] Setup v2 - no abort');
+  let currentPlaying = null;
   const obs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       const video=e.target.querySelector('video');
@@ -217,98 +205,57 @@ function setupReelObserver(){
       const overlay=e.target.querySelector('.play-overlay');
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
-      console.log(`[OBSERVER] ratio=${e.intersectionRatio.toFixed(2)} postId=${postId} creator=${creatorId} visible=${e.intersectionRatio>0.7}`);
-
-      if(e.intersectionRatio>0.7){
-        // VIDEO LOGIC WITH FULL LOGS
+      
+      // Lower threshold to 0.5 so scrolling doesn't instantly pause
+      if(e.intersectionRatio > 0.5){
+        console.log(`[OBSERVER] VISIBLE ${postId} ratio=${e.intersectionRatio.toFixed(2)}`);
         if(video &&!video.dataset.loaded){
           video.dataset.loaded="true";
-          console.log(`[VIDEO] Loading video for ${postId}`);
-
-          // Attach detailed video event logs
-          video.addEventListener('loadstart', ()=>console.log(`[VIDEO] ${postId} loadstart`));
-          video.addEventListener('loadedmetadata', ()=>console.log(`[VIDEO] ${postId} loadedmetadata size=${video.videoWidth}x${video.videoHeight} duration=${video.duration}`));
-          video.addEventListener('canplay', ()=>console.log(`[VIDEO] ${postId} canplay`));
-          video.addEventListener('playing', ()=>console.log(`[VIDEO] ${postId} playing`));
-          video.addEventListener('error', ()=>console.error(`[VIDEO] ${postId} ERROR`, video.error, `code=${video.error?.code} msg=${video.error?.message}`));
-          video.addEventListener('stalled', ()=>console.warn(`[VIDEO] ${postId} stalled`));
-
+          console.log(`[VIDEO] Start load ${postId}`);
+          video.addEventListener('error', ()=>console.error(`[VIDEO] ${postId} ERROR`, video.error));
+          video.addEventListener('loadeddata', ()=>console.log(`[VIDEO] ${postId} loadeddata OK ${video.videoWidth}x${video.videoHeight}`));
+          
           getSignedUrl(postId).then(url=>{
-            if(!url){ console.error(`[VIDEO] ${postId} no URL returned`); toast('Media failed to load'); return; }
-            console.log(`[VIDEO] ${postId} got URL:`, url);
-
-            // FIX: Add fake extension for Safari
-            let fixedUrl = url;
-            if(!fixedUrl.includes('.mp4') &&!fixedUrl.includes('.m3u8')){
-              fixedUrl = fixedUrl + (fixedUrl.includes('?')? '&' : '?') + 'ext=.mp4';
-              // Also try fragment trick for MIME sniff
-              fixedUrl = fixedUrl + '#.mp4';
-              console.log(`[VIDEO] ${postId} fixed URL for Safari:`, fixedUrl);
-            }
-
-            if(fixedUrl.includes('.m3u8') || fixedUrl.includes('type=hls') || url.includes('.m3u8')){
-              console.log(`[VIDEO] ${postId} detected HLS`);
-              if(window.Hls && Hls.isSupported()){
-                console.log(`[HLS] Creating HLS instance for ${postId}`);
-                const hls=new Hls({enableWorker:true, debug:false});
-                hls.loadSource(url); // use original url for HLS
-                hls.attachMedia(video);
-                hlsInstances[postId]=hls;
-                hls.on(Hls.Events.MANIFEST_PARSED, ()=>{ console.log(`[HLS] ${postId} MANIFEST_PARSED, playing`); video.play().catch(e=>{ console.error(`[HLS] ${postId} play fail`, e); if(overlay) overlay.style.display='flex'; }); });
-                hls.on(Hls.Events.ERROR, (event,data)=>{ console.error(`[HLS] ${postId} ERROR`, data); });
-              }else if(video.canPlayType('application/vnd.apple.mpegurl')){
-                console.log(`[VIDEO] ${postId} native HLS support`);
-                video.src=url;
-                video.play().catch(e=>{ console.error(`[VIDEO] ${postId} native HLS play fail`, e); if(overlay) overlay.style.display='flex'; });
-              }
-            }else{
-              console.log(`[VIDEO] ${postId} setting src as mp4`);
-              // Use source tag with explicit type to help Safari
-              video.innerHTML = `<source src="${fixedUrl}" type="video/mp4">`;
-              video.load();
-              console.log(`[VIDEO] ${postId} calling play()`);
-              video.play().then(()=>{ console.log(`[VIDEO] ${postId} play() success`); if(overlay) overlay.style.display='none'; }).catch(err=>{
-                console.error(`[VIDEO] ${postId} play() failed`, err.name, err.message);
+            if(!url) return;
+            console.log(`[VIDEO] ${postId} URL OK:`, url.slice(0,80));
+            // FIXED: Just use raw URL, no # trick that breaks
+            video.src = url;
+            video.load();
+            // Don't call play instantly, wait for loadeddata
+            video.addEventListener('loadeddata', ()=>{
+              video.play().then(()=>{
+                console.log(`[VIDEO] ${postId} play success`);
+                currentPlaying = video;
+                if(overlay) overlay.style.display='none';
+              }).catch(err=>{
+                console.warn(`[VIDEO] ${postId} autoplay blocked (need tap):`, err.name);
                 if(overlay) overlay.style.display='flex';
               });
-            }
-          }).catch(err=>{ console.error(`[VIDEO] ${postId} getSignedUrl exception`, err); });
-        }else if(video){
-          console.log(`[VIDEO] ${postId} already loaded, resuming play`);
-          video.play().catch(err=>{ console.error(`[VIDEO] ${postId} resume play fail`, err); if(overlay) overlay.style.display='flex'; });
+            }, {once:true});
+          });
+        } else if(video && video.paused){
+          console.log(`[VIDEO] Resuming ${postId}`);
+          video.play().catch(()=>{ if(overlay) overlay.style.display='flex'; });
         }
 
         if(img &&!img.dataset.loaded){
-          console.log(`[IMAGE] Loading image for ${postId}`);
           img.dataset.loaded="true";
-          img.onload = ()=>console.log(`[IMAGE] ${postId} loaded success w=${img.naturalWidth} h=${img.naturalHeight}`);
-          img.onerror = (e)=>console.error(`[IMAGE] ${postId} failed to load`, e, img.src);
-          getSignedUrl(postId).then(url=>{
-            if(url){
-              console.log(`[IMAGE] ${postId} got URL, setting src`);
-              img.src=url;
-            }else{
-              console.error(`[IMAGE] ${postId} no URL`);
-            }
-          });
+          img.onload = ()=>console.log(`[IMAGE] ${postId} loaded OK`);
+          img.onerror = ()=>console.error(`[IMAGE] ${postId} failed`, img.src);
+          getSignedUrl(postId).then(url=>{ if(url) img.src=url; });
         }
 
-        console.log(`[VIEW] Sending view for postId=${postId} creator=${creatorId}`);
-        api('/api/view',{method:'POST',body:JSON.stringify({postId, userId:creatorId, viewerId:USER_ID})}).then(r=>console.log(`[VIEW] Response for ${postId}:`, r));
-
+        api('/api/view',{method:'POST',body:JSON.stringify({postId, userId:creatorId, viewerId:USER_ID})});
       }else{
-        if(video){
-          console.log(`[VIDEO] ${postId} pausing (out of view)`);
+        // Only pause if it's really out of view (<0.2) not 0.68
+        if(e.intersectionRatio < 0.2 && video &&!video.paused){
+          console.log(`[VIDEO] Pausing ${postId} ratio=${e.intersectionRatio.toFixed(2)}`);
           video.pause();
         }
-        if(overlay) overlay.style.display='none';
       }
     });
-  },{threshold:0.7});
-
-  const reels = document.querySelectorAll('.reel');
-  console.log(`[OBSERVER] Observing ${reels.length} reels`);
-  reels.forEach(r=>obs.observe(r));
+  },{threshold:[0, 0.2, 0.5, 0.7]});
+  document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
 }
 
 async function likePost(postId,creatorId,btn){
