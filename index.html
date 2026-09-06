@@ -23,16 +23,17 @@
     .bottom-nav{height:var(--nav);background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;position:fixed;bottom:0;left:0;right:0;max-width:500px;margin:0 auto;z-index:10}
     .nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);cursor:pointer;font-size:12px}
     .nav-btn.active{color:var(--accent)}
-    .fab{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--gradient);box-shadow:0 0 20px rgba(0,255,136,0.4);border:none;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:9}
+    .fab{position:fixed;bottom:85px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--gradient);box-shadow:0 0 20px rgba(0,255,136,0.4);border:none;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:20}
     
     /* Immersive Vertical Snap Feed Layout */
     .reel{height:calc(100dvh - var(--nav) - var(--top));scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;background:#000}
-    .reel video,.reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-    .reel-content-overlay{position:relative;padding:20px 70px 20px 16px;background:linear-gradient(transparent, rgba(0,0,0,0.95));z-index:2}
+    .reel video,.reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+    .reel-content-overlay{position:relative;padding:16px 70px 16px 16px;background:linear-gradient(transparent, rgba(0,0,0,0.92));z-index:2;max-height:45%;overflow-y:auto}
     .creator-info{display:flex;align-items:center;gap:10px;margin-bottom:8px}
     .creator-avatar{width:36px;height:36px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:bold;color:#000;font-size:14px;border:2px solid var(--accent);flex-shrink:0}
     
-    .actions{position:absolute;right:12px;bottom:30px;display:flex;flex-direction:column;gap:18px;z-index:3}
+    /* Repositioned side actions bar above FAB button */
+    .actions{position:absolute;right:12px;bottom:110px;display:flex;flex-direction:column;gap:16px;z-index:15;background:rgba(0,0,0,0.25);padding:10px 6px;border-radius:20px;backdrop-filter:blur(4px)}
     .action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;cursor:pointer;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)}
     
     svg.icon{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0px 2px 4px rgba(0,0,0,0.5))}
