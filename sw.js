@@ -1,5 +1,5 @@
-const CACHE_NAME = 'golviral-v12'; // bumped - must be new version
-const APP_BASE_URL = 'https://selimzy535-ai.github.io';
+const CACHE_NAME = 'golviral-v10'; // bumped
+const APP_BASE_URL = 'https://selimzy535-ai.github.io'; // ROOT
 const APP_FOLDER = '/golviral-frontend';
 
 const PRECACHE_URLS = [
@@ -31,64 +31,148 @@ self.addEventListener('activate', e => {
   );
 });
 
-// FETCH - VIDEO IS COMPLETELY BYPASSED
+// Throttled cleanup
+let isCleaning = false;
+async function cleanupOldVideos() {
+  if (isCleaning) return;
+  isCleaning = true;
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    const requests = await cache.keys();
+    const now = Date.now();
+    const MAX_AGE = 72 * 60 * 60 * 1000;
+
+    for (const req of requests) {
+      const res = await cache.match(req);
+      if (!res) continue;
+      const dateHeader = res.headers.get('date');
+      const cachedTime = dateHeader? new Date(dateHeader).getTime() : now;
+      if (now - cachedTime > MAX_AGE) {
+        await cache.delete(req);
+      }
+    }
+  } catch (err) {
+    console.error("Cleanup failed", err);
+  } finally {
+    isCleaning = false;
+  }
+}
+
+// Range support for Safari video seeking
+async function returnRangeResponse(request, cachedResponse) {
+  const rangeHeader = request.headers.get('range');
+  if (!rangeHeader) return cachedResponse;
+
+  const arrayBuffer = await cachedResponse.arrayBuffer();
+  const match = rangeHeader.match(/bytes=(\d+)-(\d+)?/);
+  if (!match) return cachedResponse;
+
+  const start = parseInt(match[1], 10);
+  const end = match[2]? parseInt(match[2], 10) : arrayBuffer.byteLength - 1;
+  const slicedBuffer = arrayBuffer.slice(start, end + 1);
+
+  const headers = new Headers(cachedResponse.headers);
+  headers.set('Content-Range', `bytes ${start}-${end}/${arrayBuffer.byteLength}`);
+  headers.set('Content-Length', slicedBuffer.byteLength);
+  headers.set('Accept-Ranges', 'bytes');
+
+  return new Response(slicedBuffer, {
+    status: 206,
+    statusText: 'Partial Content',
+    headers
+  });
+}
+
+// FETCH
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+  const method = event.request.method;
 
-  // 1. NEVER TOUCH: API, VIDEOS, HLS, TELEGRAM, B2, ANY MEDIA
+  // BYPASS API
   if (
-    event.request.method !== 'GET' ||
-    url.pathname.startsWith('/api/') ||
+    method!== 'GET' ||
     url.hostname.includes('onrender.com') ||
-    url.hostname.includes('backblazeb2.com') ||
-    url.hostname.includes('telegram.org') ||
-    url.hostname.includes('cdn-') ||
-    url.href.includes('.m3u8') ||
-    url.href.includes('.ts') ||
-    url.href.includes('.mp4') ||
-    url.href.includes('.mov') ||
-    url.href.includes('.webm') ||
-    url.href.includes('.m4v') ||
-    url.href.includes('video') ||
-    event.request.destination === 'video' ||
-    event.request.destination === 'audio'
+    url.pathname.startsWith('/api/') ||
+    url.pathname.includes('admin.html')
   ) {
-    return; // let browser handle directly, SW does nothing
+    return event.respondWith(fetch(event.request));
   }
 
-  // 2. IMAGES: Cache first (safe)
+  // VIDEOS: Cache First + Range
+  if (event.request.destination === 'video' || url.pathname.includes('/media/') || url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async cache => {
+        const cached = await cache.match(event.request, { ignoreSearch: true });
+        if (cached) return returnRangeResponse(event.request, cached);
+
+        try {
+          const fetchRequest = event.request.headers.has('range')
+           ? new Request(event.request.url, { headers: { 'Accept': '*/*' } })
+            : event.request;
+
+          const networkRes = await fetch(fetchRequest);
+          if (networkRes.status === 200) {
+            cache.put(event.request, networkRes.clone());
+            event.waitUntil(cleanupOldVideos());
+          }
+          return returnRangeResponse(event.request, networkRes);
+        } catch {
+          return cached;
+        }
+      })
+    );
+    return;
+  }
+
+  // IMAGES
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached =>
         cached || fetch(event.request).then(res => {
-          if (res.ok) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          if (res.status === 200) {
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, res.clone()));
           }
           return res;
-        }).catch(()=> cached)
+        })
       )
     );
     return;
   }
 
-  // 3. APP SHELL: Cache first for offline PWA
-  if (url.origin === APP_BASE_URL && url.pathname.startsWith(APP_FOLDER)) {
-    event.respondWith(
-      caches.match(event.request).then(cached => {
-        return cached || fetch(event.request).then(res => {
-          if (res.ok) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-          }
-          return res;
-        }).catch(()=> caches.match(`${APP_BASE_URL}${APP_FOLDER}/index.html`));
-      })
-    );
+  // APP SHELL
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
+        }
+        return networkResponse;
+      }).catch(() => cached);
+      return cached || fetchPromise;
+    })
+  );
+});
+
+// PREFETCH
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'PREFETCH_VIDEO') {
+    const url = event.data.url;
+    caches.open(CACHE_NAME).then(cache => {
+      cache.match(url, { ignoreSearch: true }).then(cached => {
+        if (!cached) {
+          fetch(url).then(res => {
+            if (res.status === 200) {
+              cache.put(url, res);
+              event.waitUntil(cleanupOldVideos());
+            }
+          }).catch(()=>{});
+        }
+      });
+    });
   }
 });
 
-// PUSH
+// PUSH: FIXED vibrate
 self.addEventListener('push', event => {
   const data = event.data? event.data.json() : {};
   const title = data.title || 'GolViral';
@@ -97,7 +181,7 @@ self.addEventListener('push', event => {
     icon: `${APP_BASE_URL}${APP_FOLDER}/icon-192.png`,
     badge: `${APP_BASE_URL}${APP_FOLDER}/icon-192.png`,
     data: data.data || { url: `${APP_FOLDER}/index.html#feed` },
-    vibrate: [200, 100, 200],
+    vibrate: [200, 100, 200], // <-- FIXED
     tag: data.type || 'general'
   };
   event.waitUntil(self.registration.showNotification(title, options));
@@ -108,6 +192,7 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
   const relativeUrl = event.notification.data?.url || `${APP_FOLDER}/index.html#feed`;
   const urlToOpen = new URL(relativeUrl.replace(/^\//, ''), `${APP_BASE_URL}/`).href;
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
