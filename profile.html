@@ -94,6 +94,13 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
   min-height:18px;
 }
 .bio-display:empty{display:none}
+/* AVATAR EDIT */
+.avatar-wrap.edit-avatar-btn{
+  position:absolute;bottom:2px;right:2px;width:28px;height:28px;border-radius:50%;
+  background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:2
+}
+.avatar-wrap.edit-avatar-btn svg{width:14px;height:14px}
 </style>
 </head>
 <body>
@@ -107,8 +114,15 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 <div id="toast" class="toast"></div>
 
 <div class="tiktok-profile">
-  <div class="avatar-wrap">
-    <div class="avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"></div>
+    <div class="avatar-wrap">
+    <div class="avatar"><img id="avatar-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"></div>
+    <div id="avatar-edit-btn" class="edit-avatar-btn" onclick="document.getElementById('avatar-input').click()" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </div>
+  </div>
+  <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this.files[0])">
+  <div id="avatar-actions" style="display:none;margin-top:8px;justify-content:center;gap:8px">
+    <button onclick="deleteAvatar()" style="font-size:11px;background:transparent;color:var(--red);border:1px solid var(--red);padding:4px 10px;border-radius:12px;cursor:pointer">Delete Avatar</button>
   </div>
 
   <h2 id="username-display" style="font-size:18px;font-weight:800;"></h2>
@@ -306,6 +320,16 @@ async function loadProfile(){
 
   getAndSaveDailyScores(profileId, u.totalViews || 0, u.totalLikes || 0);
   document.getElementById('bio-text').innerText = u.bio || '';
+
+  // AVATAR - ADDED
+  const avatarImg = document.getElementById('avatar-img');
+  if(u.avatarUrl){
+    avatarImg.src = u.avatarUrl;
+  }
+  if(isSelf){
+    document.getElementById('avatar-edit-btn').style.display='flex';
+    if(u.avatarUrl) document.getElementById('avatar-actions').style.display='flex';
+  }
 
   let badges='';
   if(u.isVerified) badges+=`<span class="badge verified"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Verified</span>`;
@@ -656,6 +680,40 @@ async function saveBio() {
     toast('Bio updated');
     document.getElementById('bio-text').innerText = res.bio;
   } else toast(res.error || 'Failed');
+}
+
+async function uploadAvatar(file){
+  if(!file) return;
+  if(file.size > 2*1024*1024) return toast('Max 2MB');
+  toast('Uploading avatar...');
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('userId', localStorage.userId);
+  try{
+    const res = await fetch(CDN_URL+'/api/cdn/avatar', {
+      method:'POST',
+      headers:{ 'x-api-key': CDN_KEY },
+      body: fd
+    });
+    const data = await res.json();
+    if(data.success){
+      toast('Avatar updated');
+      // refresh profile
+      const kyc = await api('/api/profile/kyc-status');
+      if(kyc.avatarUrl) document.getElementById('avatar-img').src = kyc.avatarUrl;
+      document.getElementById('avatar-actions').style.display='flex';
+    }else toast(data.error||'Upload failed');
+  }catch(e){ toast('Upload failed'); }
+}
+
+async function deleteAvatar(){
+  if(!confirm('Delete avatar?')) return;
+  const res = await api('/api/profile/avatar', { method:'DELETE' });
+  if(res.success){
+    toast('Avatar deleted');
+    document.getElementById('avatar-img').src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
+    document.getElementById('avatar-actions').style.display='none';
+  }else toast(res.error||'Failed');
 }
 
 async function clearBio() {
