@@ -222,6 +222,8 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 
 <script>
 const API='https://golviral-api.onrender.com';
+const CDN_API='https://golviral-cdn.onrender.com';
+const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 const profileId=new URLSearchParams(location.search).get('id')||localStorage.userId;
