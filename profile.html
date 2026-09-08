@@ -68,7 +68,6 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .copy-box{display:flex;justify-content:space-between;align-items:center;background:#141414;border:1px solid var(--border);padding:10px;border-radius:10px;margin-top:8px;font-size:12px;word-break:break-all}
 .bio-display{font-size:13px;color:var(--muted);margin:8px 0 16px 0;line-height:1.4;padding:0 20px;text-align:center;white-space:pre-wrap;word-break:break-word;min-height:18px}
 .bio-display:empty{display:none}
-/* AVATAR EDIT - FIXED */
 .edit-avatar-btn{
   position:absolute;bottom:2px;right:2px;width:28px;height:28px;border-radius:50%;
   background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
@@ -100,6 +99,7 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
   </div>
 
   <h2 id="username-display" style="font-size:18px;font-weight:800;"></h2>
+  <p id="user-email" style="font-size:12px;color:var(--muted);margin-top:4px;display:none"></p>
   <div id="badges" class="badges-wrap"></div>
   <p id="bio-text" class="bio-display"></p>
 
@@ -177,6 +177,11 @@ async function loadProfile(){
   profileData=u;
   document.getElementById('username').innerText='@'+u.username;
   document.getElementById('username-display').innerText=u.username;
+  if(u.email){
+    const emailEl=document.getElementById('user-email');
+    emailEl.innerText=u.email;
+    emailEl.style.display='block';
+  }
   document.getElementById('followers').innerText=formatNumber(u.followers||0);
   document.getElementById('following').innerText=formatNumber(u.following||0);
   document.getElementById('likes').innerText=formatNumber(u.totalLikes||0);
