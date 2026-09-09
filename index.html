@@ -28,7 +28,14 @@
     
     /* Immersive Vertical Snap Feed Layout */
     .reel{height:calc(100dvh - var(--nav) - var(--top));scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;background:#000}
-    .reel video,.reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+   .reel video,.reel img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  background:#000
+}
     
     /* Dynamic Skeleton Shimmer Loader */
     .reel-skeleton{position:absolute;inset:0;background:linear-gradient(90deg,#0a0a0a 25%,#1a1a1a 50%,#0a0a0a 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;z-index:1}
@@ -304,7 +311,10 @@ async function createReel(p){
         <b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${user.username||p.userId}</b>
         ${followHtml}
       </div>
-      <p style="font-size:14px;line-height:1.4">${p.caption||''}</p>
+      <p style="font-size:14px;line-height:1.4;word-break:break-word;">
+  <span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>
+  ${(p.caption||'').length > 90 ? `<span style="color:#888;font-weight:700;cursor:pointer;" onclick="const c=document.getElementById('cap-${p.id}'); if(c.style.webkitLineClamp==='unset'){c.style.webkitLineClamp='2'; this.innerText=' ...see more';} else {c.style.webkitLineClamp='unset'; this.innerText=' see less';}"> ...see more</span>` : ''}
+</p>
     </div>
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)">
