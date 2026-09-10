@@ -1,13 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+// Redirect /u/ID to /profile.html?id=ID
+(function(){
+  var path = window.location.pathname;
+  if(path.includes('/u/')){
+    var id = path.split('/u/')[1].split('/')[0];
+    if(id){
+      window.location.replace('/profile.html?id=' + id);
+    }
+  }
+})();
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="google-site-verification" content="0rn74joHgCCJ0qqgQmbX4H9k1VRvOH31qY_SDkGqLbE" />
   <title>GolViral - Earn Money Creating Short Videos & Stories</title>
   <meta name="theme-color" content="#00ff88">
-  <link rel="manifest" href="/golviral-frontend/manifest.json">
-  <link rel="apple-touch-icon" href="/golviral-frontend/icon-192.png">
+  <link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="canonical" href="https://golviral.com/">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root{--bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.85);--glass-card:rgba(20,20,20,0.65);--accent:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;--text:#fff;--muted:#888;--border:#1f1f1f;--glass-border:rgba(255,255,255,0.12);--nav:70px;--top:100px;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)}
