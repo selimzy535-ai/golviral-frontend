@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google-site-verification" content="0rn74joHgCCJ0qqgQmbX4H9k1VRvOH31qY_SDkGqLbE" />
 <title>GolViral - Profile</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/manifest.json">
 <style>
 :root{
   --bg:#000;--card:#0d0d0d;--glass:rgba(15,15,15,0.75);--text:#fff;--muted:#777;--border:#1e1e1e;
@@ -155,7 +155,16 @@ const CDN_URL='https://golviral-cdn.onrender.com';
 const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
-const profileId=new URLSearchParams(location.search).get('id')||localStorage.userId;
+let profileId = new URLSearchParams(location.search).get('id');
+if(!profileId){
+  const parts = location.pathname.split('/').filter(Boolean);
+  // parts = ["u", "f34562a00a906f0b"]  OR  ["golviral-frontend", "u", "f34562a00a906f0b"]
+  const uIndex = parts.indexOf('u');
+  if(uIndex !== -1 && parts[uIndex+1]){
+    profileId = parts[uIndex+1];
+  }
+}
+profileId = profileId || localStorage.userId;
 const isSelf=profileId===localStorage.userId;
 let pendingWithdraw=null;
 let followLock=false;
@@ -330,7 +339,7 @@ async function deleteAvatar(){
 async function clearBio(){const res=await api('/api/profile/bio',{method:'DELETE'});if(res.success){toast('Bio cleared');document.getElementById('bio-input').value='';document.getElementById('bio-text').innerText=''}}
 function openKYCPortal(){const kycUrl=`kyc.html?token=${encodeURIComponent(TOKEN)}&api=${encodeURIComponent(API)}`;const kycWin=window.open(kycUrl,"_blank");if(!kycWin) return toast("Please allow popups to open KYC window")}
 loadProfile();
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/golviral-frontend/sw.js').catch(()=>{})}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
