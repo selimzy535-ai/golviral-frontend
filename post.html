@@ -11,29 +11,22 @@ header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bo
 svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
 .content{flex:1;overflow-y:auto;padding:20px}
 h2{margin-bottom:16px}
-
 .type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .type-btn{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:12px}
 .type-btn.active{border-color:var(--accent);background:rgba(0,255,136,0.1)}
 .type-btn svg{stroke:var(--accent)}
-
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px}
 .input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px;outline:none}
 .input:focus{border-color:var(--accent)}
-
-/* DROP CONTAINER FIX: Prevents layout jump on media load */
 .drop{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;margin-bottom:12px;cursor:pointer;position:relative;height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;background:#000}
 .drop:hover{border-color:var(--accent)}
 .drop img,.drop video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:10px;z-index:2}
 .drop-placeholder{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1}
-
 .progress{height:8px;background:#000;border-radius:10px;overflow:hidden;margin-top:12px;display:none}
 .progress-bar{height:100%;background:var(--gradient);width:0%;transition:0.2s}
 .progress-text{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;display:none}
-
 .btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer}
 .btn:disabled{opacity:0.6;cursor:not-allowed}
-
 .toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0;max-width:90%;text-align:center}
 .toast.show{transform:translate(-50%,0);opacity:1}
 .toast.error{background:var(--danger);color:#fff}
@@ -70,7 +63,7 @@ h2{margin-bottom:16px}
       <div class="drop-placeholder" id="placeholder">
         <svg width="40" height="40" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>
         <b>Tap to select file</b>
-        <p class="tip" id="tip-text">MP4 or MOV • Max 120s • Max 10MB</p>
+        <p class="tip" id="tip-text">MP4 or MOV • Max 180s • Max 17MB</p>
       </div>
       <img id="img-preview" style="display:none">
       <video id="video-preview" style="display:none" controls playsinline></video>
@@ -98,19 +91,10 @@ const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 
 function parseJwt(token) {
-  try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
-    location.href='auth.html';
-  }
+  try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { location.href='auth.html'; }
 }
 
-const TYPE_MAP = {
-  reel: 'reel',
-  photo: 'store',
-  shortstory: 'novel'
-};
-
+const TYPE_MAP = { reel: 'reel', photo: 'store', shortstory: 'novel' };
 let uiType='reel';
 let selectedFile=null;
 let isUploading = false;
@@ -141,11 +125,11 @@ function setType(type){
     document.getElementById('video-preview').style.display='none';
     if(type==='reel'){
       fileInput.accept='video/mp4,video/quicktime,video/mov';
-      tip.innerText='MP4 or MOV • Max 120s • Max 10MB';
+      tip.innerText='MP4 or MOV • Max 180s • Max 17MB';
     }
     if(type==='photo'){
       fileInput.accept='image/jpeg,image/png,image/webp,image/gif';
-      tip.innerText='JPG, PNG, WEBP • Max 10MB';
+      tip.innerText='JPG, PNG, WEBP • Max 17MB';
     }
   }
 }
@@ -158,9 +142,10 @@ document.getElementById('drop').onclick=(e)=>{
 document.getElementById('file-input').onchange=e=>{
   selectedFile=e.target.files[0];
   if(!selectedFile) return;
-  const maxSize = 10*1024*1024;
+
+  const maxSize = 17*1024*1024;
   if(selectedFile.size > maxSize){
-    toast('File too big! Max 10MB', true);
+    toast('File too big! Max 17MB', true);
     selectedFile=null;
     return;
   }
@@ -171,13 +156,34 @@ document.getElementById('file-input').onchange=e=>{
     document.getElementById('img-preview').src = URL.createObjectURL(selectedFile);
     document.getElementById('img-preview').style.display = 'block';
     document.getElementById('video-preview').style.display = 'none';
+    toast('Photo ready - will add golviral watermark');
   }
   if(uiType==='reel'){
-    document.getElementById('video-preview').src = URL.createObjectURL(selectedFile);
-    document.getElementById('video-preview').style.display = 'block';
-    document.getElementById('img-preview').style.display = 'none';
+    const url = URL.createObjectURL(selectedFile);
+    // Check duration client side for 3 min
+    const tempV = document.createElement('video');
+    tempV.preload='metadata';
+    tempV.onloadedmetadata=()=>{
+      URL.revokeObjectURL(tempV.src);
+      if(tempV.duration > 180){
+        toast('Video too long! Max 3 minutes (180s)', true);
+        selectedFile=null;
+        document.getElementById('placeholder').style.display='flex';
+        document.getElementById('video-preview').style.display='none';
+        return;
+      }
+      document.getElementById('video-preview').src = url;
+      document.getElementById('video-preview').style.display = 'block';
+      document.getElementById('img-preview').style.display = 'none';
+      toast('Video ready - will add golviral watermark');
+    };
+    tempV.onerror=()=>{
+      document.getElementById('video-preview').src = url;
+      document.getElementById('video-preview').style.display = 'block';
+      document.getElementById('img-preview').style.display = 'none';
+    };
+    tempV.src = url;
   }
-  toast('File ready');
 };
 
 async function apiMain(path,body){
@@ -195,7 +201,6 @@ function uploadFileWithProgress(url, formData) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url);
     xhr.setRequestHeader('x-api-key', CDN_KEY);
-
     xhr.upload.onprogress = e => {
       if(e.lengthComputable){
         let percent = (e.loaded / e.total * 100).toFixed(0);
@@ -203,7 +208,6 @@ function uploadFileWithProgress(url, formData) {
         document.getElementById('progress-text').innerText = `Uploading... ${percent}%`;
       }
     };
-
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(JSON.parse(xhr.responseText));
@@ -234,7 +238,6 @@ async function submitPost(){
   try {
     let postId, objectKey;
 
-    // STEP 1: Prepare post
     const intentRes = await fetch(API+'/api/post/create-intent', {
       method:'POST',
       headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
@@ -250,11 +253,9 @@ async function submitPost(){
 
     const intent = await intentRes.json();
     if(intent.error) throw new Error(intent.error);
-
     postId = intent.postId;
     objectKey = intent.objectKey;
 
-    // STEP 2: UPLOAD
     if(selectedFile){
       document.getElementById('progress-wrap').style.display='block';
       document.getElementById('progress-text').style.display='block';
@@ -271,9 +272,8 @@ async function submitPost(){
       if(uploadData.error) throw new Error(uploadData.error);
     }
 
-    // STEP 3: Done
     btn.innerText='Processing...';
-    document.getElementById('progress-text').innerText = 'Almost done...';
+    document.getElementById('progress-text').innerText = 'Almost done... Adding watermark...';
 
     const final = await apiMain('/api/post/create', {
       postId,
@@ -283,8 +283,7 @@ async function submitPost(){
     });
 
     if(final.error) throw new Error(final.error);
-
-    toast('Posted! 🎉');
+    toast('Posted 🎉');
     setTimeout(()=>location.href='index.html',1200);
 
   } catch(err) {
@@ -299,12 +298,8 @@ async function submitPost(){
   }
 }
 
-// Prevent accidental page close during upload
 window.addEventListener('beforeunload', (e) => {
-  if (isUploading) {
-    e.preventDefault();
-    e.returnValue = '';
-  }
+  if (isUploading) { e.preventDefault(); e.returnValue = ''; }
 });
 </script>
 </body>
