@@ -223,17 +223,19 @@ let feedData=[],currentPost=null,searchTimer=null,currentBoostPostId=null,curren
 const userCache={},followLocks={},hlsInstances={};
 
 // Global Autoplay Unlocker for Mobile Browsers
-let userInteracted = false;
-function unlockAudioVideo() {
-  if (userInteracted) return;
-  userInteracted = true;
-  document.querySelectorAll('video').forEach(v => {
-    v.muted = true;
-    v.play().catch(() => {});
+let GLOBAL_MUTED = localStorage.getItem('golviral_muted')==='0'? false : true;
+let userInteracted=false;
+
+function unlockAudioVideo(){
+  if(userInteracted) return;
+  userInteracted=true;
+  document.querySelectorAll('video.main-vid').forEach(v=>{
+    v.muted=GLOBAL_MUTED;
+    v.play().catch(()=>{});
   });
 }
-document.addEventListener('touchstart', unlockAudioVideo, { once: true });
-document.addEventListener('click', unlockAudioVideo, { once: true });
+document.addEventListener('touchstart',unlockAudioVideo,{once:true});
+document.addEventListener('click',unlockAudioVideo,{once:true});
 
 // Dynamic IP Geolocation Currency Mapping
 let CUR = { symbol: '₦', code: 'NGN', locale: 'en-NG' };
