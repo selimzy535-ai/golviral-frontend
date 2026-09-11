@@ -156,7 +156,7 @@ document.getElementById('file-input').onchange=e=>{
     document.getElementById('img-preview').src = URL.createObjectURL(selectedFile);
     document.getElementById('img-preview').style.display = 'block';
     document.getElementById('video-preview').style.display = 'none';
-    toast('Photo ready - will add golviral watermark');
+    toast('Photo ready');
   }
   if(uiType==='reel'){
     const url = URL.createObjectURL(selectedFile);
@@ -175,7 +175,7 @@ document.getElementById('file-input').onchange=e=>{
       document.getElementById('video-preview').src = url;
       document.getElementById('video-preview').style.display = 'block';
       document.getElementById('img-preview').style.display = 'none';
-      toast('Video ready - will add golviral watermark');
+      toast('Video ready');
     };
     tempV.onerror=()=>{
       document.getElementById('video-preview').src = url;
