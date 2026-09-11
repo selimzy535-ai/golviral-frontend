@@ -306,7 +306,7 @@ async function createReel(p){
   div.dataset.creator=p.userId;
   const user=await getUser(p.userId);
   const isMe=p.userId===USER_ID;
-  const followHtml = !isMe ? `<button class="btn" data-userid="${p.userId}" data-following="${user.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>` : '';
+  const followHtml =!isMe? `<button class="btn" data-userid="${p.userId}" data-following="${user.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>` : '';
   const initial = (user.username || p.userId || 'U')[0].toUpperCase();
 
   div.innerHTML=`
@@ -318,16 +318,14 @@ async function createReel(p){
     </div>
     <div class="reel-content-overlay">
       <div class="creator-info">
-        <div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')">
-          <div class="creator-avatar">${initial}</div>
-        </div>
+        <div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div>
         <b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${user.username||p.userId}</b>
         ${followHtml}
       </div>
       <p style="font-size:14px;line-height:1.4;word-break:break-word;">
-  <span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>
-  ${(p.caption||'').length > 90 ? `<span style="color:#888;font-weight:700;cursor:pointer;" onclick="const c=document.getElementById('cap-${p.id}'); if(c.style.webkitLineClamp==='unset'){c.style.webkitLineClamp='2'; this.innerText=' ...see more';} else {c.style.webkitLineClamp='unset'; this.innerText=' see less';}"> ...see more</span>` : ''}
-</p>
+        <span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>
+        ${(p.caption||'').length > 90? `<span style="color:#888;font-weight:700;cursor:pointer;" onclick="const c=document.getElementById('cap-${p.id}'); if(c.style.webkitLineClamp==='unset'){c.style.webkitLineClamp='2'; this.innerText='...see more';} else {c.style.webkitLineClamp='unset'; this.innerText=' see less';}">...see more</span>` : ''}
+      </p>
     </div>
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)">
@@ -336,6 +334,7 @@ async function createReel(p){
       </div>
       <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')">
         <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span id="comment-${p.id}" class="action-badge">${p.comments||0}</span>
       </div>
       <div class="action-btn" onclick="openGiftSheet('${p.userId}')">
         <svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
@@ -363,7 +362,7 @@ async function createImageReel(p){
   div.dataset.creator=p.userId;
   const u=await getUser(p.userId);
   const isMe=p.userId===USER_ID;
-  const followHtml = !isMe ? `<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)">${u.isFollowing?'Following':'Follow'}</button>` : '';
+  const followHtml =!isMe? `<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)">${u.isFollowing?'Following':'Follow'}</button>` : '';
   const initial = (u.username || p.userId || 'U')[0].toUpperCase();
 
   div.innerHTML=`
@@ -371,24 +370,29 @@ async function createImageReel(p){
     <img data-postid="${p.id}">
     <div class="reel-content-overlay">
       <div class="creator-info">
-        <div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')">
-          <div class="creator-avatar">${initial}</div>
-        </div>
+        <div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div>
         <b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${u.username||p.userId}</b>
         ${followHtml}
       </div>
-       <p style="font-size:14px;line-height:1.4;word-break:break-word;">
-  <span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>
-  ${(p.caption||'').length > 90 ? `<span style="color:#888;font-weight:700;cursor:pointer;" onclick="const c=document.getElementById('cap-${p.id}'); if(c.style.webkitLineClamp==='unset'){c.style.webkitLineClamp='2'; this.innerText=' ...see more';} else {c.style.webkitLineClamp='unset'; this.innerText=' see less';}"> ...see more</span>` : ''}
-</p>
+      <p style="font-size:14px;line-height:1.4;word-break:break-word;">
+        <span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>
+        ${(p.caption||'').length > 90? `<span style="color:#888;font-weight:700;cursor:pointer;" onclick="const c=document.getElementById('cap-${p.id}'); if(c.style.webkitLineClamp==='unset'){c.style.webkitLineClamp='2'; this.innerText='...see more';} else {c.style.webkitLineClamp='unset'; this.innerText=' see less';}">...see more</span>` : ''}
+      </p>
     </div>
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)">
         <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         <span id="like-${p.id}" class="action-badge">${p.likes||0}</span>
       </div>
+      <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span id="comment-${p.id}" class="action-badge">${p.comments||0}</span>
+      </div>
       <div class="action-btn" onclick="openGiftSheet('${p.userId}')">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2z"/></svg>
+        <svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      </div>
+      <div class="action-btn" onclick="sharePost()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
       </div>
       <div class="action-btn" onclick="openBoostSheet('${p.id}')">
         <svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -406,17 +410,28 @@ async function createTextReel(p){
   div.dataset.creator=p.userId;
   const u=await getUser(p.userId);
   const isMe=p.userId===USER_ID;
-  const followHtml = !isMe ? `<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="margin-top:10px">${u.isFollowing?'Following':'Follow'}</button>` : '';
+  const followHtml =!isMe? `<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="margin-top:10px">${u.isFollowing?'Following':'Follow'}</button>` : '';
   div.innerHTML=`
     <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px;background:var(--card)">
       <h2 style="font-size:26px;margin-bottom:8px">${p.title||'Untitled'}</h2>
       <p style="color:var(--muted)" onclick="openProfileCard('${p.userId}')">@${u.username||p.userId}</p>
+      <p style="font-size:14px;margin-top:12px;opacity:0.8;max-height:30vh;overflow:hidden">${(p.content||p.caption||'').slice(0,200)}</p>
       ${followHtml}
     </div>
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)">
         <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         <span id="like-${p.id}" class="action-badge">${p.likes||0}</span>
+      </div>
+      <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span id="comment-${p.id}" class="action-badge">${p.comments||0}</span>
+      </div>
+      <div class="action-btn" onclick="openGiftSheet('${p.userId}')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      </div>
+      <div class="action-btn" onclick="sharePost()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
       </div>
       <div class="action-btn" onclick="openBoostSheet('${p.id}')">
         <svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -431,7 +446,6 @@ async function createTextReel(p){
   };
   return div;
 }
-
 /* Double-Tap Heart Animation Handler */
 function setupDoubleTap(div, postId, userId) {
   let lastTap = 0;
