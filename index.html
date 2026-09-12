@@ -135,11 +135,55 @@ function unlockAudioVideo(){
 }
 document.addEventListener('touchstart',unlockAudioVideo,{once:true});
 document.addEventListener('click',unlockAudioVideo,{once:true});
+// Default to NGN so Android 11 never starts with empty data
 let CUR={symbol:'₦',code:'NGN',locale:'en-NG'};
-async function fetchGeoCurrency(){try{const res=await fetch('https://ipapi.co/json/');const data=await res.json();if(data&&data.currency){CUR={symbol:data.currency_symbol||data.currency,code:data.currency,locale:navigator.language||'en-US'};applyCurrencyLabels();}}catch(e){}}
+
+async function fetchGeoCurrency(){
+  try{
+    const res=await fetch('https://ipapi.co/json/');
+    const data=await res.json();
+    // Android 11 safety: only accept valid 3-letter currency codes
+    if(data && data.currency && typeof data.currency === 'string' && data.currency.trim().length === 3){
+      CUR={
+        symbol: data.currency_symbol || data.currency,
+        code: data.currency.trim().toUpperCase(),
+        locale: navigator.language || 'en-NG'
+      };
+    }
+    applyCurrencyLabels();
+  }catch(e){}
+}
 fetchGeoCurrency();
-function formatPrice(n){return new Intl.NumberFormat(CUR.locale,{style:'currency',currency:CUR.code,maximumFractionDigits:0}).format(n);}
-function applyCurrencyLabels(){document.querySelectorAll('.price-amount').forEach(el=>{const amt=parseInt(el.dataset.amount);if(amt) el.innerText=formatPrice(amt);});document.querySelectorAll('.currency-label').forEach(el=>el.innerText=CUR.code);}
+
+// ANDROID 11 FIX: safe currency formatting with fallback
+function formatPrice(n){
+  let locale = CUR.locale || 'en-NG';
+  let currency = String(CUR.code || 'NGN').trim().toUpperCase();
+  if(currency.length!== 3) currency = 'NGN';
+
+  const amount = Number(n) || 0;
+
+  try {
+    return new Intl.NumberFormat(locale,{
+      style:'currency',
+      currency:currency,
+      maximumFractionDigits:0,
+      minimumFractionDigits:0
+    }).format(amount);
+  } catch(e){
+    // Fallback if Intl fails on old Android
+    return `${CUR.symbol || '₦'}${Math.round(amount).toLocaleString(locale)}`;
+  }
+}
+
+function applyCurrencyLabels(){
+  document.querySelectorAll('.price-amount').forEach(el=>{
+    const amt=parseInt(el.dataset.amount);
+    if(amt) el.innerText=formatPrice(amt);
+  });
+  document.querySelectorAll('.currency-label').forEach(el=>el.innerText=CUR.code);
+}
+
 function toast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 async function api(p,o={}){try{const r=await fetch(API+p,{...o,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...o.headers}});if(r.status===401) location.href='auth.html';const d=await r.json().catch(()=>({}));if(r.status>=400) return{error:d.error||'Request failed'};return d;}catch{toast('Network error');return{};}}
 async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
