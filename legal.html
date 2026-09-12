@@ -3,215 +3,276 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GolViral - Legal, Terms, Privacy & Community Guidelines</title>
-<meta name="description" content="Read GolViral's Terms of Service, Privacy Policy, Community Guidelines and Monetization Policy. Fast monetization in 7 days with 10 followers.">
+<title>GolViral - Legal Center - Terms, Privacy, Community, Monetization</title>
+<meta name="description" content="GolViral Legal Center - Read our Terms, Privacy Policy, Community Guidelines, Monetization Rules, Gifts, Boost, Verification, DMCA and Technology Stack.">
 <link rel="manifest" href="/manifest.json">
-<link rel="icon" href="/favicon.ico">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-:root{--bg:#000;--card:#0d0d0d;--card2:#111;--border:#1e1e1e;--text:#fff;--muted:#8a8a8a;--green:#00ff88;--green2:#00cc6a}
+:root{--bg:#070707;--card:#101010;--card2:#141414;--border:#222;--border2:#2a2a2a;--text:#fff;--muted:#9a9a9a;--dim:#6b6b6b;--grad:linear-gradient(90deg,#00e7b7 0%,#2ec4ff 40%,#7f5cff 100%);--grad2:linear-gradient(90deg,#00ffb3 0%,#8a5cff 100%);--blue:#3b82ff}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.6}
-.container{max-width:500px;margin:0 auto;padding:16px;padding-bottom:100px}
-.header{position:sticky;top:0;z-index:10;background:rgba(0,0,0,.9);backdrop-filter:blur(12px);padding:14px 0 10px;border-bottom:1px solid var(--border)}
-.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:20px}
-.logo span{color:var(--green)}
-.tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 0;scrollbar-width:none}
+body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+.container{max-width:560px;margin:0 auto;padding:14px 14px 120px}
+.top{padding:18px 4px 10px;display:flex;justify-content:center;align-items:center;gap:10px}
+.top b{font-size:26px;letter-spacing:-.5px;font-weight:800}
+.top b span:first-child{color:var(--blue)} .top b span:last-child{color:#6ea8ff}
+.hero{background:linear-gradient(180deg,#121212 0%,#0e0e0e 100%);border:1px solid var(--border);border-radius:20px;padding:20px;margin-top:10px}
+.hero h1{font-size:20px;font-weight:900;letter-spacing:-.4px}
+.hero p{font-size:13px;color:var(--muted);margin-top:10px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
+.stat{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font-size:13px;font-weight:800;background:var(--grad2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat span{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.4px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:14px 2px;scrollbar-width:none;position:sticky;top:0;z-index:20;background:rgba(7,7,7,.92);backdrop-filter:blur(14px)}
 .tabs::-webkit-scrollbar{display:none}
-.tab{white-space:nowrap;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
-.tab.active{background:var(--green);color:#000;border-color:var(--green)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-top:14px}
-.card h2{font-size:16px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.card h3{font-size:13px;margin:14px 0 6px;color:var(--green)}
-.card p,.card li{font-size:13px;color:#c9c9c9}
-.card ul{padding-left:18px;margin:6px 0}
-.badge{display:inline-block;padding:3px 8px;border-radius:999px;background:#101010;border:1px solid var(--border);font-size:10px;color:var(--muted);margin-bottom:8px}
-.highlight{border-color:rgba(0,255,136,.25);background:linear-gradient(180deg,#0d0d0d 0%,#0d1a12 100%)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
-.mini{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center}
-.mini b{display:block;font-size:18px;color:var(--green)}
-.mini span{font-size:11px;color:var(--muted)}
+.tab{white-space:nowrap;padding:9px 14px;border-radius:999px;border:1px solid var(--border);background:#111;color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
+.tab.active{background:var(--grad);color:#000;border-color:transparent}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;margin-top:14px}
+.card h2{font-size:15.5px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:12px;margin:18px 0 6px;color:#5cffb8;letter-spacing:.3px;text-transform:uppercase}
+.card p{font-size:13px;color:#c8c8c8;margin-top:8px}
+.card ul{padding-left:18px;margin:8px 0}
+.card li{margin:5px 0;font-size:13px;color:#c5c5c5}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#161616;border:1px solid var(--border2);font-size:9.5px;color:var(--muted);font-weight:700;letter-spacing:.3px;margin-bottom:10px}
+.dot{width:6px;height:6px;border-radius:50%;background:#00ffb3;box-shadow:0 0 10px #00ffb3}
+.highlight{border-color:#1e3a2a;background:linear-gradient(180deg,#121212 0%,#0f1a15 100%)}
 .partners{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.partners span{background:#111;border:1px solid var(--border);padding:4px 10px;border-radius:999px;font-size:11px;color:#aaa}
-.footer{text-align:center;padding:30px 10px;color:var(--muted);font-size:11px}
-a{color:var(--green);text-decoration:none}
-.anchor{scroll-margin-top:120px}
+.partners span{background:#161616;border:1px solid var(--border);padding:5px 11px;border-radius:999px;font-size:11px;color:#9a9a9a;font-weight:600}
+.cta{margin-top:14px;background:var(--grad2);border:0;border-radius:14px;padding:13px;text-align:center;color:#000;font-weight:800;font-size:14px;display:block;text-decoration:none}
+.footer{text-align:center;padding:36px 10px;color:var(--dim);font-size:11px;line-height:1.7}
+.anchor{scroll-margin-top:95px}
 </style>
 </head>
 <body>
 <div class="container">
-<div class="header">
-<div class="logo">Gol<span>Viral</span> <div style="margin-left:auto;font-size:11px;color:var(--muted);font-weight:500">Legal Center</div></div>
-<div class="tabs" id="tabs">
-<div class="tab active" data-target="overview">Overview</div>
-<div class="tab" data-target="terms">Terms</div>
-<div class="tab" data-target="privacy">Privacy</div>
-<div class="tab" data-target="community">Community</div>
-<div class="tab" data-target="monetization">Monetization</div>
-<div class="tab" data-target="gifts">Gifts & Boost</div>
-<div class="tab" data-target="verification">Verification</div>
-<div class="tab" data-target="dmca">DMCA</div>
-<div class="tab" data-target="partners">Partners</div>
+<div class="top">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#6ea8ff" stroke-width="2"/><path d="M2 17l10 5 10-5" stroke="#6ea8ff" stroke-width="2"/><path d="M2 12l10 5 10-5" stroke="#6ea8ff" stroke-width="2"/></svg>
+<b><span>Gol</span><span>Viral</span></b>
+</div>
+
+<div class="hero">
+<h1>Legal Center</h1>
+<p>GolViral is a creator-first platform built for how people actually create and connect today. We combine short video reels, image scroll, stories, novels, chat and DM, follow and discovery, gifting, boosting and monetization tools in one fast PWA.</p>
+<div class="stats">
+<div class="stat"><b>Reels + Images</b><span>SCROLL FEED</span></div>
+<div class="stat"><b>Chat & DM</b><span>MESSAGE</span></div>
+<div class="stat"><b>Gift & Boost</b><span>EARN & GROW</span></div>
 </div>
 </div>
 
-<div class="card highlight anchor" id="overview">
-<div class="badge">Last Updated: September 12, 2026</div>
-<h2>📜 Welcome to GolViral Legal</h2>
-<p>GolViral is a creator-first platform for short videos, stories, novels, and digital storefronts. Our mission is to help creators get discovered, build a loyal audience, and monetize fast without needing millions of followers.</p>
-<p style="margin-top:10px">By using GolViral.com, our Progressive Web App (PWA), and related services, you agree to these policies. Please read carefully. We keep it simple, transparent, and creator-friendly.</p>
-<div class="grid2">
-<div class="mini"><b>7 Days</b><span>Fast Monetization</span></div>
-<div class="mini"><b>10 Followers</b><span>To Unlock Earnings</span></div>
+<div class="tabs" id="tabs">
+<div class="tab active" data-t="overview">Overview</div>
+<div class="tab" data-t="terms">Terms</div>
+<div class="tab" data-t="privacy">Privacy</div>
+<div class="tab" data-t="community">Community</div>
+<div class="tab" data-t="monetization">Monetization</div>
+<div class="tab" data-t="activities">Activities</div>
+<div class="tab" data-t="gifts">Gifts & Boost</div>
+<div class="tab" data-t="verification">Verification</div>
+<div class="tab" data-t="dmca">DMCA</div>
+<div class="tab" data-t="tech">Stack</div>
 </div>
+
+<div class="card highlight anchor" id="overview">
+<div class="pill"><div class="dot"></div> LAST UPDATED: SEPTEMBER 12, 2026 • PWA READY</div>
+<h2>📜 Welcome to GolViral</h2>
+<p>GolViral.com is an installable Progressive Web App (PWA) that lets you create, discover and monetize content. By using our website, PWA, APIs hosted on golviral-api.onrender.com, and related services, you agree to the policies on this page.</p>
+<p>Our mission is simple: give creators the fastest path to being discovered and earning from what they love doing. Whether you post a 15-second reel, a photo carousel, a written story or a short novel chapter, your content can be found by people who care.</p>
+<p>We built GolViral to be lightweight, fast globally via Cloudflare, with reliable database powered by Neon and media storage and streaming via Backblaze. Payments for digital items are processed securely via Selar.</p>
 </div>
 
 <div class="card anchor" id="terms">
 <h2>📄 Terms of Service</h2>
-<h3>1. Acceptance</h3>
-<p>By creating an account or using GolViral, you agree to our Terms, Privacy, and Community Guidelines. If you disagree, please do not use the platform.</p>
-<h3>2. Eligibility</h3>
-<p>You must be at least 13 years old to use GolViral and 18 years or older to withdraw earnings. You are responsible for keeping your login secure.</p>
-<h3>3. Your Account</h3>
-<p>You agree to provide accurate information, not impersonate others, and not create multiple accounts to abuse our fair credit system. We use automated human verification to keep the community real.</p>
-<h3>4. Content Ownership</h3>
-<p>You retain full ownership of your content. By posting, you grant GolViral a non-exclusive, worldwide license to host, store, display, and distribute your content using our cloud partners including Backblaze and Cloudflare for fast global delivery.</p>
-<h3>5. System Review</h3>
-<p>All content goes through system review before public visibility to ensure it meets our guidelines. We reserve the right to remove content or restrict accounts after review.</p>
-<h3>6. Changes</h3>
-<p>We may update these terms as we grow. We will update the date at the top. Continued use means you accept updates.</p>
+<h3>1. Acceptance of Terms</h3>
+<p>By creating an account, logging in, posting content, viewing feed, sending messages, following users, purchasing gifts or boost, or otherwise using GolViral, you accept these Terms, our Privacy Policy and Community Guidelines. If you do not agree, do not use the platform.</p>
+<h3>2. Eligibility and Account Rules</h3>
+<p>You must be at least 13 years old to create an account and at least 18 years old to use monetization, wallet, gifting and boost purchase features. You are responsible for safeguarding your login credentials, email OTPs and device. One person may maintain one account only. Usernames are unique and cannot be changed after creation. Only your bio, display name, avatar and links are editable after signup. This prevents impersonation and username farming.</p>
+<p>We may require email verification to activate your account. We may suspend or limit accounts that show signs of automated creation, bulk follow, fake engagement, or use of multiple accounts to evade limits.</p>
+<h3>3. Content Ownership and License</h3>
+<p>You retain full ownership of all content you post, including videos, images, captions, stories, novel chapters, comments and messages you author. By posting, you grant GolViral a worldwide, non-exclusive, royalty-free, transferable license to host, store, cache, transcode, display, distribute and promote your content within GolViral and on our infrastructure providers such as Neon for database persistence, Backblaze for media storage and Cloudflare for global CDN delivery. This license ends when you delete your content, except for copies retained for legal, security and backup purposes for a limited period.</p>
+<p>You represent that you own or have rights to all content you upload and that it does not violate any third party rights.</p>
+<h3>4. Platform Moderation and System Review</h3>
+<p>All posts, including reels, images, stories and novels, may be subject to automated and human review before or after being visible in feeds. This review checks for spam, nudity, hate, copyright infringement, misleading content and other violations of our Community Guidelines. Content that fails review may be removed or made non-public, and repeated violations may lead to account restriction.</p>
+<h3>5. Prohibited Uses</h3>
+<p>You may not use GolViral to upload malware, scrape data without permission, attempt to bypass credit systems, manipulate views or followers, sell accounts, or interfere with our services, Neon database, Backblaze storage or Cloudflare network.</p>
+<h3>6. Termination</h3>
+<p>You may delete your account at any time from settings or by contacting support@golviral.com. We may suspend or terminate your account if you violate these terms, abuse features, or create risk for other users or our infrastructure.</p>
+<h3>7. Disclaimer and Limitation</h3>
+<p>GolViral is provided on an as-is basis. We do our best to keep it fast and reliable, but we do not guarantee uninterrupted availability. To the maximum extent permitted, GolViral and its infrastructure providers are not liable for indirect damages arising from use of the platform.</p>
 </div>
 
 <div class="card anchor" id="privacy">
 <h2>🔒 Privacy Policy</h2>
 <h3>What We Collect</h3>
 <ul>
-<li>Account info: username, email, encrypted password, bio, avatar</li>
-<li>Social info: followers, following, likes, comments, views (deduplicated fairly to prevent spam)</li>
-<li>Messages between creators (for DM feature)</li>
-<li>Basic device timezone to show relevant content (no GPS location tracking)</li>
+<li><b>Account Information:</b> Username, email address, encrypted password hash, bio, avatar URL, optional social links.</li>
+<li><b>Content and Social Graph:</b> Posts you create including reels, images, stories and novel text, captions, hashtags, likes, comments, view history deduplicated for fairness, followers, following, bookmarks.</li>
+<li><b>Messaging:</b> Chat and DM messages between users. Messages are stored securely to provide conversation history. We do not read private messages except when reported for safety review.</li>
+<li><b>Technical Data:</b> Device type, browser type, PWA install status, approximate timezone for feed relevance, IP-derived region for security, crash logs. We do not collect precise GPS location.</li>
+<li><b>Verification Data:</b> For verification purposes, a temporary face image or document image when you choose to verify. This is deleted within 24 hours after review and we do not retain biometric templates.</li>
+<li><b>Payment Reference Data:</b> When you purchase gifts or boost via Selar, Selar processes payment. We store only payment reference, status, amount and purchased item, not card numbers.</li>
 </ul>
+<h3>How We Use Data</h3>
+<p>We use data to operate the feed, provide reel and image infinite scroll, deliver stories and novels, enable chat and DM, show follower graphs, prevent spam using credit system, enable gifts and boost, process verification, and improve performance.</p>
 <h3>What We Don't Do</h3>
 <ul>
-<li>We do NOT sell your personal data.</li>
-<li>We do NOT use intrusive third-party trackers.</li>
-<li>We do NOT store your biometric face template - verification is one-time authenticity check.</li>
+<li>We do not sell your personal data to third parties.</li>
+<li>We do not use intrusive cross-site trackers for advertising.</li>
+<li>We do not store biometric face templates after verification.</li>
+<li>We do not store full payment card numbers.</li>
 </ul>
-<h3>Storage & Security</h3>
-<p>Media is securely stored and streamed using enterprise cloud storage and CDN partners including Backblaze and Cloudflare. All data is encrypted in transit. We use secure email services for OTP and notifications.</p>
-<h3>Cookies</h3>
-<p>We only use localStorage/cookies for keeping you logged in and for PWA functionality. No advertising cookies for tracking. You can clear data in browser settings anytime.</p>
-<h3>Push Notifications</h3>
-<p>As a PWA, we may send push notifications for new followers, comments, and messages if you opt in. You can disable anytime in your browser or device settings. We use standard Web Push (VAPID).</p>
+<h3>Storage, Security and Infrastructure</h3>
+<p>Our primary database is Neon, which provides secure Postgres hosting with encryption at rest and in transit. Media files such as reels, images and story media are stored and streamed via Backblaze and delivered globally via Cloudflare CDN. Emails are sent via Brevo and Resend. Authentication tokens are stored in localStorage for PWA login persistence. All traffic is served over HTTPS via Cloudflare and our API domain golviral-api.onrender.com.</p>
+<h3>PWA and Notifications</h3>
+<p>GolViral is an installable PWA. If you install via Add to Home Screen, it runs standalone without browser chrome for faster access. We may send push notifications for new followers, comments, likes, mentions and DM messages if you grant permission. You can disable notifications anytime in your browser and in PWA settings.</p>
+<h3>Retention and Deletion</h3>
+<p>We retain account data while your account is active. If you delete your account, we delete or anonymize your content and profile within 30 days, except for limited logs kept for security and legal compliance. Messages are deleted when both participants delete conversation or when account is deleted.</p>
+<h3>Your Rights</h3>
+<p>You can request access, correction or deletion of your personal data by emailing support@golviral.com. We respond within 24-48 hours.</p>
 </div>
 
 <div class="card anchor" id="community">
 <h2>🤝 Community Guidelines</h2>
-<p>We built GolViral to be safe, positive, and creator-focused. To keep it that way:</p>
+<p>GolViral exists to help creators connect safely. These rules apply to all activities including reels, images, stories, novels, comments, chat, DM, bios and usernames.</p>
+<h3>Prohibited Content</h3>
 <ul>
-<li><b>No Adult Content:</b> No nudity, porn, sexual solicitation.</li>
-<li><b>No Hate:</b> No hate speech, harassment, bullying, or discrimination.</li>
-<li><b>No Spam:</b> No fake engagement, repetitive comments, or misleading content.</li>
-<li><b>No Stealing:</b> No copyrighted content you don't own. No impersonation.</li>
-<li><b>No Illegal:</b> No illegal activities, scams, or harmful content.</li>
+<li><b>Adult and Nudity:</b> No pornographic content, explicit nudity, sexual solicitation or escort services.</li>
+<li><b>Hate and Harassment:</b> No harassment, bullying, hate speech, threats or content targeting protected characteristics.</li>
+<li><b>Spam and Fake Engagement:</b> No fake likes, fake followers, repetitive comments, misleading captions, or using credits system to spam.</li>
+<li><b>Copyright and Impersonation:</b> No posting content you do not own, no impersonating other creators, no re-uploading others' reels or images without permission.</li>
+<li><b>Harmful or Illegal:</b> No content promoting illegal activity, self-harm, dangerous challenges, or graphic violence.</li>
+<li><b>Misleading Monetization:</b> No promising guaranteed income, no asking for payment outside Selar integration.</li>
 </ul>
-<p>Violation leads to system review and may result in content removal or account restriction. We encourage you to report violating content via support@golviral.com.</p>
+<h3>Enforcement</h3>
+<p>Violations may result in content removal, loss of credits, temporary limits on posting, commenting, chatting, following, gifting or boosting, or permanent account suspension after repeated violations. You can appeal via support@golviral.com.</p>
 </div>
 
 <div class="card highlight anchor" id="monetization">
-<h2>💸 Monetization & Wallet Policy - Fast Track</h2>
-<div class="badge">Most Popular - Creator First</div>
-<p>GolViral is proud to have one of the fastest monetization processes for creators:</p>
-<div class="grid2">
-<div class="mini"><b>10 Followers</b><span>Only 10 needed</span></div>
-<div class="mini"><b>7 Days Old</b><span>Account age</span></div>
+<div class="pill"><div class="dot"></div> CREATOR MONETIZATION - FAST TRACK</div>
+<h2>💸 Monetization - 10 Followers + 7 Days Old</h2>
+<p><b>Our monetization requirement is clear and fast: 10 followers and 7 days account age.</b> Many platforms require thousands of followers and months of watch time. GolViral was built to help new creators start earning from their passion quickly while keeping quality high.</p>
+<p>To be eligible for monetization features, you need:</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0">
+<div style="background:#161616;border:1px solid #222;border-radius:12px;padding:14px;text-align:center"><b style="font-size:22px;background:var(--grad2);-webkit-background-clip:text;-webkit-text-fill-color:transparent">10</b><br><span style="font-size:10px;color:#888;font-weight:800;letter-spacing:.4px">FOLLOWERS MINIMUM</span></div>
+<div style="background:#161616;border:1px solid #222;border-radius:12px;padding:14px;text-align:center"><b style="font-size:22px;background:var(--grad2);-webkit-background-clip:text;-webkit-text-fill-color:transparent">7 DAYS</b><br><span style="font-size:10px;color:#888;font-weight:800;letter-spacing:.4px">ACCOUNT AGE</span></div>
 </div>
-<h3>How It Works</h3>
 <ul>
-<li>You get generous free credits when you join to start posting instantly. We use credits to prevent spam and keep feed quality high - not as a paywall.</li>
-<li>Once your account is 7 days old, has 10+ followers, and passes our quick face verification for authenticity, you unlock earnings.</li>
-<li>You earn from views and engagement. We have a fair daily cap system managed by our system to ensure balanced distribution for all creators.</li>
-<li>Free credits and cash balance are separate. Only cash balance is withdrawable.</li>
+<li><b>10 Followers (10F):</b> You need at least 10 genuine followers. Followers from fake or automated accounts do not count and will be removed during review.</li>
+<li><b>7 Days Old (7D):</b> Your account must be at least 7 days old from signup date. This helps prevent spam and ensures you are a real community member.</li>
+<li><b>Face Verification:</b> After meeting 10F and 7D, you must complete a one-time liveness verification to prove you are a real person. This is required to unlock monetization and valid referrals. Image deleted within 24 hours.</li>
+<li><b>Content Quality:</b> You must have at least one original post that passes system review. Reposted or copyrighted reels will not qualify.</li>
 </ul>
-<h3>Wallet & Withdrawal</h3>
-<ul>
-<li>Minimum withdrawal is accessible for all creators.</li>
-<li>Supported methods: Local Bank Transfer and USDT TRC20 (global).</li>
-<li>Withdrawals are processed on a weekly cycle after system review for security.</li>
-<li>All withdrawals require email OTP verification.</li>
-<li>One withdrawal per 7 days to maintain stability.</li>
-<li>Referral bonuses only count when your invited friends become active verified creators. Fair limit applies.</li>
-</ul>
+<h3>How Earning Works</h3>
+<p>Once verified, your account unlocks earning from engagement on your reels, images, stories and novels. Views are deduplicated for fairness. Daily earning limits exist to ensure balanced distribution across all creators and to prevent abuse. Credits you receive as free daily credits are separate from earnings balance. Free credits are used to post, comment, follow and chat to keep feed clean, not as a paywall.</p>
+<h3>Referrals</h3>
+<p>You can invite friends using your referral code shown during signup. Referral rewards count only when invited friends become active verified creators who also meet 10 followers and 7 days old and pass verification. Self-referral and fake accounts are prohibited and will be voided.</p>
+<h3>Wallet Separation</h3>
+<p>Your wallet has two distinct balances: Credit Balance for platform actions like posting and messaging, and Earnings Balance for monetization. This separation prevents confusion and spam.</p>
+</div>
+
+<div class="card anchor" id="activities">
+<h2>🚀 Platform Activities - What You Can Do on GolViral</h2>
+<p>GolViral is more than just short videos. It is a full creator ecosystem.</p>
+<h3>1. Reels - Short Video Scroll</h3>
+<p>Upload short vertical videos up to your account limit. Users can scroll vertically through a personalized feed of reels, like, comment, share via link, follow creator and send gifts. Views are counted once per user per day for fair earnings. Our backend uses Backblaze for storage and Cloudflare for fast streaming worldwide. FFmpeg watermarking may be applied to protect creator content.</p>
+<h3>2. Images - Photo Scroll</h3>
+<p>Post high-quality images, photo sets and carousels. Image feed supports infinite scroll, like Instagram-style discovery. Images are optimized and cached via Cloudflare. You can add captions, hashtags and tag users.</p>
+<h3>3. Stories</h3>
+<p>Stories are temporary posts that disappear after 24 hours. Use stories to share behind-the-scenes, polls, updates and daily moments without cluttering your main profile grid. Story viewers list is available.</p>
+<h3>4. Novels and Written Stories</h3>
+<p>GolViral supports long-form written content. Publish novel chapters or short stories. Readers can follow your novel, like chapters, comment and get notified of new chapters. Great for writers who want to build audience without video.</p>
+<h3>5. Follow and Discovery</h3>
+<p>Follow creators to see their reels, images, stories and novels in your Following feed. Discover new creators via For You feed, search, hashtags and trending. Follower counts are real and deduplicated. Unfollow anytime.</p>
+<h3>6. Chat and DM - Direct Messages</h3>
+<p>Chat privately with other creators via DM. You can send text, react to messages, share posts to DM, and get push notifications for new messages. DM is limited by credits to prevent spam. Blocking is available. Messages are private and not used for ads.</p>
+<h3>7. Comments and Likes</h3>
+<p>Engage with reels, images, stories and novel chapters via likes and threaded comments. Comments are subject to community guidelines. You can delete your own comments. Creators can moderate comments on their posts.</p>
+<h3>8. Creator Gifting</h3>
+<p>Fans can support you by sending Ruby, Gold and Diamond gift packs on your posts. Gifts convert to earnings for creators. Gift animation appears on post. Gifting uses Selar for payment processing.</p>
+<h3>9. Post Boosting</h3>
+<p>Boost any of your posts to increase visibility for 1, 3 or 7 days. Boosted posts are prioritized in For You feed and discovery. Boosted posts go through system review. External links in boosted posts must comply with community guidelines. Boost payment is via Selar.</p>
+<h3>10. Profiles - /u/username-id</h3>
+<p>Every user gets a public profile URL like golviral.com/u/your-id that shows bio, followers, following, total likes, views, and grid of posts including reels and images. Profiles are indexed via sitemap for SEO. You can share your profile link anywhere.</p>
+<h3>11. Sitemap and SEO</h3>
+<p>We generate sitemap-index.xml and sitemap/profiles-*.xml using data from Neon shards to help search engines discover creator profiles. This helps your profile get discovered outside GolViral.</p>
+<p>Together, these activities make GolViral a complete place to create, be discovered, chat, and grow.</p>
 </div>
 
 <div class="card anchor" id="gifts">
-<h2>🎁 Gift & Boost Policy</h2>
+<h2>🎁 Gifts & Boost - Detailed Rules</h2>
 <h3>Gifts</h3>
-<p>Fans can support creators with optional Gift Packs: Ruby, Gold, and Diamond. Gifts help creators earn more and show appreciation. Gifts expire after 30 days if not used and are non-transferable.</p>
+<p>GolViral offers optional gift packs: Ruby, Gold and Diamond tiers. Gifts are a way for fans to support creators. When a user sends a gift on your reel or image, you receive a portion as earnings. Gifts are digital items with no cash value outside platform, except for creator earnings as defined in monetization.</p>
+<p>Gift sending requires sufficient credit or direct purchase via Selar. Gift animations are shown publicly on post. Gifts have a validity period of 30 days for display purposes. Abuse such as self-gifting via multiple accounts to inflate earnings is prohibited and will be reversed.</p>
 <h3>Boost</h3>
-<p>Boost increases visibility of your post across GolViral for 1 Day, 3 Days, or 7 Days. Boosted posts are still subject to system review. External links in boosted posts must comply with our guidelines.</p>
-<h3>Payments</h3>
-<p>All gift and boost purchases are processed securely via our official payment partners. All sales are final except in cases of proven technical failure where service was not delivered. For issues, contact support@golviral.com with transaction reference.</p>
+<p>Boost increases the reach of your chosen post. Available durations: 1 day, 3 days, 7 days. Boosted posts receive priority in For You and Explore feeds, higher placement in hashtag pages and increased profile visits. Boost does not guarantee followers, likes or earnings, only increased impressions.</p>
+<p>Boosted content must comply with all Community Guidelines. No adult, hate, spam or misleading content can be boosted. We reserve the right to reject boost requests after system review. Boosted posts are labeled as Boosted for transparency.</p>
+<h3>Payments via Selar</h3>
+<p>All purchases of gifts and boost are processed securely via Selar. We do not store card numbers. After payment, you receive Selar reference and our system unlocks the feature. If technical failure prevents delivery and is confirmed by logs, contact support@golviral.com with Selar reference within 7 days for review. Digital sales are otherwise final.</p>
 </div>
 
 <div class="card anchor" id="verification">
-<h2>✅ Verification Policy</h2>
-<h3>Face Verification</h3>
-<p>Required to unlock monetization and to count as a valid referral. This ensures our community is made of real people. We process this as a one-time authenticity check.</p>
-<h3>Document Verification</h3>
-<p>Required for first-time withdrawal to prevent fraud and protect creators' earnings. Your documents are handled securely and only used for verification purposes.</p>
+<h2>✅ Verification System</h2>
+<h3>Face Verification for Monetization</h3>
+<p>To unlock monetization after meeting 10 followers and 7 days old account age, you must complete a one-time face liveness check. This ensures one real person per account and prevents bots from farming referrals and earnings. Process: you take a selfie following prompts. Our system checks liveness. Image is stored temporarily for review and deleted within 24 hours. We do not retain biometric templates.</p>
+<h3>Document Verification for Withdrawal Security</h3>
+<p>For security, we may request document verification before first withdrawal to confirm identity and prevent fraud. Document image is also deleted after review within 24 hours. We do not share verification data with third parties except as required for fraud prevention.</p>
+<h3>Verification Abuse</h3>
+<p>Using another person's face, fake documents, filters that obscure identity, or attempting to verify multiple accounts with same face will result in verification failure and possible suspension.</p>
 </div>
 
 <div class="card anchor" id="dmca">
-<h2>⚖️ DMCA & Copyright</h2>
-<p>We respect intellectual property. If you believe content on GolViral infringes your copyright:</p>
+<h2>⚖️ DMCA & Copyright Policy</h2>
+<p>GolViral respects intellectual property rights. We have zero tolerance for copyright infringement.</p>
+<p>If you believe content on GolViral infringes your copyright, email support@golviral.com with subject DMCA TAKEDOWN and include:</p>
 <ul>
-<li>Email us at support@golviral.com</li>
-<li>Include: Your full name, link to infringing content on GolViral, proof you own original work, and a statement of good faith.</li>
-<li>We review and take action within 48 hours.</li>
+<li>Your full legal name, email and phone</li>
+<li>Direct URL to infringing content on golviral.com/u/... or post URL</li>
+<li>Direct URL to your original content proving ownership</li>
+<li>Statement: I have a good faith belief that use of material is not authorized by owner</li>
+<li>Statement: Information in notice is accurate and I am owner or authorized</li>
+<li>Your physical or electronic signature</li>
 </ul>
-<p>Repeat infringers will have accounts restricted after system review.</p>
+<p>Upon valid notice, we will remove or disable access to content within 48 hours and notify uploader. Counter-notice may be filed if you believe removal was mistake.</p>
+<p>Repeat infringers will have accounts terminated.</p>
 </div>
 
-<div class="card anchor" id="partners">
-<h2>🌐 Our Partners & Technology</h2>
-<p>GolViral is built with world-class technology and supported by leading partners to keep the platform free, fast, and secure for creators.</p>
-<h3>Advertising Partners (Keeps GolViral Free)</h3>
-<div class="partners">
-<span>Adsterra</span><span>Adcash</span><span>Monetag</span>
-</div>
-<p style="margin-top:8px">We work with our ads partners to show relevant, non-intrusive ads that support creator earnings. Ad content is reviewed by our partners and system.</p>
-<h3>Cloud & Technology Partners</h3>
-<div class="partners">
-<span>Backblaze</span><span>Cloudflare</span><span>Google Cloud</span><span>Google Play</span><span>Firebase</span><span>Brevo</span><span>Resend</span>
-</div>
-<h3>Creator Opportunities</h3>
-<div class="partners">
-<span>RemoteNG</span><span>Remote Jobs</span>
-</div>
-<p style="margin-top:8px">We partner with RemoteNG to bring remote job listings and opportunities to our creator community.</p>
-<h3>Our Investors</h3>
-<p>We are grateful to our early investors, advisors, and community supporters who believe in the creator economy and help us keep GolViral independent and creator-first. Your support powers fast monetization for thousands of creators.</p>
+<div class="card anchor" id="tech">
+<h2>🌐 Built With - Technology Stack</h2>
+<p>GolViral is built on modern, reliable infrastructure to stay fast globally without downtime.</p>
+<h3>Core Infrastructure</h3>
+<div class="partners"><span>Neon - Postgres DB</span><span>Backblaze - Storage</span><span>Cloudflare - CDN & Security</span><span>Render - API Hosting</span></div>
+<p>We use Neon for our sharded Postgres databases (db1, db2, db3) to scale users and posts. Media files like reels and images are stored in Backblaze B2 and delivered via Cloudflare for fast global streaming. API is hosted on Render at golviral-api.onrender.com with uptime monitoring.</p>
+<h3>Payments and Communication</h3>
+<div class="partners"><span>Selar - Payments</span><span>Brevo - Email</span><span>Resend - Email</span><span>Firebase - Push</span></div>
+<p>All digital purchases including gifts and boost are processed securely via Selar. We do not use Paystack. Email OTP and notifications are sent via Brevo and Resend. Push notifications for follows, comments and DM use Firebase when user opts in.</p>
+<h3>Advertising to Keep Platform Free</h3>
+<div class="partners"><span>Adsterra</span><span>Adcash</span><span>Monetag</span></div>
+<p>We use ad partners to keep GolViral free for creators. Ads are non-intrusive and not shown on sensitive pages.</p>
+<h3>Development</h3>
+<div class="partners"><span>GitHub - Code</span><span>Cloudflare Pages - Frontend</span></div>
+<a class="cta" href="/">Back to GolViral</a>
 </div>
 
 <div class="card">
-<h2>📧 Contact</h2>
-<p>For any legal, privacy, copyright, or support questions, contact us only at:</p>
-<p style="margin-top:8px"><b>support@golviral.com</b></p>
-<p style="margin-top:8px;font-size:11px;color:var(--muted)">We respond within 24-48 hours. Please do not share your password or OTP with anyone claiming to be support.</p>
+<h2>📧 Contact & Support</h2>
+<p>Only official contact is:</p>
+<p style="margin-top:8px"><b style="background:var(--grad2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:16px">support@golviral.com</b></p>
+<p style="margin-top:8px;font-size:11px;color:var(--dim)">We respond within 24-48 hours. Never share your password, OTP or Selar reference with anyone claiming to be staff. GolViral staff will never ask for your password.</p>
 </div>
 
 <div class="footer">
-GolViral © 2026 - Creator First Platform<br>
-Fast Monetization: 10 Followers + 7 Days + Verification
+Join millions of creators earning with GolViral and meet more friends by following, chatting and more.<br><br>
+GolViral © 2026 • All Rights Reserved • PWA • Reels • Images • Stories • Novels • Chat & DM • Gifts • Boost<br>
+Sitemap: /sitemap-index.xml • /sitemap/profiles-1.xml
 </div>
+
 </div>
 <script>
 document.querySelectorAll('.tab').forEach(t=>{
  t.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   t.classList.add('active');
-  const target=document.getElementById(t.dataset.target);
-  if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  const el=document.getElementById(t.dataset.t);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
  });
 });
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}
