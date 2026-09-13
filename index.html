@@ -14,95 +14,108 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="google-site-verification" content="0rn74joHgCCJ0qqgQmbX4H9k1VRvOH31qY_SDkGqLbE" />
 <title>GolViral - Earn Money Creating Short Videos & Stories</title>
-<meta name="theme-color" content="#00ff88">
+<meta name="theme-color" content="#000000">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <link rel="canonical" href="https://golviral.com/">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
-:root{--bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.85);--glass-card:rgba(20,20,20,0.65);--accent:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;--text:#fff;--muted:#888;--border:#1f1f1f;--glass-border:rgba(255,255,255,0.12);--nav:70px;--top:100px;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)}
+/* === ONLY LAYOUT CHANGED TO MATCH IMAGE - FULL TRANSPARENCY === */
+:root{--bg:#000;--card:#111;--accent:#00ff88;--pink:#ff2e63;--text:#fff;--muted:#888;--border:#1f1f1f;--gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;overflow:hidden}
-header{height:var(--top);background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:15px}
-.logo{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.tabs{display:flex;gap:20px;padding:0 15px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
-.tab{color:var(--muted);font-weight:700;cursor:pointer;padding-bottom:10px;white-space:nowrap;transition:0.2s}
-.tab.active{color:#000;background:var(--gradient);padding:6px 12px;border-radius:20px}
-main{height:calc(100dvh - var(--nav) - var(--top));overflow-y:auto;scroll-snap-type:y mandatory}
-.bottom-nav{height:var(--nav);background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;position:fixed;bottom:0;left:0;right:0;max-width:500px;margin:0 auto;z-index:10}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);cursor:pointer;font-size:12px;transition:0.2s}
-.nav-btn.active{color:var(--accent)}
-.fab{position:fixed;bottom:85px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--gradient);box-shadow:0 0 20px rgba(0,255,136,0.4);border:none;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:20;transition:transform 0.15s active}
-.fab:active{transform:scale(0.92)}
-.reel{height:calc(100dvh - var(--nav) - var(--top));scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;background:#000}
-.reel video,.reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
-.reel-skeleton{position:absolute;inset:0;background:linear-gradient(90deg,#0a0a0a 25%,#1a1a1a 50%,#0a0a0a 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;z-index:1}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.progress-bar-container{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.2);z-index:4}
-.progress-bar-fill{height:100%;width:0%;background:var(--accent);box-shadow:0 0 8px var(--accent);transition:width 0.1s linear}
-.reel-content-overlay{position:relative;padding:16px 75px 20px 16px;background:linear-gradient(transparent, rgba(0,0,0,0.95));z-index:2;max-height:45%;overflow-y:auto;backdrop-filter:blur(4px)}
-.creator-info{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.avatar-wrapper{position:relative;width:40px;height:40px;border-radius:50%;padding:2px;background:var(--gradient);background-size:200% 200%;animation:spinGradient 4s linear infinite;flex-shrink:0}
-@keyframes spinGradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-.creator-avatar{width:100%;height:100%;border-radius:50%;background:#111;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;font-size:14px}
-.actions{position:absolute;right:12px;bottom:110px;display:flex;flex-direction:column;gap:16px;z-index:15;background:var(--glass-card);padding:12px 8px;border-radius:24px;backdrop-filter:blur(12px);border:1px solid var(--glass-border);box-shadow:0 8px 32px rgba(0,0,0,0.5)}
-.action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;cursor:pointer;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8);transition:transform 0.15s}
+body{background:#000;color:#fff;max-width:500px;margin:0 auto;height:100dvh;overflow:hidden}
+
+/* HEADER TRANSPARENT OVER VIDEO */
+header{position:fixed;top:0;left:0;right:0;max-width:500px;margin:0 auto;z-index:50;background:linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);border:none;height:auto;padding-bottom:4px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 6px}
+.logo{font-size:20px;font-weight:900;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8)}
+.tabs{display:flex;gap:18px;padding:2px 16px 8px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{color:rgba(255,255,255,0.6);font-weight:700;font-size:15px;cursor:pointer;padding-bottom:6px;white-space:nowrap;border-bottom:2px solid transparent;transition:0.2s}
+.tab.active{color:#fff;border-bottom-color:#fff}
+
+/* FEED FULL SCREEN */
+main{height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+
+/* REEL FULL VIDEO COVER */
+.reel{height:100dvh;scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;background:#000}
+.reel video,.reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;background:#000}
+.reel-skeleton{position:absolute;inset:0;background:#0a0a0a;z-index:1}
+.progress-bar-container{position:absolute;bottom:0;left:0;right:0;height:2px;background:rgba(255,255,255,0.2);z-index:4}
+.progress-bar-fill{height:100%;width:0%;background:#fff;transition:width 0.1s linear}
+
+/* CAPTION OVER VIDEO */
+.reel-content-overlay{position:absolute;bottom:74px;left:0;right:74px;padding:0 12px 8px 12px;z-index:3;background:transparent;max-height:40%;overflow:hidden}
+.creator-info{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.avatar-wrapper{width:36px;height:36px;border-radius:50%;padding:1.5px;background:#fff;flex-shrink:0}
+.creator-avatar{width:100%;height:100%;border-radius:50%;background:#222;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;font-size:13px}
+.reel-content-overlay p{font-size:14px;line-height:1.35;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.8)}
+
+/* ACTIONS RIGHT SIDE LIKE TIKTOK - NO GLASS BOX, FULL TRANSPARENCY */
+.actions{position:absolute;right:8px;bottom:86px;display:flex;flex-direction:column;align-items:center;gap:20px;z-index:4;background:transparent;border:none;padding:0;box-shadow:none;backdrop-filter:none}
+.action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:#fff}
 .action-btn:active{transform:scale(0.88)}
-.action-badge{background:rgba(0,0,0,0.6);padding:2px 6px;border-radius:10px;font-size:10px;border:1px solid rgba(255,255,255,0.15);min-width:20px;text-align:center}
-.vinyl-disk{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,#111 30%,#333 31%,#111 60%,#000 100%);border:2px solid var(--accent);animation:spinVinyl 3s linear infinite;display:flex;align-items:center;justify-content:center;margin-top:4px}
-.vinyl-inner{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.action-badge{font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.8);background:transparent;border:none;min-width:auto;padding:0}
+.vinyl-disk{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle,#222 20%,#111 40%,#000 70%);border:3px solid #222;animation:spinVinyl 3s linear infinite;display:flex;align-items:center;justify-content:center;margin-top:6px}
+.vinyl-inner{width:12px;height:12px;border-radius:50%;background:#fff}
 @keyframes spinVinyl{100%{transform:rotate(360deg)}}
+
+/* BOTTOM NAV TRANSPARENT OVER VIDEO LIKE IMAGE */
+.bottom-nav{height:62px;background:linear-gradient(to top, rgba(0,0,0,0.6), transparent);border:none;display:flex;justify-content:space-around;align-items:center;position:fixed;bottom:0;left:0;right:0;max-width:500px;margin:0 auto;z-index:50}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:10px;font-weight:600}
+.nav-btn.active{color:#fff}
+.fab{display:none}
+.play-overlay{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,0.15);z-index:5;cursor:pointer}
+.play-overlay svg{width:72px;height:72px;fill:rgba(255,255,255,0.9);stroke:none}
+svg.icon{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.6))}
+.action-btn svg.icon{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:2;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.6))}
+.action-btn svg.icon.filled{fill:#fff;stroke:#fff}
 .heart-pop{position:absolute;width:90px;height:90px;pointer-events:none;z-index:30;transform:translate(-50%,-50%) scale(0);animation:heartPop 0.8s cubic-bezier(0.175,0.885,0.32,1.275) forwards}
 @keyframes heartPop{0%{transform:translate(-50%,-50%) scale(0) rotate(-15deg);opacity:1}50%{transform:translate(-50%,-50%) scale(1.2) rotate(0deg);opacity:0.9}100%{transform:translate(-50%,-50%) scale(1.5) rotate(15deg);opacity:0}}
 .gift-particle{position:fixed;pointer-events:none;z-index:999;font-size:28px;animation:floatUp 1.8s ease-out forwards}
 @keyframes floatUp{0%{transform:translateY(0) scale(0.5);opacity:1}100%{transform:translateY(-250px) scale(1.4);opacity:0}}
-svg.icon{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0px 2px 4px rgba(0,0,0,0.5))}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);display:none;z-index:200}
 .modal.active{display:block}
-.sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg);border-radius:24px 24px 0 0;padding:12px 16px 20px 16px;max-height:80vh;display:flex;flex-direction:column;border-top:1px solid var(--border);transition:transform 0.2s ease-out;touch-action:none}
-.sheet-handle{width:40px;height:5px;background:var(--border);border-radius:3px;margin:0 auto 12px auto;cursor:grab}
-.reader{position:fixed;inset:0;background:var(--bg);transform:translateX(100%);transition:0.3s;z-index:300;padding:20px;overflow-y:auto}
+.sheet{position:absolute;bottom:0;left:0;right:0;background:#0f0f0f;border-radius:24px 24px 0 0;padding:12px 16px 20px;border-top:1px solid #1f1f1f;max-height:80vh;display:flex;flex-direction:column}
+.sheet-handle{width:40px;height:5px;background:#333;border-radius:3px;margin:0 auto 12px auto}
+.reader{position:fixed;inset:0;background:#000;transform:translateX(100%);transition:0.3s;z-index:300;padding:20px;overflow-y:auto}
 .reader.active{transform:translateX(0)}
-.input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:24px;outline:none;font-size:14px}
-.btn{background:var(--gradient);color:#000;border:none;padding:8px 16px;border-radius:20px;font-weight:800;cursor:pointer;font-size:12px;transition:transform 0.1s}
-.btn:active{transform:scale(0.95)}
+.input{width:100%;background:#111;border:1px solid #222;color:#fff;padding:12px 16px;border-radius:24px;outline:none;font-size:14px}
+.btn{background:var(--gradient);color:#000;border:none;padding:8px 16px;border-radius:20px;font-weight:800;cursor:pointer;font-size:12px}
 .btn[disabled]{opacity:0.4;pointer-events:none}
-.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0;box-shadow:0 4px 15px rgba(0,255,136,0.3)}
+.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:#fff;color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
 .toast.show{transform:translate(-50%,0);opacity:1}
-.play-overlay{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,0.3);z-index:5;cursor:pointer}
-.play-overlay svg{width:80px;height:80px;fill:var(--accent);stroke:none}
 .comment-item{display:flex;gap:10px;margin-bottom:12px}
 .comment-avatar{width:34px;height:34px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:bold;color:#000;font-size:12px;flex-shrink:0}
-.comment-bubble{background:var(--card);border:1px solid var(--border);padding:10px 14px;border-radius:16px;max-width:85%}
-.gift-option{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;cursor:pointer;margin-bottom:10px;transition:0.2s}
-.gift-option:hover{border-color:var(--accent);transform:translateY(-2px)}
-.price-tag{background:var(--card);border:1px dashed var(--border);padding:4px 8px;border-radius:8px;font-size:11px}
-.search-top-panel{position:absolute;top:0;left:0;right:0;background:var(--glass);backdrop-filter:blur(25px);padding:16px;border-bottom:1px solid var(--border);max-width:500px;margin:0 auto}
+.comment-bubble{background:#1a1a1a;border:1px solid #222;padding:10px 14px;border-radius:16px;max-width:85%}
+.gift-option{display:flex;justify-content:space-between;align-items:center;padding:14px;background:#1a1a1a;border:1px solid #222;border-radius:14px;cursor:pointer;margin-bottom:10px}
+.gift-option:hover{border-color:var(--accent)}
+.price-tag{background:#111;border:1px dashed #333;padding:4px 8px;border-radius:8px;font-size:11px}
+.search-top-panel{position:absolute;top:0;left:0;right:0;background:#000;padding:16px;border-bottom:1px solid #222;max-width:500px;margin:0 auto}
 .search-header-row{display:flex;align-items:center;gap:12px}
 .search-dropdown-list{max-height:50vh;overflow-y:auto;margin-top:12px;display:flex;flex-direction:column;gap:8px}
-.search-user-card{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;cursor:pointer}
+.search-user-card{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#111;border:1px solid #222;border-radius:14px;cursor:pointer}
 .profile-card-modal{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:none;justify-content:center;align-items:center;z-index:400;padding:20px}
 .profile-card-modal.active{display:flex}
-.profile-card-body{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:20px;width:100%;max-width:320px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.8)}
+.profile-card-body{background:#111;border:1px solid #222;border-radius:24px;padding:20px;width:100%;max-width:320px;text-align:center}
 </style>
 </head>
 <body>
 <div id="toast" class="toast"></div>
 <header>
 <div class="topbar">
-<div class="logo"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>GolViral</div>
-<svg class="icon" onclick="openSearch()" viewBox="0 0 24 24" style="cursor:pointer"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+<div class="logo"><svg class="icon" viewBox="0 0 24 24" style="stroke:#fff;fill:none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>GolViral</div>
+<svg class="icon" onclick="openSearch()" viewBox="0 0 24 24" style="cursor:pointer;stroke:#fff"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
 </div>
 <div class="tabs">
-<div class="tab active" onclick="loadFeed('ForYou',this)">ForYou</div>
+<div class="tab active" onclick="loadFeed('ForYou',this)">For You</div>
 <div class="tab" onclick="loadFeed('Reels',this)">Reels</div>
 <div class="tab" onclick="loadFeed('Novels',this)">Short Story</div>
 <div class="tab" onclick="loadFeed('Stories',this)">Memes</div>
 </div>
 </header>
 <main id="feed"></main>
-<button class="fab" onclick="location.href='post.html'"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
 <nav class="bottom-nav">
 <div class="nav-btn active"><svg class="icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
 <div class="nav-btn" onclick="openSearch()"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Search</span></div>
@@ -135,47 +148,29 @@ function unlockAudioVideo(){
 }
 document.addEventListener('touchstart',unlockAudioVideo,{once:true});
 document.addEventListener('click',unlockAudioVideo,{once:true});
-// Default to NGN so Android 11 never starts with empty data
 let CUR={symbol:'₦',code:'NGN',locale:'en-NG'};
-
 async function fetchGeoCurrency(){
   try{
     const res=await fetch('https://ipapi.co/json/');
     const data=await res.json();
-    // Android 11 safety: only accept valid 3-letter currency codes
     if(data && data.currency && typeof data.currency === 'string' && data.currency.trim().length === 3){
-      CUR={
-        symbol: data.currency_symbol || data.currency,
-        code: data.currency.trim().toUpperCase(),
-        locale: navigator.language || 'en-NG'
-      };
+      CUR={symbol: data.currency_symbol || data.currency,code: data.currency.trim().toUpperCase(),locale: navigator.language || 'en-NG'};
     }
     applyCurrencyLabels();
   }catch(e){}
 }
 fetchGeoCurrency();
-
-// ANDROID 11 FIX: safe currency formatting with fallback
 function formatPrice(n){
   let locale = CUR.locale || 'en-NG';
   let currency = String(CUR.code || 'NGN').trim().toUpperCase();
   if(currency.length!== 3) currency = 'NGN';
-
   const amount = Number(n) || 0;
-
   try {
-    return new Intl.NumberFormat(locale,{
-      style:'currency',
-      currency:currency,
-      maximumFractionDigits:0,
-      minimumFractionDigits:0
-    }).format(amount);
+    return new Intl.NumberFormat(locale,{style:'currency',currency:currency,maximumFractionDigits:0,minimumFractionDigits:0}).format(amount);
   } catch(e){
-    // Fallback if Intl fails on old Android
     return `${CUR.symbol || '₦'}${Math.round(amount).toLocaleString(locale)}`;
   }
 }
-
 function applyCurrencyLabels(){
   document.querySelectorAll('.price-amount').forEach(el=>{
     const amt=parseInt(el.dataset.amount);
@@ -183,7 +178,6 @@ function applyCurrencyLabels(){
   });
   document.querySelectorAll('.currency-label').forEach(el=>el.innerText=CUR.code);
 }
-
 function toast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 async function api(p,o={}){try{const r=await fetch(API+p,{...o,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...o.headers}});if(r.status===401) location.href='auth.html';const d=await r.json().catch(()=>({}));if(r.status>=400) return{error:d.error||'Request failed'};return d;}catch{toast('Network error');return{};}}
 async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
@@ -193,21 +187,21 @@ async function renderFeed(posts){const c=document.getElementById('feed');c.inner
 async function createReel(p){
   const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;
   const user=await getUser(p.userId);const isMe=p.userId===USER_ID;
-  const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${user.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)">${user.isFollowing?'Following':'Follow'}</button>`:'';
+  const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${user.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="padding:4px 10px;font-size:11px">${user.isFollowing?'Following':'Follow'}</button>`:'';
   const initial=(user.username||p.userId||'U')[0].toUpperCase();
   div.innerHTML=`
     <div class="reel-skeleton"></div>
     <video class="main-vid" autoplay muted loop playsinline webkit-playsinline preload="auto" data-postid="${p.id}"></video>
     <div class="progress-bar-container"><div class="progress-bar-fill" id="progress-${p.id}"></div></div>
     <div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-    <div class="reel-content-overlay"><div class="creator-info"><div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div><b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${user.username||p.userId}</b>${followHtml}</div><p style="font-size:14px;line-height:1.4;word-break:break-word;"><span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>${(p.caption||'').length>90?`<span style="color:#888;font-weight:700;cursor:pointer;" onclick="const c=document.getElementById('cap-${p.id}'); if(c.style.webkitLineClamp==='unset'){c.style.webkitLineClamp='2'; this.innerText='...see more';} else {c.style.webkitLineClamp='unset'; this.innerText=' see less';}">...see more</span>`:''}</p></div>
+    <div class="reel-content-overlay"><div class="creator-info"><div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div><b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${user.username||p.userId}</b>${followHtml}</div><p style="font-size:14px;line-height:1.4;word-break:break-word;"><span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>${(p.caption||'').length>90?`<span style="color:#ccc;font-weight:700;cursor:pointer;" onclick="const c=document.getElementById('cap-${p.id}'); if(c.style.webkitLineClamp==='unset'){c.style.webkitLineClamp='2'; this.innerText='...more';} else {c.style.webkitLineClamp='unset'; this.innerText=' less';}">...more</span>`:''}</p></div>
     <div class="actions">
-      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon filled" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
       <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
-      <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
-      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
-      <div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-      <div class="action-btn" onclick="toggleSound()"><svg class="icon" viewBox="0 0 24 24"><path d="M1 12h3l3-9v18l-3-9H1zm15.54 0c0 3.04-1.63 5.54-3.54 5.54v-11c1.91 0 3.54 2.5 3.54 5.46z"/></svg></div>
+      <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span class="action-badge">Gift</span></div>
+      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div>
+      <div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="action-badge">Boost</span></div>
+      <div class="action-btn" onclick="toggleSound()"><svg class="icon" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></div>
       <div class="vinyl-disk"><div class="vinyl-inner"></div></div>
     </div>`;
   setupDoubleTap(div,p.id,p.userId);return div;
@@ -215,23 +209,23 @@ async function createReel(p){
 async function createImageReel(p){
   const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;
   const u=await getUser(p.userId);const isMe=p.userId===USER_ID;
-  const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)">${u.isFollowing?'Following':'Follow'}</button>`:'';
+  const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="padding:4px 10px;font-size:11px">${u.isFollowing?'Following':'Follow'}</button>`:'';
   const initial=(u.username||p.userId||'U')[0].toUpperCase();
   div.innerHTML=`
     <div class="reel-skeleton"></div>
     <img data-postid="${p.id}">
-    <div class="reel-content-overlay"><div class="creator-info"><div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div><b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${u.username||p.userId}</b>${followHtml}</div><p style="font-size:14px;line-height:1.4;word-break:break-word;"><span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>${(p.caption||'').length>90?`<span style="color:#888;font-weight:700;cursor:pointer;" onclick="const c=document.getElementById('cap-${p.id}'); if(c.style.webkitLineClamp==='unset'){c.style.webkitLineClamp='2'; this.innerText='...see more';} else {c.style.webkitLineClamp='unset'; this.innerText=' see less';}">...see more</span>`:''}</p></div>
+    <div class="reel-content-overlay"><div class="creator-info"><div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div><b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${u.username||p.userId}</b>${followHtml}</div><p style="font-size:14px;line-height:1.4;word-break:break-word;"><span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>${(p.caption||'').length>90?`<span style="color:#ccc;font-weight:700;cursor:pointer;" onclick="const c=document.getElementById('cap-${p.id}'); if(c.style.webkitLineClamp==='unset'){c.style.webkitLineClamp='2'; this.innerText='...more';} else {c.style.webkitLineClamp='unset'; this.innerText=' less';}">...more</span>`:''}</p></div>
     <div class="actions">
-      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon filled" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
       <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
-      <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
-      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
-      <div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span class="action-badge">Gift</span></div>
+      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div>
+      <div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="action-badge">Boost</span></div>
     </div>`;
   setupDoubleTap(div,p.id,p.userId);return div;
 }
 async function createTextReel(p){
-  const div=document.createElement('div');div.className=`reel ${p.type}`;div.dataset.id=p.id;div.dataset.creator=p.userId;
+  const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;
   const u=await getUser(p.userId);const isMe=p.userId===USER_ID;
   const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="margin-top:10px">${u.isFollowing?'Following':'Follow'}</button>`:'';
   div.innerHTML=`
@@ -242,7 +236,7 @@ async function createTextReel(p){
       ${followHtml}
     </div>
     <div class="actions">
-      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon filled" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
       <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
       <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
       <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
@@ -298,10 +292,6 @@ function toggleSound(){
     v.muted = GLOBAL_MUTED;
     v.play().catch(()=>{});
   });
-  document.querySelectorAll('video').forEach(v => {
-    if(!v.classList.contains('main-vid')) return;
-    v.muted = GLOBAL_MUTED;
-  });
   toast(GLOBAL_MUTED? 'Muted' : 'Sound On');
 }
 function sharePost(){navigator.clipboard.writeText(location.href);toast('Link copied');}
@@ -328,7 +318,5 @@ function viewFullProfile(){if(activeProfileUserId) location.href=`profile.html?i
 document.querySelectorAll('.sheet').forEach(sheet=>{let startY=0,currentY=0;sheet.addEventListener('touchstart',e=>{startY=e.touches[0].clientY;});sheet.addEventListener('touchmove',e=>{currentY=e.touches[0].clientY;const diff=currentY-startY;if(diff>0) sheet.style.transform=`translateY(${diff}px)`;});sheet.addEventListener('touchend',()=>{const diff=currentY-startY;if(diff>120){sheet.parentElement.classList.remove('active');}sheet.style.transform='translateY(0)';startY=0;currentY=0;});});
 loadFeed('ForYou',document.querySelector('.tab'));applyCurrencyLabels();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
 </body>
 </html>
