@@ -38,7 +38,9 @@ main::-webkit-scrollbar{display:none}
 .reel-skeleton{position:absolute;inset:0;background:#0a0a0a;z-index:1}
 .progress-bar-container{position:absolute;bottom:0;left:0;right:0;height:2px;background:rgba(255,255,255,0.2);z-index:4}
 .progress-bar-fill{height:100%;width:0%;background:#fff;transition:width 0.1s linear}
-.reel-content-overlay{position:absolute;bottom:74px;left:0;right:74px;padding:0 12px 8px 12px;z-index:3;background:transparent;max-height:40%;overflow:hidden}
+.reel-content-overlay{position:absolute;bottom:74px;left:0;right:74px;padding:0 12px 8px 12px;z-index:3;background:transparent;max-height:45%;overflow-y:auto;scrollbar-width:none}
+.reel-content-overlay::-webkit-scrollbar{display:none}
+.reel-content-overlay.expanded{max-height:65%;background:linear-gradient(to top, rgba(0,0,0,0.8), transparent)}
 .creator-info{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .avatar-wrapper{width:38px;height:38px;border-radius:50%;padding:2.5px;background:var(--follow-gradient);flex-shrink:0;box-shadow:0 0 14px rgba(0,255,136,0.6);cursor:pointer}
 .creator-avatar{width:100%;height:100%;border-radius:50%;background:#000;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:13px}
@@ -141,14 +143,27 @@ async function getUser(id){if(userCache[id]) return userCache[id];const u=await 
 async function getSignedUrl(postId){const d=await api(`/api/media/sign?postId=${postId}`);return d?d.url:null;}
 async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const target=map[type];let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);renderFeed(filtered);}
 function renderCaptionHTML(postId, text){ if(!text) return ''; if(text.length <= 90){ return `<span>${text}</span>`; } return `<span id="cap-${postId}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${text}</span><span style="color:#888;font-weight:700;cursor:pointer;" onclick="toggleCaption('${postId}')" id="cap-btn-${postId}">...see more</span>`; }
-function toggleCaption(postId){ const cap = document.getElementById(`cap-${postId}`); const btn = document.getElementById(`cap-btn-${postId}`); if(!cap ||!btn) return; if(cap.style.webkitLineClamp === 'unset'){ cap.style.webkitLineClamp = '2'; btn.innerText = '...see more'; } else { cap.style.webkitLineClamp = 'unset'; btn.innerText = ' see less'; } }
+function toggleCaption(postId){
+  const cap=document.getElementById(`cap-${postId}`);
+  const btn=document.getElementById(`cap-btn-${postId}`);
+  const overlay=cap?.closest('.reel-content-overlay');
+  if(!cap||!btn) return;
+  if(cap.style.webkitLineClamp==='unset'){
+    cap.style.webkitLineClamp='2';
+    btn.innerText='...more';
+    overlay?.classList.remove('expanded');
+  }else{
+    cap.style.webkitLineClamp='unset';
+    btn.innerText=' less';
+    overlay?.classList.add('expanded');
+  }
+}
 async function renderFeed(posts){const c=document.getElementById('feed');c.innerHTML='';if(!posts||!posts.length){c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}c.style.overflowY='scroll';for(const p of posts){if(p.type==='reel') c.appendChild(await createReel(p));else if(p.type==='store') c.appendChild(await createImageReel(p));else c.appendChild(await createTextReel(p));}setupReelObserver();applyCurrencyLabels();}
 async function createReel(p){
   const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;
   const user=await getUser(p.userId);const isMe=p.userId===USER_ID;
   const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${user.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="padding:4px 10px;font-size:11px">${user.isFollowing?'Following':'Follow'}</button>`:'';
   const initial=(user.username||p.userId||'U')[0].toUpperCase();
-  const likedClass = p.isLiked? 'liked' : '';
   div.innerHTML=`
     <div class="reel-skeleton"></div>
     <video class="main-vid" autoplay muted loop playsinline webkit-playsinline preload="auto" data-postid="${p.id}"></video>
@@ -160,13 +175,16 @@ async function createReel(p){
         <b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${user.username||p.userId}</b>
         ${followHtml}
       </div>
-      <p style="font-size:14px;line-height:1.4;word-break:break-word;">${renderCaptionHTML(p.id, p.caption||'')}</p>
+      <p style="font-size:14px;line-height:1.4;word-break:break-word;">
+        <span id="cap-${p.id}" class="cap-text" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>
+        ${(p.caption||'').length>90?`<span id="cap-btn-${p.id}" style="color:#fff;font-weight:800;cursor:pointer;background:rgba(0,0,0,0.6);padding:2px 6px;border-radius:8px;margin-left:4px;" onclick="toggleCaption('${p.id}')">...more</span>`:''}
+      </p>
     </div>
     <div class="actions">
-      <div class="action-btn ${likedClass}" id="like-btn-${p.id}" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon ${likedClass?'filled':''}" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
-      <div class="action-btn" onclick="openComments('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
+      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon filled" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
       <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span class="action-badge">Gift</span></div>
-      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div>
+      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 1-2 2h12a2 2 0 0 1 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div>
       <div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="action-badge">Boost</span></div>
       <div class="action-btn" onclick="toggleSound()"><svg class="icon" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></div>
       <div class="vinyl-disk"><div class="vinyl-inner"></div></div>
@@ -179,7 +197,6 @@ async function createImageReel(p){
   const u=await getUser(p.userId);const isMe=p.userId===USER_ID;
   const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="padding:4px 10px;font-size:11px">${u.isFollowing?'Following':'Follow'}</button>`:'';
   const initial=(u.username||p.userId||'U')[0].toUpperCase();
-  const likedClass = p.isLiked? 'liked' : '';
   div.innerHTML=`
     <div class="reel-skeleton"></div>
     <img data-postid="${p.id}">
@@ -189,13 +206,16 @@ async function createImageReel(p){
         <b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${u.username||p.userId}</b>
         ${followHtml}
       </div>
-      <p style="font-size:14px;line-height:1.4;word-break:break-word;">${renderCaptionHTML(p.id, p.caption||'')}</p>
+      <p style="font-size:14px;line-height:1.4;word-break:break-word;">
+        <span id="cap-${p.id}" class="cap-text" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>
+        ${(p.caption||'').length>90?`<span id="cap-btn-${p.id}" style="color:#fff;font-weight:800;cursor:pointer;background:rgba(0,0,0,0.6);padding:2px 6px;border-radius:8px;margin-left:4px;" onclick="toggleCaption('${p.id}')">...more</span>`:''}
+      </p>
     </div>
     <div class="actions">
-      <div class="action-btn ${likedClass}" id="like-btn-${p.id}" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon ${likedClass?'filled':''}" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
-      <div class="action-btn" onclick="openComments('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
+      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon filled" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="openComments('${p.id}','${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
       <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span class="action-badge">Gift</span></div>
-      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div>
+      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 1-2 2h12a2 2 0 0 1 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div>
       <div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="action-badge">Boost</span></div>
     </div>`;
   setupDoubleTap(div,p.id,p.userId);return div;
