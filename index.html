@@ -341,7 +341,19 @@ async function doGift(type){if(!currentGiftUserId) return;closeGift();const init
 function openBoostSheet(postId){currentBoostPostId=postId;const post=feedData.find(p=>p.id===postId);const preview=post?(post.caption?.slice(0,45)||post.title?.slice(0,45)||'this post'):'this post';document.getElementById('boost-title').innerText=`Boost this post 🚀`;document.getElementById('boost-desc').innerHTML=`You are about to boost: <b style="color:var(--text)">"${preview}${preview.length>=45?'...':''}"</b><br>This post you clicked on will be pushed to top of ForYou feed and get more views!`;document.getElementById('boost-sheet').classList.add('active');applyCurrencyLabels();}
 function closeBoost(){document.getElementById('boost-sheet').classList.remove('active');}document.getElementById('boost-sheet').onclick=e=>{if(e.target.id==='boost-sheet') closeBoost();};
 async function doBoost(tierAmount){if(!currentBoostPostId) return;closeBoost();const init=await api('/api/boost/init',{method:'POST',body:JSON.stringify({postId:currentBoostPostId,tierAmount})});if(init.selarLink&&init.token){localStorage.setItem('last_payment',JSON.stringify({token:init.token,postId:currentBoostPostId,tierAmount,type:'boost',currency:CUR.code,symbol:CUR.symbol,at:Date.now()}));toast(`Boosting this post - ${formatPrice(tierAmount)} (${CUR.code})`);window.open(init.selarLink,'_blank');}else toast(init.error||'Boost init failed');}
-async function openComments(postId,creatorId){currentPost={postId,creatorId};document.getElementById('comment-sheet').classList.add('active');const d=await api(`/api/comments/${postId}`);const list=document.getElementById('comment-list');list.innerHTML=!d.comments||d.comments.length===0?'<p style="text-align:center;color:var(--muted);padding:20px">No comments yet</p>':d.comments.map(c=>`<div class="comment-item"><div class="comment-avatar">${(c.user?.username||'U')[0].toUpperCase()}</div><div class="comment-bubble"><b style="font-size:13px">@${c.user?.username||'User'}</b><div style="font-size:13px;color:#ddd">${c.text}</div></div></div>`).join('');}
+async function openComments(postId,creatorId){
+  currentPost={postId,creatorId};
+  document.getElementById('comment-sheet').classList.add('active');
+  const list=document.getElementById('comment-list');
+  list.innerHTML='<p style="text-align:center;color:var(--muted);padding:20px">Loading...</p>';
+  const d=await api(`/api/comments/${postId}`);
+  const comments = d.comments || d || [];
+  if(!Array.isArray(comments) ||!comments.length){
+    list.innerHTML='<p style="text-align:center;color:var(--muted);padding:20px">No comments yet</p>';
+    return;
+  }
+  list.innerHTML=comments.map(c=>`<div class="comment-item"><div class="comment-avatar">${(c.user?.username||c.username||'U')[0].toUpperCase()}</div><div class="comment-bubble"><b style="font-size:13px">@${c.user?.username||c.username||'User'}</b><div style="font-size:13px;color:#ddd">${c.text}</div></div></div>`).join('');
+}
 function closeSheet(id){
   if(id) document.getElementById(id)?.classList.remove('active');
   else document.getElementById('comment-sheet')?.classList.remove('active');
