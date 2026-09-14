@@ -59,7 +59,7 @@ svg.icon{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;str
 .action-btn svg.icon{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:2;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.6));transition:0.2s}
 .action-btn svg.icon.filled{fill:#fff;stroke:#fff}
 .action-btn.liked svg.icon{fill:#ff2e63!important;stroke:#ff2e63!important;filter:drop-shadow(0 0 12px #ff2e63);transform:scale(1.2)}
-.action-btn.liked.action-badge{color:#ff2e63!important;text-shadow:0 0 8px #ff2e63}
+.action-btn.liked .action-badge{color:#ff2e63!important;text-shadow:0 0 8px #ff2e63}
 .heart-pop{position:absolute;width:90px;height:90px;pointer-events:none;z-index:30;transform:translate(-50%,-50%) scale(0);animation:heartPop 0.8s cubic-bezier(0.175,0.885,0.32,1.275) forwards}
 @keyframes heartPop{0%{transform:translate(-50%,-50%) scale(0) rotate(-15deg);opacity:1}50%{transform:translate(-50%,-50%) scale(1.2) rotate(0deg);opacity:0.9}100%{transform:translate(-50%,-50%) scale(1.5) rotate(15deg);opacity:0}}
 .gift-particle{position:fixed;pointer-events:none;z-index:999;font-size:28px;animation:floatUp 1.8s ease-out forwards}
@@ -112,71 +112,471 @@ svg.icon{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;str
 <div class="nav-btn" onclick="location.href='messages.html'"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>DM</span></div>
 <div class="nav-btn" onclick="location.href='profile.html'"><svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Me</span></div>
 </nav>
-<div id="comment-sheet" class="modal"><div class="sheet"><div class="sheet-handle"></div><div style="display:flex;justify-content:space-between;margin-bottom:12px"><b>Comments</b><span onclick="closeSheet('comment-sheet')" style="cursor:pointer;color:var(--muted)">✕</span></div><div id="comment-list" style="overflow-y:auto;flex:1"></div><div style="display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border)"><input id="comment-input" class="input" placeholder="Write a comment..."><button class="btn" onclick="sendComment()">Send</button></div></div></div>
-<div id="gift-sheet" class="modal"><div class="sheet"><div class="sheet-handle"></div><div style="display:flex;justify-content:space-between;margin-bottom:16px"><b>Send Gift 🎁</b><span onclick="closeSheet('gift-sheet')" style="cursor:pointer;color:var(--muted)">✕</span></div><div id="gift-list"><div class="gift-option" onclick="doGift('RUBY')"><div><b>💎 Ruby - 100 Gifts</b><div style="font-size:12px;color:var(--muted)">200 pts each</div></div><div style="text-align:right"><b class="price-amount" data-amount="5000"></b><div class="price-tag"><span class="currency-label">NGN</span></div></div></div><div class="gift-option" onclick="doGift('GOLD')"><div><b>👑 Gold - 100 Gifts</b><div style="font-size:12px;color:var(--muted)">500 pts each</div></div><div style="text-align:right"><b class="price-amount" data-amount="10000"></b><div class="price-tag"><span class="currency-label">NGN</span></div></div></div><div class="gift-option" onclick="doGift('DIAMOND')"><div><b>💠 Diamond - 100 Gifts</b><div style="font-size:12px;color:var(--muted)">1000 pts each</div></div><div style="text-align:right"><b class="price-amount" data-amount="15000"></b><div class="price-tag"><span class="currency-label">NGN</span></div></div></div><button class="btn" style="width:100%;padding:14px;margin-top:10px" onclick="trySendExistingGift()">I already have pack - Send now 🎁</button></div></div></div>
-<div id="boost-sheet" class="modal"><div class="sheet"><div class="sheet-handle"></div><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b id="boost-title">Boost this post 🚀</b><span onclick="closeSheet('boost-sheet')" style="cursor:pointer;color:var(--muted)">✕</span></div><p id="boost-desc" style="font-size:13px;color:var(--muted);margin-bottom:14px;background:var(--card);padding:10px;border-radius:10px;border:1px solid var(--border)">You are boosting the post you clicked on.</p><div class="gift-option" onclick="doBoost(3500)"><div><b>1 Day Boost</b><div style="font-size:12px;color:var(--muted)">Top feed for 24h</div></div><div style="text-align:right"><b class="price-amount" data-amount="3500"></b><div class="price-tag"><span class="currency-label">NGN</span> • Fast</div></div></div><div class="gift-option" onclick="doBoost(7500)"><div><b>3 Days Boost</b><div style="font-size:12px;color:var(--muted)">Most popular</div></div><div style="text-align:right"><b class="price-amount" data-amount="7500"></b><div class="price-tag"><span class="currency-label">NGN</span> • Best Value</div></div></div><div class="gift-option" onclick="doBoost(17000)"><div><b>7 Days Boost</b><div style="font-size:12px;color:var(--muted)">Maximum reach</div></div><div style="text-align:right"><b class="price-amount" data-amount="17000"></b><div class="price-tag"><span class="currency-label">NGN</span> • Max</div></div></div></div></div>
-<div id="search-modal" class="modal"><div class="search-top-panel"><div class="search-header-row"><input id="search-input" class="input" placeholder="Search creators..." oninput="debounceSearch(this.value)"><span onclick="closeSheet('search-modal')" style="cursor:pointer;color:var(--muted)">Cancel</span></div><div id="search-results" class="search-dropdown-list"></div></div></div>
-<div id="reader-tab" class="reader"><svg class="icon" onclick="closeReader()" viewBox="0 0 24 24" style="margin-bottom:20px;cursor:pointer"><path d="M15 18l-6-6 6-6"/></svg><h2 id="reader-title"></h2><p id="reader-content" style="line-height:1.8;margin-top:16px;white-space:pre-wrap"></p></div>
-<div id="profile-card-modal" class="profile-card-modal" onclick="closeProfileCard(event)"><div class="profile-card-body" onclick="event.stopPropagation()"><div class="avatar-wrapper" style="margin:0 auto 12px auto;width:60px;height:60px;"><div id="pcard-avatar" class="creator-avatar" style="font-size:22px;">U</div></div><h3 id="pcard-name">@username</h3><p id="pcard-bio" style="font-size:12px;color:var(--muted);margin:6px 0 16px 0;">Creator on GolViral</p><div style="display:flex;gap:10px;justify-content:center;"><button id="pcard-follow-btn" class="btn">Follow</button><button class="btn" style="background:var(--card);color:#fff;border:1px solid var(--border)" onclick="viewFullProfile()">View Profile</button></div></div></div>
+
+<div id="comment-sheet" class="modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px"><b>Comments</b><span onclick="closeSheet('comment-sheet')" style="cursor:pointer;color:var(--muted)">✕</span></div>
+    <div id="comment-list" style="overflow-y:auto;flex:1"></div>
+    <div style="display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border)">
+      <input id="comment-input" class="input" placeholder="Write a comment...">
+      <button class="btn" onclick="sendComment()">Send</button>
+    </div>
+  </div>
+</div>
+
+<div id="gift-sheet" class="modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px"><b>Send Gift 🎁</b><span onclick="closeSheet('gift-sheet')" style="cursor:pointer;color:var(--muted)">✕</span></div>
+    <div id="gift-list">
+      <div class="gift-option" onclick="sendGift('Rose', 100)"><div><b>🌹 Rose</b><div style="font-size:12px;color:var(--muted)">Show appreciation</div></div><div class="price-tag"><span class="price-amount" data-amount="100">100</span> <span class="currency-label">NGN</span></div></div>
+      <div class="gift-option" onclick="sendGift('Fire', 500)"><div><b>🔥 Fire</b><div style="font-size:12px;color:var(--muted)">Hot content</div></div><div class="price-tag"><span class="price-amount" data-amount="500">500</span> <span class="currency-label">NGN</span></div></div>
+      <div class="gift-option" onclick="sendGift('Crown', 2000)"><div><b>👑 Crown</b><div style="font-size:12px;color:var(--muted)">Top tier creator</div></div><div class="price-tag"><span class="price-amount" data-amount="2000">2000</span> <span class="currency-label">NGN</span></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="boost-sheet" class="modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px"><b id="boost-title">Boost this post 🚀</b><span onclick="closeSheet('boost-sheet')" style="cursor:pointer;color:var(--muted)">✕</span></div>
+    <p id="boost-desc" style="font-size:13px;color:var(--muted);margin-bottom:14px;background:var(--card);padding:10px;border-radius:10px;border:1px solid var(--border)">You are boosting the post you clicked on.</p>
+    <div class="gift-option" onclick="doBoost(3500)"><div><b>1 Day Boost</b><div style="font-size:12px;color:var(--muted)">Top feed for 24h</div></div><div style="text-align:right"><b class="price-amount" data-amount="3500"></b><div class="price-tag"><span class="currency-label">NGN</span> • Fast</div></div></div>
+    <div class="gift-option" onclick="doBoost(7500)"><div><b>3 Days Boost</b><div style="font-size:12px;color:var(--muted)">Most popular</div></div><div style="text-align:right"><b class="price-amount" data-amount="7500"></b><div class="price-tag"><span class="currency-label">NGN</span> • Best Value</div></div></div>
+    <div class="gift-option" onclick="doBoost(17000)"><div><b>7 Days Boost</b><div style="font-size:12px;color:var(--muted)">Maximum reach</div></div><div style="text-align:right"><b class="price-amount" data-amount="17000"></b><div class="price-tag"><span class="currency-label">NGN</span> • Max</div></div></div>
+  </div>
+</div>
+
+<div id="search-modal" class="modal">
+  <div class="search-top-panel">
+    <div class="search-header-row">
+      <input id="search-input" class="input" placeholder="Search creators..." oninput="debounceSearch(this.value)">
+      <span onclick="closeSheet('search-modal')" style="cursor:pointer;color:var(--muted)">Cancel</span>
+    </div>
+    <div id="search-results" class="search-dropdown-list"></div>
+  </div>
+</div>
+
+<div id="reader-tab" class="reader">
+  <svg class="icon" onclick="closeReader()" viewBox="0 0 24 24" style="margin-bottom:20px;cursor:pointer"><path d="M15 18l-6-6 6-6"/></svg>
+  <h2 id="reader-title"></h2>
+  <p id="reader-content" style="line-height:1.8;margin-top:16px;white-space:pre-wrap"></p>
+</div>
+
+<div id="profile-card-modal" class="profile-card-modal" onclick="closeProfileCard(event)">
+  <div class="profile-card-body" onclick="event.stopPropagation()">
+    <div class="avatar-wrapper" style="margin:0 auto 12px auto;width:60px;height:60px;"><div id="pcard-avatar" class="creator-avatar" style="font-size:22px;">U</div></div>
+    <h3 id="pcard-name">@username</h3>
+    <p id="pcard-bio" style="font-size:12px;color:var(--muted);margin:6px 0 16px 0;">Creator on GolViral</p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="pcard-follow-btn" class="btn">Follow</button>
+      <button class="btn" style="background:var(--card);color:#fff;border:1px solid var(--border)" onclick="viewFullProfile()">View Profile</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API='https://golviral-api.onrender.com';
 const TOKEN=localStorage.token;
 const USER_ID=localStorage.userId;
 if(!TOKEN) location.href='auth.html';
+
 let feedData=[],currentPostId=null,searchTimer=null,currentBoostPostId=null,currentGiftUserId=null,activeProfileUserId=null;
 const userCache={},followLocks={},hlsInstances={};
 let GLOBAL_MUTED = localStorage.getItem('golviral_muted')==='0'? false : true;
 let userInteracted=false;
+
 function unlockAudioVideo(){ if(userInteracted) return; userInteracted=true; document.querySelectorAll('video').forEach(v=>{ v.muted=GLOBAL_MUTED; v.play().catch(()=>{}); }); }
 document.addEventListener('touchstart',unlockAudioVideo,{once:true});
 document.addEventListener('click',unlockAudioVideo,{once:true});
+
 let CUR={symbol:'₦',code:'NGN',locale:'en-NG'};
 async function fetchGeoCurrency(){ try{ const res=await fetch('https://ipapi.co/json/'); const data=await res.json(); if(data && data.currency && typeof data.currency === 'string' && data.currency.trim().length === 3){ CUR={symbol: data.currency_symbol || data.currency,code: data.currency.trim().toUpperCase(),locale: navigator.language || 'en-NG'}; } applyCurrencyLabels(); }catch(e){} }
 fetchGeoCurrency();
+
 function formatPrice(n){ let locale = CUR.locale || 'en-NG'; let currency = String(CUR.code || 'NGN').trim().toUpperCase(); if(currency.length!== 3) currency = 'NGN'; const amount = Number(n) || 0; try { return new Intl.NumberFormat(locale,{style:'currency',currency:currency,maximumFractionDigits:0,minimumFractionDigits:0}).format(amount); } catch(e){ return `${CUR.symbol || '₦'}${Math.round(amount).toLocaleString(locale)}`; } }
 function applyCurrencyLabels(){ document.querySelectorAll('.price-amount').forEach(el=>{ const amt=parseInt(el.dataset.amount); if(amt) el.innerText=formatPrice(amt); }); document.querySelectorAll('.currency-label').forEach(el=>el.innerText=CUR.code); }
+
 function toast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
 async function api(p,o={}){try{const r=await fetch(API+p,{...o,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...o.headers}});if(r.status===401) location.href='auth.html';const d=await r.json().catch(()=>({}));if(r.status>=400) return{error:d.error||'Request failed'};return d;}catch{toast('Network error');return{};}}
 async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
 async function getSignedUrl(postId){const d=await api(`/api/media/sign?postId=${postId}`);return d?d.url:null;}
-async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const target=map[type];let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);renderFeed(filtered);}
-function renderCaptionHTML(postId, text){ if(!text) return ''; if(text.length <= 90){ return `<span>${text}</span>`; } return `<span id="cap-${postId}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${text}</span><span style="color:#888;font-weight:700;cursor:pointer;" onclick="toggleCaption('${postId}')" id="cap-btn-${postId}">...see more</span>`; }
-function toggleCaption(postId){ const cap = document.getElementById(`cap-${postId}`); const btn = document.getElementById(`cap-btn-${postId}`); if(!cap ||!btn) return; if(cap.style.webkitLineClamp === 'unset'){ cap.style.webkitLineClamp = '2'; btn.innerText = '...see more'; } else { cap.style.webkitLineClamp = 'unset'; btn.innerText = ' see less'; } }
-async function renderFeed(posts){const c=document.getElementById('feed');c.innerHTML='';if(!posts||!posts.length){c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}c.style.overflowY='scroll';for(const p of posts){if(p.type==='reel') c.appendChild(await createReel(p));else if(p.type==='store') c.appendChild(await createImageReel(p));else c.appendChild(await createTextReel(p));}setupReelObserver();applyCurrencyLabels();}
-async function createReel(p){const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;const user=await getUser(p.userId);const isMe=p.userId===USER_ID;const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${user.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="padding:4px 10px;font-size:11px">${user.isFollowing?'Following':'Follow'}</button>`:'';
-const initial=(user.username||p.userId||'U')[0].toUpperCase();const likedClass = p.isLiked? 'liked' : '';div.innerHTML=`<div class="reel-skeleton"></div><video class="main-vid" autoplay muted loop playsinline webkit-playsinline preload="auto" data-postid="${p.id}"></video><div class="progress-bar-container"><div class="progress-bar-fill" id="progress-${p.id}"></div></div><div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><div class="reel-content-overlay"><div class="creator-info"><div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div><b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${user.username||p.userId}</b>${followHtml}</div><p style="font-size:14px;line-height:1.4;word-break:break-word;">${renderCaptionHTML(p.id, p.caption||'')}</p></div><div class="actions"><div class="action-btn ${likedClass}" id="like-btn-${p.id}" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon ${likedClass?'filled':''}" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div><div class="action-btn" onclick="openComments('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div><div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span class="action-badge">Gift</span></div><div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 1-2 2h12a2 2 0 0 1 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div><div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="action-badge">Boost</span></div><div class="action-btn" onclick="toggleSound()"><svg class="icon" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></div><div class="vinyl-disk"><div class="vinyl-inner"></div></div></div>`;setupDoubleTap(div,p.id,p.userId);return div;}
-async function createImageReel(p){const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;const u=await getUser(p.userId);const isMe=p.userId===USER_ID;const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="padding:4px 10px;font-size:11px">${u.isFollowing?'Following':'Follow'}</button>`:'';
-const initial=(u.username||p.userId||'U')[0].toUpperCase();const likedClass = p.isLiked? 'liked' : '';div.innerHTML=`<div class="reel-skeleton"></div><img data-postid="${p.id}"><div class="reel-content-overlay"><div class="creator-info"><div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div><b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${u.username||p.userId}</b>${followHtml}</div><p style="font-size:14px;line-height:1.4;word-break:break-word;">${renderCaptionHTML(p.id, p.caption||'')}</p></div><div class="actions"><div class="action-btn ${likedClass}" id="like-btn-${p.id}" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon ${likedClass?'filled':''}" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div><div class="action-btn" onclick="openComments('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div><div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span class="action-badge">Gift</span></div><div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 1-2 2h12a2 2 0 0 1 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div><div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="action-badge">Boost</span></div></div>`;setupDoubleTap(div,p.id,p.userId);return div;}
-async function createTextReel(p){const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;const u=await getUser(p.userId);const isMe=p.userId===USER_ID;const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="margin-top:10px">${u.isFollowing?'Following':'Follow'}</button>`:'';
-div.innerHTML=`<div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px;background:var(--card)"><h2 style="font-size:26px;margin-bottom:8px">${p.title||'Untitled'}</h2><p style="color:var(--muted);cursor:pointer;" onclick="openProfileCard('${p.userId}')">@${u.username||p.userId}</p><p style="font-size:14px;margin-top:12px;opacity:0.8;max-height:30vh;overflow:hidden">${(p.content||p.caption||'').slice(0,200)}</p>${followHtml}</div><div class="actions"><div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon filled" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div><div class="action-btn" onclick="openComments('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div><div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 1-2 2h12a2 2 0 0 1 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div><div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div></div>`;let lastTap=0;div.ontouchend=()=>{const now=Date.now();if(now-lastTap<300) openReader(p.id);lastTap=now;};return div;}
-function setupDoubleTap(div,postId,userId){let lastTap=0;div.addEventListener('touchend',(e)=>{const now=Date.now();if(now-lastTap<300){const touch=e.changedTouches[0];triggerHeartAnimation(div,touch.clientX,touch.clientY);const btn=div.querySelector(`#like-btn-${postId}`);if(btn) likePost(postId,userId,btn);}lastTap=now;});}
-function triggerHeartAnimation(container,x,y){const rect=container.getBoundingClientRect();const heart=document.createElement('div');heart.className='heart-pop';heart.style.left=`${x-rect.left}px`;heart.style.top=`${y-rect.top}px`;heart.innerHTML=`<svg viewBox="0 0 24 24" style="width:100%;height:100%;fill:var(--pink)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;container.appendChild(heart);setTimeout(()=>heart.remove(),800);}
-function manualPlay(o){const v=o.parentElement.querySelector('video');if(v){v.muted=false;v.play().then(()=>{o.style.display='none';}).catch(()=>{v.muted=true;v.play();o.style.display='none';});}}
-function setupReelObserver(){const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{const video=e.target.querySelector('video');const img=e.target.querySelector('img');const skel=e.target.querySelector('.reel-skeleton');const overlay=e.target.querySelector('.play-overlay');const postId=e.target.dataset.id;const creatorId=e.target.dataset.creator;const progressFill=e.target.querySelector(`#progress-${postId}`);if(e.intersectionRatio>0.6){if(video){ video.muted=GLOBAL_MUTED; video.ontimeupdate=()=>{if(progressFill&&video.duration){progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;}}; if(!video.dataset.loaded){ video.dataset.loaded="true"; getSignedUrl(postId).then(url=>{ if(skel) skel.style.display='none'; if(url){ if(url.includes('.m3u8')){ if(window.Hls&&Hls.isSupported()){ const hls=new Hls();hls.loadSource(url);hls.attachMedia(video);hlsInstances[postId]=hls; hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}); }else{video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});} }else{video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});} } }); }else{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});} }if(img&&!img.src){getSignedUrl(postId).then(url=>{if(skel) skel.style.display='none';if(url) img.src=url;});}api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});}else{if(video) video.pause();if(overlay) overlay.style.display='none';}});},{threshold:0.6});document.querySelectorAll('.reel').forEach(r=>obs.observe(r));}
-async function likePost(postId,creatorId,btn){if(btn.dataset.locked) return; btn.dataset.locked=1;const isLikedNow =!btn.classList.contains('liked');btn.classList.toggle('liked');const span=document.getElementById(`like-${postId}`);if(span){ let cur=parseInt(span.innerText||'0'); span.innerText = isLikedNow? cur+1 : Math.max(0,cur-1); }if(isLikedNow){ const rect=btn.getBoundingClientRect(); const cont=btn.closest('.reel'); if(cont) triggerHeartAnimation(cont,rect.left+15,rect.top+15); }await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})});setTimeout(()=>delete btn.dataset.locked,900);}
-async function toggleFollow(userId,btn){if(followLocks[userId]) return;followLocks[userId]=true;const isFollowing=btn.dataset.following==='1';const oldText=btn.innerText;btn.disabled=true;btn.innerText=isFollowing?'Follow':'Following';btn.dataset.following=isFollowing?'0':'1';try{const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});if(res.error){btn.innerText=oldText;btn.dataset.following=isFollowing?'1':'0';toast(res.error);}else{document.querySelectorAll(`[data-userid="${userId}"]`).forEach(b=>{b.innerText=isFollowing?'Follow':'Following';b.dataset.following=isFollowing?'0':'1';});toast(isFollowing?'Unfollowed':'Following ✓');if(userCache[userId]) userCache[userId].isFollowing=!isFollowing;}}catch{btn.innerText=oldText;btn.dataset.following=isFollowing?'1':'0';}finally{btn.disabled=false;setTimeout(()=>{delete followLocks[userId];},1500);}}
-function toggleSound(){ GLOBAL_MUTED =!GLOBAL_MUTED; localStorage.setItem('golviral_muted', GLOBAL_MUTED? '1' : '0'); document.querySelectorAll('video.main-vid').forEach(v => { v.muted = GLOBAL_MUTED; v.play().catch(()=>{}); }); toast(GLOBAL_MUTED? 'Muted' : 'Sound On'); }
+
+async function loadFeed(type,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const res=await api('/api/feed');
+  feedData=Array.isArray(res)?res:[];
+  const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};
+  const target=map[type];
+  let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);
+  renderFeed(filtered);
+}
+
+function renderCaptionHTML(postId, text){
+  if(!text) return '';
+  if(text.length <= 90){
+    return `<span>${text}</span>`;
+  }
+  return `<span id="cap-${postId}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${text}</span>
+          <span style="color:#888;font-weight:700;cursor:pointer;" onclick="toggleCaption('${postId}')" id="cap-btn-${postId}">...see more</span>`;
+}
+
+function toggleCaption(postId){
+  const cap = document.getElementById(`cap-${postId}`);
+  const btn = document.getElementById(`cap-btn-${postId}`);
+  if(!cap || !btn) return;
+  if(cap.style.webkitLineClamp === 'unset'){
+    cap.style.webkitLineClamp = '2';
+    btn.innerText = '...see more';
+  } else {
+    cap.style.webkitLineClamp = 'unset';
+    btn.innerText = ' see less';
+  }
+}
+
+async function renderFeed(posts){
+  const c=document.getElementById('feed');
+  c.innerHTML='';
+  if(!posts||!posts.length){
+    c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';
+    return;
+  }
+  c.style.overflowY='scroll';
+  for(const p of posts){
+    if(p.type==='reel') c.appendChild(await createReel(p));
+    else if(p.type==='store') c.appendChild(await createImageReel(p));
+    else c.appendChild(await createTextReel(p));
+  }
+  setupReelObserver();
+  applyCurrencyLabels();
+}
+
+async function createReel(p){
+  const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;
+  const user=await getUser(p.userId);const isMe=p.userId===USER_ID;
+  const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${user.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="padding:4px 10px;font-size:11px">${user.isFollowing?'Following':'Follow'}</button>`:'';
+  const initial=(user.username||p.userId||'U')[0].toUpperCase();
+  const likedClass = p.isLiked? 'liked' : '';
+  div.innerHTML=`
+    <div class="reel-skeleton"></div>
+    <video class="main-vid" autoplay muted loop playsinline webkit-playsinline preload="auto" data-postid="${p.id}"></video>
+    <div class="progress-bar-container"><div class="progress-bar-fill" id="progress-${p.id}"></div></div>
+    <div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    <div class="reel-content-overlay">
+      <div class="creator-info">
+        <div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div>
+        <b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${user.username||p.userId}</b>
+        ${followHtml}
+      </div>
+      <p style="font-size:14px;line-height:1.4;word-break:break-word;">${renderCaptionHTML(p.id, p.caption||'')}</p>
+    </div>
+    <div class="actions">
+      <div class="action-btn ${likedClass}" id="like-btn-${p.id}" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon ${likedClass?'filled':''}" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="openComments('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
+      <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span class="action-badge">Gift</span></div>
+      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div>
+      <div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="action-badge">Boost</span></div>
+      <div class="action-btn" onclick="toggleSound()"><svg class="icon" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></div>
+      <div class="vinyl-disk"><div class="vinyl-inner"></div></div>
+    </div>`;
+  setupDoubleTap(div,p.id,p.userId);return div;
+}
+
+async function createImageReel(p){
+  const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;
+  const u=await getUser(p.userId);const isMe=p.userId===USER_ID;
+  const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="padding:4px 10px;font-size:11px">${u.isFollowing?'Following':'Follow'}</button>`:'';
+  const initial=(u.username||p.userId||'U')[0].toUpperCase();
+  const likedClass = p.isLiked? 'liked' : '';
+  div.innerHTML=`
+    <div class="reel-skeleton"></div>
+    <img data-postid="${p.id}">
+    <div class="reel-content-overlay">
+      <div class="creator-info">
+        <div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div>
+        <b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${u.username||p.userId}</b>
+        ${followHtml}
+      </div>
+      <p style="font-size:14px;line-height:1.4;word-break:break-word;">${renderCaptionHTML(p.id, p.caption||'')}</p>
+    </div>
+    <div class="actions">
+      <div class="action-btn ${likedClass}" id="like-btn-${p.id}" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon ${likedClass?'filled':''}" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="openComments('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
+      <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg><span class="action-badge">Gift</span></div>
+      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span class="action-badge">Share</span></div>
+      <div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="action-badge">Boost</span></div>
+    </div>`;
+  setupDoubleTap(div,p.id,p.userId);return div;
+}
+
+async function createTextReel(p){
+  const div=document.createElement('div');div.className='reel';div.dataset.id=p.id;div.dataset.creator=p.userId;
+  const u=await getUser(p.userId);const isMe=p.userId===USER_ID;
+  const followHtml=!isMe?`<button class="btn" data-userid="${p.userId}" data-following="${u.isFollowing?'1':'0'}" onclick="toggleFollow('${p.userId}',this)" style="margin-top:10px">${u.isFollowing?'Following':'Follow'}</button>`:'';
+  div.innerHTML=`
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px;background:var(--card)">
+      <h2 style="font-size:26px;margin-bottom:8px">${p.title||'Untitled'}</h2>
+      <p style="color:var(--muted);cursor:pointer;" onclick="openProfileCard('${p.userId}')">@${u.username||p.userId}</p>
+      <p style="font-size:14px;margin-top:12px;opacity:0.8;max-height:30vh;overflow:hidden">${(p.content||p.caption||'').slice(0,200)}</p>
+      ${followHtml}
+    </div>
+    <div class="actions">
+      <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon filled" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
+      <div class="action-btn" onclick="openComments('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="comment-${p.id}" class="action-badge">${p.comments||0}</span></div>
+      <div class="action-btn" onclick="openGiftSheet('${p.userId}')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
+      <div class="action-btn" onclick="sharePost()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 1-2 2h12a2 2 0 0 1 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+      <div class="action-btn" onclick="openBoostSheet('${p.id}')"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    </div>`;
+  let lastTap=0;div.ontouchend=()=>{const now=Date.now();if(now-lastTap<300) openReader(p.id);lastTap=now;};return div;
+}
+
+function setupDoubleTap(div,postId,userId){
+  let lastTap=0;
+  div.addEventListener('touchend',(e)=>{
+    const now=Date.now();
+    if(now-lastTap<300){
+      const touch=e.changedTouches[0];
+      triggerHeartAnimation(div,touch.clientX,touch.clientY);
+      const btn=div.querySelector(`#like-btn-${postId}`);
+      if(btn) likePost(postId,userId,btn);
+    }
+    lastTap=now;
+  });
+}
+
+function triggerHeartAnimation(container,x,y){
+  const rect=container.getBoundingClientRect();
+  const heart=document.createElement('div');
+  heart.className='heart-pop';
+  heart.style.left=`${x-rect.left}px`;
+  heart.style.top=`${y-rect.top}px`;
+  heart.innerHTML=`<svg viewBox="0 0 24 24" style="width:100%;height:100%;fill:var(--pink)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+  container.appendChild(heart);
+  setTimeout(()=>heart.remove(),800);
+}
+
+function manualPlay(o){
+  const v=o.parentElement.querySelector('video');
+  if(v){
+    v.muted=false;
+    v.play().then(()=>{o.style.display='none';}).catch(()=>{v.muted=true;v.play();o.style.display='none';});
+  }
+}
+
+function setupReelObserver(){
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      const video=e.target.querySelector('video');
+      const img=e.target.querySelector('img');
+      const skel=e.target.querySelector('.reel-skeleton');
+      const overlay=e.target.querySelector('.play-overlay');
+      const postId=e.target.dataset.id;
+      const creatorId=e.target.dataset.creator;
+      const progressFill=e.target.querySelector(`#progress-${postId}`);
+      
+      if(e.intersectionRatio>0.6){
+        if(video){ 
+          video.muted=GLOBAL_MUTED; 
+          video.ontimeupdate=()=>{if(progressFill&&video.duration){progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;}}; 
+          if(!video.dataset.loaded){ 
+            video.dataset.loaded="true"; 
+            getSignedUrl(postId).then(url=>{ 
+              if(skel) skel.style.display='none'; 
+              if(url){ 
+                if(url.includes('.m3u8')){ 
+                  if(window.Hls&&Hls.isSupported()){ 
+                    const hls=new Hls();hls.loadSource(url);hls.attachMedia(video);hlsInstances[postId]=hls; 
+                    hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}); 
+                  }else{video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});} 
+                }else{video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});} 
+              } 
+            }); 
+          }else{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});} 
+        }
+        if(img&&!img.src){getSignedUrl(postId).then(url=>{if(skel) skel.style.display='none';if(url) img.src=url;});}
+        api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
+      }else{
+        if(video) video.pause();
+        if(overlay) overlay.style.display='none';
+      }
+    });
+  },{threshold:0.6});
+  document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
+}
+
+async function likePost(postId,creatorId,btn){
+  if(btn.dataset.locked) return; btn.dataset.locked=1;
+  const isLikedNow =!btn.classList.contains('liked');
+  btn.classList.toggle('liked');
+  const span=document.getElementById(`like-${postId}`);
+  if(span){ let cur=parseInt(span.innerText||'0'); span.innerText = isLikedNow? cur+1 : Math.max(0,cur-1); }
+  if(isLikedNow){ const rect=btn.getBoundingClientRect(); const cont=btn.closest('.reel'); if(cont) triggerHeartAnimation(cont,rect.left+15,rect.top+15); }
+  await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})});
+  setTimeout(()=>delete btn.dataset.locked,900);
+}
+
+async function toggleFollow(userId,btn){
+  if(followLocks[userId]) return;followLocks[userId]=true;
+  const isFollowing=btn.dataset.following==='1';
+  const oldText=btn.innerText;btn.disabled=true;
+  btn.innerText=isFollowing?'Follow':'Following';btn.dataset.following=isFollowing?'0':'1';
+  try{
+    const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});
+    if(res.error){btn.innerText=oldText;btn.dataset.following=isFollowing?'1':'0';toast(res.error);}
+    else{
+      document.querySelectorAll(`[data-userid="${userId}"]`).forEach(b=>{b.innerText=isFollowing?'Follow':'Following';b.dataset.following=isFollowing?'0':'1';});
+      toast(isFollowing?'Unfollowed':'Following ✓');
+      if(userCache[userId]) userCache[userId].isFollowing=!isFollowing;
+    }
+  }catch{btn.innerText=oldText;btn.dataset.following=isFollowing?'1':'0';}
+  finally{btn.disabled=false;setTimeout(()=>{delete followLocks[userId];},1500);}
+}
+
+function toggleSound(){ 
+  GLOBAL_MUTED =!GLOBAL_MUTED; 
+  localStorage.setItem('golviral_muted', GLOBAL_MUTED? '1' : '0'); 
+  document.querySelectorAll('video.main-vid').forEach(v => { v.muted = GLOBAL_MUTED; v.play().catch(()=>{}); }); 
+  toast(GLOBAL_MUTED? 'Muted' : 'Sound On'); 
+}
+
 function sharePost(){navigator.clipboard.writeText(location.href);toast('Link copied');}
-function spawnGiftParticles(){const emojis=['💎','👑','💠','🎁','✨','🔥'];for(let i=0;i<12;i++){setTimeout(()=>{const p=document.createElement('div');p.className='gift-particle';p.innerText=emojis[Math.floor(Math.random()*emojis.length)];p.style.left=`${Math.random()*80+10}%`;p.style.bottom='100px';document.body.appendChild(p);setTimeout(()=>p.remove(),1800);}, i*100);}}
+
+function spawnGiftParticles(){
+  const emojis=['💎','👑','💠','🎁','✨','🔥'];
+  for(let i=0;i<12;i++){
+    setTimeout(()=>{
+      const p=document.createElement('div');
+      p.className='gift-particle';
+      p.innerText=emojis[Math.floor(Math.random()*emojis.length)];
+      p.style.left=`${Math.random()*80+10}%`;
+      p.style.bottom='100px';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(),1800);
+    }, i*100);
+  }
+}
+
+/* Modals & Sheet Handlers */
 function closeSheet(id){ document.getElementById(id).classList.remove('active'); }
-function closeGift(){document.getElementById('gift-sheet').classList.remove('active');}
-function closeBoost(){document.getElementById('boost-sheet').classList.remove('active');}
-function closeSearch(){document.getElementById('search-modal').classList.remove('active');}
-async function searchUsers(q){const r=document.getElementById('search-results');if(!q||q.length<2){r.innerHTML='';return;}const users=await api(`/api/search/users?q=${encodeURIComponent(q)}`);if(!users||users.length===0){r.innerHTML='<p style="padding:10px;color:var(--muted);text-align:center">No users found</p>';return;}r.innerHTML=users.map(u=>`<div class="search-user-card" onclick="location.href='profile.html?id=${u.id}'"><div><b>@${u.username}</b><div style="font-size:12px;color:var(--muted)">${u.followers||0} followers</div></div><span style="color:var(--accent)">View</span></div>`).join('');}
-async function trySendExistingGift(){if(!currentGiftUserId) return;const res=await api('/api/gift/send',{method:'POST',body:JSON.stringify({receiverId:currentGiftUserId})});if(res.success){spawnGiftParticles();toast(`Gift sent! +${res.pointsSent}`);closeGift();}else toast(res.error||'No active pack');}
-async function doGift(type){if(!currentGiftUserId) return;closeGift();const init=await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});if(init.selarLink&&init.token){localStorage.setItem('last_payment',JSON.stringify({token:init.token,giftType:type,receiverId:currentGiftUserId,type:'gift',currency:CUR.code,symbol:CUR.symbol,at:Date.now()}));toast(`Opening payment for ${type} in ${CUR.code}...`);window.open(init.selarLink,'_blank');}else toast(init.error||'Failed');}
-async function openComments(postId){currentPostId = postId;const sheet = document.getElementById('comment-sheet');const list = document.getElementById('comment-list');list.innerHTML = '<p style="text-align:center;padding:20px;color:var(--muted)">Loading...</p>';sheet.classList.add('active');const comments = await api(`/api/comments?postId=${postId}`);list.innerHTML = '';if(!Array.isArray(comments) ||!comments.length){list.innerHTML = '<p style="text-align:center;padding:20px;color:var(--muted)">No comments yet</p>';return;}comments.forEach(c => {const item = document.createElement('div');item.className = 'comment-item';const init = (c.username||'U')[0].toUpperCase();item.innerHTML = `<div class="comment-avatar">${init}</div><div class="comment-bubble"><b>@${c.username||'user'}</b><p style="font-size:13px;margin-top:2px;">${c.text}</p></div>`;list.appendChild(item);});}
-async function sendComment(){const input = document.getElementById('comment-input');const text = input.value.trim();if(!text ||!currentPostId) return;input.value = '';const res = await api('/api/comment', {method:'POST', body:JSON.stringify({postId:currentPostId, text})});if(res.error) toast(res.error);else {toast('Comment posted');openComments(currentPostId);const countEl = document.getElementById(`comment-${currentPostId}`);if(countEl) countEl.innerText = parseInt(countEl.innerText||'0') + 1;}}
-function openGiftSheet(userId){currentGiftUserId = userId;document.getElementById('gift-sheet').classList.add('active');applyCurrencyLabels();}
-function openBoostSheet(postId){currentBoostPostId = postId;document.getElementById('boost-sheet').classList.add('active');applyCurrencyLabels();}
-async function doBoost(tierAmount){if(!currentBoostPostId) return;closeBoost();const init=await api('/api/boost/init',{method:'POST',body:JSON.stringify({postId:currentBoostPostId,tierAmount})});if(init.selarLink&&init.token){localStorage.setItem('last_payment',JSON.stringify({token:init.token,postId:currentBoostPostId,tierAmount,type:'boost',currency:CUR.code,symbol:CUR.symbol,at:Date.now()}));toast(`Boosting this post - ${formatPrice(tierAmount)} (${CUR.code})`);window.open(init.selarLink,'_blank');}else toast(init.error||'Boost init failed');}
-function openSearch(){ document.getElementById('search-modal').classList.add('active'); setTimeout(()=>document.getElementById('search-input').focus(),50); }
-function debounceSearch(val){clearTimeout(searchTimer);searchTimer = setTimeout(async () => {if(!val.trim()){document.getElementById('search-results').innerHTML='';return;}searchUsers(val);}, 300);}
-async function openProfileCard(userId){activeProfileUserId = userId;const modal = document.getElementById('profile-card-modal');const user = await getUser(userId);document.getElementById('pcard-avatar').innerText = (user.username||'U')[0].toUpperCase();document.getElementById('pcard-name').innerText = `@${user.username||'user'}`;document.getElementById('pcard-bio').innerText = user.bio || 'Creator on GolViral';const followBtn = document.getElementById('pcard-follow-btn');followBtn.innerText = user.isFollowing? 'Following' : 'Follow';followBtn.dataset.userid = userId;followBtn.dataset.following = user.isFollowing? '1' : '0';followBtn.onclick = () => toggleFollow(userId, followBtn);modal.classList.add('active');}
+
+async function openComments(postId){
+  currentPostId = postId;
+  const sheet = document.getElementById('comment-sheet');
+  const list = document.getElementById('comment-list');
+  list.innerHTML = '<p style="text-align:center;padding:20px;color:var(--muted)">Loading...</p>';
+  sheet.classList.add('active');
+  const comments = await api(`/api/comments?postId=${postId}`);
+  list.innerHTML = '';
+  if(!Array.isArray(comments) || !comments.length){
+    list.innerHTML = '<p style="text-align:center;padding:20px;color:var(--muted)">No comments yet</p>';
+    return;
+  }
+  comments.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'comment-item';
+    const init = (c.username||'U')[0].toUpperCase();
+    item.innerHTML = `<div class="comment-avatar">${init}</div><div class="comment-bubble"><b>@${c.username||'user'}</b><p style="font-size:13px;margin-top:2px;">${c.text}</p></div>`;
+    list.appendChild(item);
+  });
+}
+
+async function sendComment(){
+  const input = document.getElementById('comment-input');
+  const text = input.value.trim();
+  if(!text || !currentPostId) return;
+  input.value = '';
+  const res = await api('/api/comment', {method:'POST', body:JSON.stringify({postId:currentPostId, text})});
+  if(res.error) toast(res.error);
+  else {
+    toast('Comment posted');
+    openComments(currentPostId);
+    const countEl = document.getElementById(`comment-${currentPostId}`);
+    if(countEl) countEl.innerText = parseInt(countEl.innerText||'0') + 1;
+  }
+}
+
+function openGiftSheet(userId){
+  currentGiftUserId = userId;
+  document.getElementById('gift-sheet').classList.add('active');
+}
+
+async function sendGift(name, amount){
+  if(!currentGiftUserId) return;
+  const res = await api('/api/gift', {method:'POST', body:JSON.stringify({recipientId:currentGiftUserId, amount, giftName:name})});
+  closeSheet('gift-sheet');
+  if(res.error) toast(res.error);
+  else {
+    spawnGiftParticles();
+    toast(`Sent ${name} gift!`);
+  }
+}
+
+function openBoostSheet(postId){
+  currentBoostPostId = postId;
+  document.getElementById('boost-sheet').classList.add('active');
+}
+
+async function doBoost(amount){
+  if(!currentBoostPostId) return;
+  const res = await api('/api/boost', {method:'POST', body:JSON.stringify({postId:currentBoostPostId, amount})});
+  closeSheet('boost-sheet');
+  if(res.error) toast(res.error);
+  else toast('Boost initiated!');
+}
+
+function openSearch(){ document.getElementById('search-modal').classList.add('active'); }
+
+function debounceSearch(val){
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    if(!val.trim()) return;
+    const results = await api(`/api/search?q=${encodeURIComponent(val)}`);
+    const box = document.getElementById('search-results');
+    box.innerHTML = '';
+    if(Array.isArray(results)){
+      results.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'search-user-card';
+        div.innerHTML = `<span>@${u.username}</span><button class="btn" style="padding:4px 10px;font-size:11px">View</button>`;
+        div.onclick = () => { closeSheet('search-modal'); openProfileCard(u.id); };
+        box.appendChild(div);
+      });
+    }
+  }, 300);
+}
+
+async function openProfileCard(userId){
+  activeProfileUserId = userId;
+  const modal = document.getElementById('profile-card-modal');
+  const user = await getUser(userId);
+  document.getElementById('pcard-avatar').innerText = (user.username||'U')[0].toUpperCase();
+  document.getElementById('pcard-name').innerText = `@${user.username||'user'}`;
+  document.getElementById('pcard-bio').innerText = user.bio || 'Creator on GolViral';
+  const followBtn = document.getElementById('pcard-follow-btn');
+  followBtn.innerText = user.isFollowing ? 'Following' : 'Follow';
+  followBtn.dataset.userid = userId;
+  followBtn.dataset.following = user.isFollowing ? '1' : '0';
+  followBtn.onclick = () => toggleFollow(userId, followBtn);
+  modal.classList.add('active');
+}
+
 function closeProfileCard(e){ if(e) e.stopPropagation(); document.getElementById('profile-card-modal').classList.remove('active'); }
+
 function viewFullProfile(){ if(activeProfileUserId) location.href = `profile.html?id=${activeProfileUserId}`; }
-async function openReader(postId){const post = feedData.find(p => p.id === postId);if(!post) return;document.getElementById('reader-title').innerText = post.title || 'Story';document.getElementById('reader-content').innerText = post.content || post.caption || '';document.getElementById('reader-tab').classList.add('active');}
+
+async function openReader(postId){
+  const post = feedData.find(p => p.id === postId);
+  if(!post) return;
+  document.getElementById('reader-title').innerText = post.title || 'Story';
+  document.getElementById('reader-content').innerText = post.content || post.caption || '';
+  document.getElementById('reader-tab').classList.add('active');
+}
+
 function closeReader(){ document.getElementById('reader-tab').classList.remove('active'); }
+
 loadFeed('ForYou');
 </script>
 </body>
