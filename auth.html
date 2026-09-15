@@ -3,14 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="description" content="GolViral: The short video and story app where you earn money. Post reels, short novels, memes & photos,and get paid for views, engagement likes, and referrals. Join millions of creators today.">
+
+<title>GolViral - Earn Money Watching Short Videos & Reels | Creator Platform</title>
+
+<meta name="description" content="GolViral: The short video and story app where you earn money. Post reels, short novels, memes & photos, and get paid for views, engagement, likes, and referrals. Join millions of creators today.">
+<meta name="keywords" content="GolViral, short videos, earn money online, reels, memes, creator platform, make money watching videos, Nigerian earn app">
+<meta name="author" content="GolViral">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://golviral.com/auth.html">
+
+<!-- Google Verification -->
+<meta name="google-site-verification" content="e-EgiJhgcod4vs0N8eMP1umkPn73WgfE6VVKQ6nBmU0">
+
+<!-- Theme / PWA -->
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GolViral">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<title>GolViral - Login</title>
+
+<!-- Open Graph for Facebook / WhatsApp -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://golviral.com/auth.html">
+<meta property="og:title" content="GolViral - Earn Money Watching Short Videos & Reels">
+<meta property="og:description" content="Post reels, novels, memes & photos and get paid for views, likes and referrals. Join millions of creators.">
+<meta property="og:image" content="https://golviral.com/icon-512.png">
+<meta property="og:site_name" content="GolViral">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://golviral.com/auth.html">
+<meta name="twitter:title" content="GolViral - Earn Money Watching Short Videos">
+<meta name="twitter:description" content="Post reels, novels, memes & photos and get paid. Join now.">
+<meta name="twitter:image" content="https://golviral.com/icon-512.png">
+
 <style>
 :root{
   --bg:#000;
@@ -34,14 +62,14 @@ header{padding:20px;display:flex;justify-content:center;align-items:center;gap:1
 .input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;outline:none;margin-bottom:12px;font-size:16px}
 .input:focus{border-color:var(--accent)}
 .pass-container{position:relative;margin-bottom:12px}
-.pass-container .input{margin-bottom:0;padding-right:44px}
+.pass-container.input{margin-bottom:0;padding-right:44px}
 .eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px}
 .eye-btn:hover{color:var(--text)}
 .terms-container{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
 .terms-container input[type="checkbox"]{display:none}
 .custom-checkbox{width:18px;height:18px;border:1px solid var(--border);border-radius:4px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:0.2s}
-.terms-container input[type="checkbox"]:checked + .custom-checkbox{background:var(--accent);border-color:var(--accent)}
-.terms-container input[type="checkbox"]:checked + .custom-checkbox svg{display:block;stroke:#000}
+.terms-container input[type="checkbox"]:checked +.custom-checkbox{background:var(--accent);border-color:var(--accent)}
+.terms-container input[type="checkbox"]:checked +.custom-checkbox svg{display:block;stroke:#000}
 .custom-checkbox svg{display:none;width:12px;height:12px;stroke-width:3}
 .username-note{font-size:12px;color:var(--muted);margin:-6px 0 12px 4px;display:block}
 .btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:16px}
@@ -87,7 +115,7 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   <form id="form-login">
     <input class="input" id="login-email" type="email" placeholder="Email" required>
     <div class="pass-container">
-      <input class="input" id="login-pass" type="password" placeholder="Password (8 chars)" maxlength="8" minlength="8" required>
+      <input class="input" id="login-pass" type="password" placeholder="Password (min 8 chars)" minlength="8" required>
       <button type="button" class="eye-btn" onclick="togglePass('login-pass', this)" aria-label="Toggle password visibility">
         <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
@@ -99,7 +127,7 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
     <span class="username-note">Note: Only your bio will be editable; your username cannot be changed once created.</span>
     <input class="input" id="signup-email" type="email" placeholder="Email" required>
     <div class="pass-container">
-      <input class="input" id="signup-pass" type="password" placeholder="Password (8 chars)" maxlength="8" minlength="8" required>
+      <input class="input" id="signup-pass" type="password" placeholder="Password (min 8 chars)" minlength="8" required>
       <button type="button" class="eye-btn" onclick="togglePass('signup-pass', this)" aria-label="Toggle password visibility">
         <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
@@ -134,7 +162,7 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
     <h3 style="margin-bottom:12px">Reset Password</h3>
     <input class="input" id="otp-code" placeholder="Enter 6 digit OTP">
     <div class="pass-container">
-      <input class="input" id="new-pass" type="password" placeholder="New Password (8 chars)" maxlength="8" minlength="8">
+      <input class="input" id="new-pass" type="password" placeholder="New Password (min 8 chars)" minlength="8">
       <button type="button" class="eye-btn" onclick="togglePass('new-pass', this)" aria-label="Toggle password visibility">
         <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
@@ -202,7 +230,6 @@ function toast(msg){
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// ===== CAPTCHA SYSTEM =====
 function generateCaptcha(len=7){
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let res = '';
@@ -264,7 +291,7 @@ async function botChallenge(){
 
 async function verifyBot(){
   const userInput=document.getElementById('bot-answer').value.trim().toUpperCase();
-  if(userInput !== captchaText){
+  if(userInput!== captchaText){
     toast('Captcha incorrect. Try again');
     botChallenge();
     return;
@@ -287,7 +314,6 @@ async function verifyBot(){
   }
 }
 
-// ===== FORM HANDLERS =====
 document.getElementById('form-login').onsubmit=async e=>{
   e.preventDefault();
   pendingData={type:'login',email:document.getElementById('login-email').value,password:document.getElementById('login-pass').value};
@@ -337,14 +363,14 @@ async function doForgot(d,passToken){
 async function submitReset(){
   const otp=document.getElementById('otp-code').value;
   const newPass=document.getElementById('new-pass').value;
-  if(!pendingData || !pendingData.email) {
+  if(!pendingData ||!pendingData.email) {
     toast('Session expired. Please try again.');
     return;
   }
   try {
     const res = await fetch(API+'/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingData.email,otp,newPassword:newPass})});
     const data = await res.json();
-    if(res.ok && !data.error){
+    if(res.ok &&!data.error){
       toast('Password Reset Successfully');
       document.getElementById('otp-modal').classList.remove('active');
       showTab('login', document.querySelectorAll('.tab')[0]);
@@ -356,7 +382,6 @@ async function submitReset(){
   }
 }
 
-// ===== SURVEY LOGIC =====
 function startSurvey(){
   surveyStep=0;
   surveyData={};
@@ -389,12 +414,12 @@ function renderQuestion(){
 
 function toggleChip(el,id){
   el.classList.toggle('active');
-  const selected=document.querySelectorAll(`#q-${id} .chip.active`).length;
+  const selected=document.querySelectorAll(`#q-${id}.chip.active`).length;
   if(selected>3) el.classList.remove('active');
 }
 
 function selectRadio(el,id,val){
-  document.querySelectorAll(`#q-${id} .radio-option`).forEach(r=>r.classList.remove('active'));
+  document.querySelectorAll(`#q-${id}.radio-option`).forEach(r=>r.classList.remove('active'));
   el.classList.add('active');
   surveyData[id]=val;
 }
@@ -402,7 +427,7 @@ function selectRadio(el,id,val){
 function nextQuestion(){
   const q=surveyQuestions[surveyStep];
   if(q.type==='chips'){
-    surveyData[q.id]=[...document.querySelectorAll(`#q-${q.id} .chip.active`)].map(c=>c.innerText);
+    surveyData[q.id]=[...document.querySelectorAll(`#q-${q.id}.chip.active`)].map(c=>c.innerText);
     if(surveyData[q.id].length===0){toast('Pick at least 1');return}
   }else if(q.type==='radio'){
     if(!surveyData[q.id]){toast('Select an option');return}
@@ -419,8 +444,6 @@ function nextQuestion(){
 
 async function finishOnboard(){
   localStorage.onboarding_data=JSON.stringify(surveyData);
-  
-  // Don't auto-request. Show button instead so Chrome allows it
   document.getElementById('survey-container').innerHTML = `
     <div style="text-align:center">
       <div style="font-size:48px;margin-bottom:12px">🔔</div>
@@ -449,34 +472,27 @@ function urlBase64ToUint8Array(base64String) {
 
 async function requestPush(){
   try {
-    // STEP 1: ASK PERMISSION - THIS TRIGGERS THE POP
     const permission = await Notification.requestPermission();
-    if(permission !== 'granted') {
+    if(permission!== 'granted') {
       toast('You can enable notifications later in Settings');
       skipPush();
       return;
     }
-
-    // STEP 2: REGISTER SW + SUBSCRIBE
     const reg = await navigator.serviceWorker.register('/sw.js');
     const vapidKey = 'BFUBvjiKFi8pBUDFUskcOw6uv4LRa4IXp_cvpphDtanmon2u4YfIzeEOGNB4q0eEIBR3ZZfjKyTL1i6WBL5h7zs';
     const convertedKey = urlBase64ToUint8Array(vapidKey);
     const sub = await reg.pushManager.subscribe({
-      userVisibleOnly:true, 
+      userVisibleOnly:true,
       applicationServerKey:convertedKey
     });
-    
-    // STEP 3: SEND TO BACKEND
     await fetch(API+'/api/push/subscribe',{
       method:'POST',
       headers:{'Authorization':'Bearer '+localStorage.token,'Content-Type':'application/json'},
       body:JSON.stringify({subscription:sub})
     });
-    
     toast('Notifications Enabled ✅');
     skipPush();
   } catch(err) {
-    console.log('Push error', err);
     toast('Notifications not supported');
     skipPush();
   }
