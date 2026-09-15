@@ -1,1 +1,16 @@
-hi
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /auth.html
+Allow: /post.html
+Allow: /profile.html
+Allow: /legal.html
+
+Disallow: /admin.html
+Disallow: /kyc.html
+Disallow: /messages.html
+Disallow: /payment-success.html
+Disallow: /404.html
+Disallow: /api/
+
+Sitemap: https://golviral.com/sitemap.xml
