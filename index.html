@@ -7,6 +7,9 @@
 <!-- Monetag Keep -->
 <meta name="monetag" content="6ce58fb93fd596470117d55094beb955">
 
+<!-- ADS LOADERS - DO NOT LOAD UNTIL NEEDED -->
+<script>window.AdsterraLoaded = {}; window.MonetagLoaded = false;</script>
+
 <!-- SEO Core -->
 <title>GolViral - Earn Money Creating Short Videos & Stories</title>
 <meta name="description" content="GolViral is TikTok-style platform where you earn money. Watch reels, post short stories, memes, videos and get paid for views, likes, comments and referrals. Start earning today.">
@@ -218,8 +221,131 @@ function toast(m){const t=document.getElementById('toast');t.innerText=m;t.class
 async function api(p,o={}){try{const r=await fetch(API+p,{...o,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...o.headers}});if(r.status===401) location.href='auth.html';const d=await r.json().catch(()=>({}));if(r.status>=400) return{error:d.error||'Request failed'};return d;}catch{toast('Network error');return{};}}
 async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
 async function getSignedUrl(postId){const d=await api(`/api/media/sign?postId=${postId}`);return d?d.url:null;}
+/* ========== AD LOGIC START ========== */
+let adCounters = {ForYou:0, Reels:0, Novels:0, Stories:0};
+let adTimers = {small:null, big:null, startTime:0, currentReel:null};
+let bigAdCooldown = 0; // posts left before big ad can show again
+
+function loadAdsterraNative(containerId){
+  if(window.AdsterraLoaded.native) return;
+  window.AdsterraLoaded.native = true;
+  const s = document.createElement('script');
+  s.async = true; s.src = 'https://fixesconsessionconsession.com/851999cd56faf8ed4b378278159ac3c0/invoke.js';
+  document.head.appendChild(s);
+  setTimeout(()=>{ if(containerId) containerId.style.display='block'; }, 1000);
+}
+
+function loadAdsterraSocialBar(){
+  if(window.AdsterraLoaded.bar) return;
+  window.AdsterraLoaded.bar = true;
+  const s = document.createElement('script');
+  s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
+  document.body.appendChild(s);
+}
+
+function loadAdsterraBanner(containerId){
+  if(window.AdsterraLoaded.banner) return;
+  window.AdsterraLoaded.banner = true;
+  atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
+  const s = document.createElement('script');
+  s.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
+  containerId.appendChild(s);
+}
+
+function loadMonetagPush(){
+  if(!window.MonetagLoaded){
+    window.MonetagLoaded = true;
+    const s = document.createElement('script');
+    s.dataset.zone = '11803455';
+    s.src = 'https://nap5k.com/tag.min.js';
+    document.head.appendChild(s);
+  }
+}
+
+function cancelAdTimers(){
+  clearTimeout(adTimers.small); clearTimeout(adTimers.big);
+  adTimers.small = null; adTimers.big = null; adTimers.startTime = 0;
+}
+
+function startAdTimers(reelElement, feedType){
+  cancelAdTimers();
+  adTimers.currentReel = reelElement;
+  adTimers.startTime = Date.now();
+
+  // 3s = Monetag Small Push
+  adTimers.small = setTimeout(()=>{
+    if(bigAdCooldown > 0) return; // respect cooldown
+    loadMonetagPush();
+  }, 3000);
+
+  // 45s Reels/ForYou, 30s Images/Text = Big Ad
+  let bigTime = (feedType==='Images'||feedType==='Novels')? 30000 : 45000;
+  adTimers.big = setTimeout(()=>{
+    if(bigAdCooldown > 0) return;
+    if(feedType==='Images'||feedType==='Novels') loadMonetagPush(); // vignette
+    else loadAdsterraSocialBar();
+    bigAdCooldown = 5; // 5 posts cooldown
+  }, bigTime);
+}
+
+function shouldShowInlineAd(feedType){
+  if(bigAdCooldown > 0) bigAdCooldown--;
+  adCounters[feedType]++;
+
+  let nth = {ForYou:5, Reels:7, Novels:8, Stories:6}[feedType];
+  if(adCounters[feedType] >= nth){
+    adCounters[feedType] = 0;
+    return true;
+  }
+  return false;
+}
+/* ========== AD LOGIC END ========== */
 async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const target=map[type];let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);renderFeed(filtered);}
-async function renderFeed(posts){const c=document.getElementById('feed');c.innerHTML='';if(!posts||!posts.length){c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}c.style.overflowY='scroll';for(const p of posts){if(p.type==='reel') c.appendChild(await createReel(p));else if(p.type==='store') c.appendChild(await createImageReel(p));else c.appendChild(await createTextReel(p));}setupReelObserver();applyCurrencyLabels();}
+async function renderFeed(posts){const c=document.getElementById('feed');c.innerHTML='';if(!posts||!posts.length){c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}c.style.overflowY='scroll';let postIndex = 0;
+let currentFeedType = document.querySelector('.tab.active').innerText;
+for(const p of posts){
+  postIndex++;
+
+  // SKIP ADS FOR FIRST 2 POSTS
+  let showInlineAd = postIndex > 2 && shouldShowInlineAd(currentFeedType);
+
+  if(p.type==='reel') {
+    const reelEl = await createReel(p);
+    if(showInlineAd){
+      if(currentFeedType==='ForYou'){
+        const adBox = document.createElement('div');
+        adBox.style.margin='10px'; adBox.style.display='none';
+        adBox.id = 'ad-native-'+p.id;
+        reelEl.appendChild(adBox);
+        setTimeout(()=>loadAdsterraNative(adBox), 1000);
+      }
+    }
+    c.appendChild(reelEl);
+  }
+  else if(p.type==='store') {
+    const reelEl = await createImageReel(p);
+    if(showInlineAd){
+      const adBox = document.createElement('div');
+      adBox.style.margin='10px'; adBox.style.display='none';
+      adBox.id = 'ad-vignette-'+p.id;
+      reelEl.appendChild(adBox);
+      setTimeout(()=>loadMonetagPush(), 1000); // vignette auto
+    }
+    c.appendChild(reelEl);
+  }
+  else {
+    const reelEl = await createTextReel(p);
+    if(showInlineAd){
+      const adBox = document.createElement('div');
+      adBox.style.margin='10px auto'; adBox.style.width='300px'; adBox.style.height='250px';
+      adBox.id = 'ad-banner-'+p.id;
+      reelEl.appendChild(adBox);
+      setTimeout(()=>loadAdsterraBanner(adBox), 1000);
+    }
+    c.appendChild(reelEl);
+  }
+}
+setupReelObserver();applyCurrencyLabels();}
 function toggleCaption(postId){
   const cap=document.getElementById(`cap-${postId}`);
   const btn=document.getElementById(`cap-btn-${postId}`);
@@ -308,7 +434,11 @@ function setupReelObserver(){
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
       const progressFill=e.target.querySelector(`#progress-${postId}`);
+
       if(e.intersectionRatio>0.6){
+        let feedType = document.querySelector('.tab.active').innerText.trim();
+        startAdTimers(e.target, feedType);
+
         if(video){
           video.muted=GLOBAL_MUTED;
           video.ontimeupdate=()=>{if(progressFill&&video.duration){progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;}};
@@ -329,7 +459,11 @@ function setupReelObserver(){
         }
         if(img&&!img.src){getSignedUrl(postId).then(url=>{if(skel) skel.style.display='none';if(url) img.src=url;});}
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
-      }else{if(video) video.pause();if(overlay) overlay.style.display='none';}
+      }else{
+        cancelAdTimers();
+        if(video) video.pause();
+        if(overlay) overlay.style.display='none';
+      }
     });
   },{threshold:0.6});
   document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
