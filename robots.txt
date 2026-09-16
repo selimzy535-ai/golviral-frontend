@@ -1,10 +1,20 @@
 User-agent: *
 Allow: /
-Allow: /index.html
-Allow: /auth.html
-Allow: /post.html
-Allow: /profile.html
-Allow: /legal.html
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
 
 Disallow: /admin.html
 Disallow: /kyc.html
