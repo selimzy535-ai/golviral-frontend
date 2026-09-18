@@ -204,6 +204,39 @@ async function loadProfile(){
   const u=await api(`/api/user/${profileId}`);
   if(!u||!u.username) return toast('User not found');
   profileData=u;
+
+  // ===== SEO DYNAMIC FOR /u/ID - PASTE HERE =====
+  const profileUrl = `https://golviral.com/u/${u.userId || profileId}`;
+  document.title = `@${u.username} - ${u.followers||0} Followers | GolViral`;
+  const seoDesc = `${u.username} - ${u.bio||'Creator on GolViral'} - ${u.followers||0} followers, ${u.totalViews||0} views. Follow and earn together.`.slice(0,155);
+  const md = document.querySelector('meta[name="description"]');
+  if(md) md.setAttribute('content', seoDesc);
+  const can = document.querySelector('link[rel="canonical"]');
+  if(can) can.href = profileUrl;
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  if(ogUrl) ogUrl.setAttribute('content', profileUrl);
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if(ogTitle) ogTitle.setAttribute('content', `${u.username} (@${u.username}) on GolViral`);
+  const ogDesc = document.querySelector('meta[property="og:description"]');
+  if(ogDesc) ogDesc.setAttribute('content', seoDesc);
+  if(u.avatarUrl){
+    const ogImg = document.querySelector('meta[property="og:image"]');
+    if(ogImg) ogImg.setAttribute('content', u.avatarUrl);
+    const twImg = document.querySelector('meta[name="twitter:image"]');
+    if(twImg) twImg.setAttribute('content', u.avatarUrl);
+  }
+  let ld = document.getElementById('ld-json');
+  if(!ld){ ld=document.createElement('script'); ld.id='ld-json'; ld.type='application/ld+json'; document.head.appendChild(ld); }
+  ld.textContent = JSON.stringify({
+    "@context":"https://schema.org",
+    "@type":"Person",
+    "name": u.username,
+    "url": profileUrl,
+    "description": u.bio||"",
+    "image": u.avatarUrl||"https://golviral.com/icon-512.png"
+  });
+  // ===== END SEO =====
+
   document.getElementById('username').innerText='@'+u.username;
   document.getElementById('username-display').innerText=u.username;
   if(u.email){
