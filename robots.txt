@@ -3,16 +3,12 @@ Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
-
 User-agent: Facebot
 Allow: /
-
 User-agent: Googlebot
 Allow: /
-
 User-agent: Googlebot-Image
 Allow: /
-
 User-agent: AdsBot-Google
 Allow: /
 
@@ -24,3 +20,4 @@ Disallow: /404.html
 Disallow: /api/
 
 Sitemap: https://golviral.com/sitemap.xml
+Sitemap: https://golviral-api.onrender.com/sitemap-index.xml
