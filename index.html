@@ -221,23 +221,34 @@ async function getSignedUrl(postId){
   return url;
 }
 
-/* ========== AD LOGIC - FINAL ========== */
+/* ========== AD LOGIC - FIXED 45s ========== */
 let adCounters = {ForYou:0, Reels:0, Novels:0, Stories:0};
-let adTimers = {small:null, big:null, startTime:0, currentReel:null, paused:false};
+let adTimers = {small:null, big:null};
 let bigAdCooldown = 0;
+let lastAdTime = 0;
 
 function loadAdsterraNative(container){
-  if(!container) return;
+  if(!container || container.dataset.loaded) return;
+  container.dataset.loaded='1';
+  const uid = 'ad-native-' + Date.now() + '-' + Math.random().toString(36).substr(2,5);
   container.className = 'inline-ad-box native';
   container.style.display='block';
-  container.innerHTML = '<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;letter-spacing:1px">SPONSORED</div><div id="container-851999cd56faf8ed4b378278159ac3c0"></div>';
+  container.style.position='absolute';
+  container.style.bottom='80px';
+  container.style.left='12px';
+  container.style.right='80px';
+  container.style.zIndex='10';
+  container.innerHTML = `<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;letter-spacing:1px">SPONSORED <span onclick="this.parentElement.parentElement.remove()" style="float:right;cursor:pointer;color:#fff;background:#222;padding:2px 8px;border-radius:10px">✕</span></div><div id="${uid}"></div>`;
   const s = document.createElement('script');
-  s.async = true; s.src = 'https://fixesconsessionconsession.com/851999cd56faf8ed4b378278159ac3c0/invoke.js';
+  s.async = true;
+  s.src = 'https://fixesconsessionconsession.com/851999cd56faf8ed4b378278159ac3c0/invoke.js';
   container.appendChild(s);
+  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 15000);
 }
 
 function loadAdsterraSocialBar(){
-  if(document.querySelector('#adsterra-bar-'+Date.now())) return;
+  if(Date.now() - lastAdTime < 45000) return;
+  lastAdTime = Date.now();
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
   document.body.appendChild(s);
@@ -248,14 +259,22 @@ function loadAdsterraBanner(container){
   container.dataset.loaded='1';
   container.className='inline-ad-box banner';
   container.style.display='flex';
-  container.innerHTML='<div style="color:#555;font-size:10px;margin-bottom:6px">SPONSORED</div>';
+  container.style.position='absolute';
+  container.style.bottom='80px';
+  container.style.left='50%';
+  container.style.transform='translateX(-50%)';
+  container.style.zIndex='10';
+  container.innerHTML=`<div style="color:#555;font-size:10px;margin-bottom:6px;width:100%;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;color:#fff;background:#222;padding:2px 8px;border-radius:10px">✕ Close</span></div>`;
   window.atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
   container.appendChild(s);
+  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 12000);
 }
 
 function loadMonetagPush(isVignette=false){
+  if(Date.now() - lastAdTime < 45000) return;
+  lastAdTime = Date.now();
   const s = document.createElement('script');
   s.dataset.zone = '11803455';
   s.src = 'https://nap5k.com/tag.min.js?'+Date.now();
@@ -263,19 +282,20 @@ function loadMonetagPush(isVignette=false){
 }
 
 function cancelAdTimers(){
-  clearTimeout(adTimers.small); clearTimeout(adTimers.big);
-  adTimers.small=null; adTimers.big=null; adTimers.startTime=0; adTimers.paused=false;
+  clearTimeout(adTimers.small);
+  clearTimeout(adTimers.big);
+  adTimers.small=null; adTimers.big=null;
 }
 
 function startAdTimers(reelElement, feedType, postIndexGlobal){
   cancelAdTimers();
-  adTimers.currentReel = reelElement;
-  adTimers.startTime = Date.now();
   const isThirdPost = (postIndexGlobal % 3 === 0);
-  adTimers.small = setTimeout(()=>{
-    if(isThirdPost){ loadMonetagPush(false); }
-  }, 3000);
-  let bigTime = (feedType==='Novels' || feedType==='Stories')? 30000 : 45000;
+  if(isThirdPost){
+    adTimers.small = setTimeout(()=>{
+      loadMonetagPush(false);
+    }, 4000);
+  }
+  let bigTime = (feedType==='Novels' || feedType==='Stories')? 35000 : 45000;
   adTimers.big = setTimeout(()=>{
     if(bigAdCooldown > 0) return;
     if(feedType==='Novels' || feedType==='Stories') loadMonetagPush(true);
@@ -287,7 +307,7 @@ function startAdTimers(reelElement, feedType, postIndexGlobal){
 function shouldShowInlineAd(feedType){
   if(bigAdCooldown > 0) bigAdCooldown--;
   adCounters[feedType]++;
-  let nth = {ForYou:5, Reels:7, Novels:8, Stories:6}[feedType] || 5;
+  let nth = {ForYou:6, Reels:8, Novels:10, Stories:8}[feedType] || 6;
   if(adCounters[feedType] >= nth){ adCounters[feedType]=0; return true; }
   return false;
 }
