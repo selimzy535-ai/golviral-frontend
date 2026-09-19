@@ -194,7 +194,32 @@ function applyCurrencyLabels(){
 function toast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 async function api(p,o={}){try{const r=await fetch(API+p,{...o,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...o.headers}});if(r.status===401) location.href='auth.html';const d=await r.json().catch(()=>({}));if(r.status>=400) return{error:d.error||'Request failed'};return d;}catch{toast('Network error');return{};}}
 async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
-async function getSignedUrl(postId){const d=await api(`/api/media/sign?postId=${postId}`);return d?d.url:null;}
+const signedUrlCache = new Map();
+const inflightRequests = new Map();
+
+async function getSignedUrl(postId){
+  if(signedUrlCache.has(postId)) return signedUrlCache.get(postId);
+  if(inflightRequests.has(postId)) return inflightRequests.get(postId);
+
+  const promise = (async()=>{
+    for(let attempt=0; attempt<2; attempt++){
+      try{
+        const d = await api(`/api/media/sign?postId=${postId}`);
+        if(d?.url){
+          signedUrlCache.set(postId, d.url);
+          return d.url;
+        }
+      }catch(e){}
+      await new Promise(r=>setTimeout(r, 700));
+    }
+    return null;
+  })();
+
+  inflightRequests.set(postId, promise);
+  const url = await promise;
+  inflightRequests.delete(postId);
+  return url;
+}
 
 /* ========== AD LOGIC - FINAL ========== */
 let adCounters = {ForYou:0, Reels:0, Novels:0, Stories:0};
@@ -387,37 +412,96 @@ function setupReelObserver(){
         if(e.target.dataset.globalIndex) window._totalViewed = Math.max(window._totalViewed, parseInt(e.target.dataset.globalIndex));
         else e.target.dataset.globalIndex = window._totalViewed;
 
-        let feedType = document.querySelector('.tab.active').innerText.trim();
+        let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
         startAdTimers(e.target, feedType, window._totalViewed);
 
         if(video){
           video.muted=GLOBAL_MUTED;
-          video.ontimeupdate=()=>{if(progressFill&&video.duration){progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;}};
+          video.ontimeupdate=()=>{
+            if(progressFill&&video.duration){
+              progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;
+            }
+          };
+          video.onerror=()=>{
+            if(skel) skel.style.display='none';
+            if(overlay) overlay.style.display='flex';
+          };
+
           if(!video.dataset.loaded){
             video.dataset.loaded="true";
             getSignedUrl(postId).then(url=>{
               if(skel) skel.style.display='none';
-              if(url){
-                if(url.includes('.m3u8')){
-                  if(window.Hls&&Hls.isSupported()){
-                    const hls=new Hls();hls.loadSource(url);hls.attachMedia(video);hlsInstances[postId]=hls;
-                    hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});
-                  }else{video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}
-                }else{video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}
+              if(!url){
+                if(overlay) overlay.style.display='flex';
+                video.dataset.loaded=""; // allow retry on next view
+                return;
               }
+              if(url.includes('.m3u8')){
+                if(window.Hls&&Hls.isSupported()){
+                  if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
+                  const hls=new Hls({maxBufferLength:10});
+                  hls.loadSource(url);
+                  hls.attachMedia(video);
+                  hlsInstances[postId]=hls;
+                  hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});
+                  hls.on(Hls.Events.ERROR,()=>{
+                    if(skel) skel.style.display='none';
+                    if(overlay) overlay.style.display='flex';
+                  });
+                }else{
+                  video.src=url;
+                  video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
+                }
+              }else{
+                video.src=url;
+                video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
+              }
+
+              // Preload next reel
+              const next = e.target.nextElementSibling;
+              if(next && next.dataset.id){
+                const nid = next.dataset.id;
+                if(!signedUrlCache.has(nid)) getSignedUrl(nid);
+              }
+
+            }).catch(()=>{
+              if(skel) skel.style.display='none';
+              if(overlay) overlay.style.display='flex';
+              video.dataset.loaded="";
             });
-          }else{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}
+          }else{
+            video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
+          }
         }
-        if(img&&!img.src){getSignedUrl(postId).then(url=>{if(skel) skel.style.display='none';if(url) img.src=url;});}
+
+        if(img){
+          if(!img.src){
+            getSignedUrl(postId).then(url=>{
+              if(skel) skel.style.display='none';
+              if(url) img.src=url;
+              else img.style.background='#111';
+            }).catch(()=>{
+              if(skel) skel.style.display='none';
+            });
+          } else {
+            if(skel) skel.style.display='none';
+          }
+        }
+
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
+
       }else{
-        // User scrolled away - pause timers, they will resume on next post
         cancelAdTimers();
-        if(video) video.pause();
+        if(video){
+          video.pause();
+          const hls = hlsInstances[postId];
+          if(hls){ try{ hls.destroy(); }catch{} delete hlsInstances[postId]; }
+        }
         if(overlay) overlay.style.display='none';
       }
     });
   },{threshold:0.6});
+
   document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
 }
 async function likePost(postId,creatorId,btn){
