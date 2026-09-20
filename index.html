@@ -310,25 +310,49 @@ async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.
 async function renderFeed(posts){
   const c=document.getElementById('feed');c.innerHTML='';
   if(!posts||!posts.length){c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}
-  c.style.overflowY='scroll';let postIndex=0;let currentFeedType=document.querySelector('.tab.active').innerText.trim();
+  c.style.overflowY='scroll';
+  let postIndex=0;
+  let currentFeedType=document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
+  
   for(const p of posts){
     postIndex++;
-    let showInlineAd = postIndex > 2 && shouldShowInlineAd(currentFeedType);
+    let showInlineAd = shouldShowInlineAd(currentFeedType);
+    
     if(p.type==='reel'){
-      const reelEl=await createReel(p); reelEl.dataset.globalIndex=postIndex;
-      if(showInlineAd){ const adBox=document.createElement('div'); adBox.id='ad-native-'+p.id; reelEl.appendChild(adBox); setTimeout(()=>loadAdsterraNative(adBox),1000); }
+      const reelEl=await createReel(p); 
+      reelEl.dataset.globalIndex=postIndex;
+      if(showInlineAd){ 
+        const adBox=document.createElement('div'); 
+        adBox.id='ad-native-'+p.id+'-'+Date.now(); 
+        reelEl.appendChild(adBox); 
+        setTimeout(()=>loadAdsterraNative(adBox, p.id), 800); 
+      }
       c.appendChild(reelEl);
     } else if(p.type==='store'){
-      const reelEl=await createImageReel(p); reelEl.dataset.globalIndex=postIndex;
-      if(showInlineAd){ const adBox=document.createElement('div'); adBox.id='ad-vignette-'+p.id; reelEl.appendChild(adBox); setTimeout(()=>loadMonetagPush(true),1000); }
+      const reelEl=await createImageReel(p); 
+      reelEl.dataset.globalIndex=postIndex;
+      // No native for memes, only banner if you want
+      if(showInlineAd){ 
+        const adBox=document.createElement('div'); 
+        adBox.id='ad-banner-'+p.id+'-'+Date.now(); 
+        reelEl.appendChild(adBox); 
+        setTimeout(()=>loadAdsterraBanner(adBox, p.id), 800); 
+      }
       c.appendChild(reelEl);
     } else {
-      const reelEl=await createTextReel(p); reelEl.dataset.globalIndex=postIndex;
-      if(showInlineAd){ const adBox=document.createElement('div'); adBox.id='ad-banner-'+p.id; reelEl.appendChild(adBox); setTimeout(()=>loadAdsterraBanner(adBox),1000); }
+      const reelEl=await createTextReel(p); 
+      reelEl.dataset.globalIndex=postIndex;
+      if(showInlineAd){ 
+        const adBox=document.createElement('div'); 
+        adBox.id='ad-banner-'+p.id+'-'+Date.now(); 
+        reelEl.appendChild(adBox); 
+        setTimeout(()=>loadAdsterraBanner(adBox, p.id), 800); 
+      }
       c.appendChild(reelEl);
     }
   }
-  setupReelObserver();applyCurrencyLabels();
+  setupReelObserver();
+  applyCurrencyLabels();
 }
 function toggleCaption(postId){
   const cap=document.getElementById(`cap-${postId}`);
