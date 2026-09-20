@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="monetag" content="6ce58fb93fd596470117d55094beb955">
-<script>window.AdsterraLoaded = {}; window.MonetagLoaded = false; window._totalViewed = 0;</script>
+<script>window.AdsterraLoaded = {}; window.MonetagLoaded = false; window._totalViewed = parseInt(localStorage.getItem('gv_total_viewed')||'0');</script>
 <title>GolViral - Earn Money Creating Short Videos & Stories</title>
 <meta name="description" content="GolViral is TikTok-style platform where you earn money. Watch reels, post short stories, memes, videos and get paid for views, likes, comments and referrals. Start earning today.">
 <meta name="keywords" content="GolViral, earn money online, short videos, reels, memes, Nigerian TikTok, make money watching videos, creator earnings">
@@ -221,7 +221,7 @@ async function getSignedUrl(postId){
   return url;
 }
 
-/* ========== AD LOGIC - FINAL - EXACT CODES ========== */
+/* ========== AD LOGIC - FINAL CLEAN ========== */
 let adTimers = {push:null, vignette:null, social:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
 let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
@@ -238,62 +238,56 @@ function loadAdsterraNative(container){
   container.appendChild(s);
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000);
 }
-
 function loadAdsterraBanner(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
-  window.atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
   container.className='inline-ad-box banner';
   container.style.cssText = 'display:flex;flex-direction:column;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:20;background:#fff;padding:6px;border-radius:12px;';
   container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div>`;
-  const s1 = document.createElement('script');
-  s1.type='text/javascript';
-  s1.innerHTML = `atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};`;
-  container.appendChild(s1);
+  window.atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
   const s2 = document.createElement('script');
   s2.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
   container.appendChild(s2);
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 20000);
 }
-
 function loadAdsterraSocialBar(){
   let now = Date.now();
   if(now - lastSocialBar < 90000) return;
-  lastSocialBar = now;
-  localStorage.setItem('gv_lastSocial', now.toString());
+  lastSocialBar = now; localStorage.setItem('gv_lastSocial', now.toString());
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
   document.body.appendChild(s);
 }
-
 function loadMonetagPush(isVignette=false){
   if(isVignette){
     let now = Date.now();
     if(now - lastVignette < 90000) return;
-    lastVignette = now;
-    localStorage.setItem('gv_lastVignette', now.toString());
+    lastVignette = now; localStorage.setItem('gv_lastVignette', now.toString());
   }
   (function(s){s.dataset.zone='11803455',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
 }
+function cancelAdTimers(){ clearTimeout(adTimers.push); clearTimeout(adTimers.vignette); clearTimeout(adTimers.social); }
 
-function cancelAdTimers(){
-  clearTimeout(adTimers.push); clearTimeout(adTimers.vignette); clearTimeout(adTimers.social);
-}
-function startAdTimers(){
+function startAdTimers(reelElement){
   cancelAdTimers();
-  if(window._totalViewed % 3 === 0){
+  // Push every 3rd after 3s - NO auto on load, only when viewed
+  if(window._totalViewed % 3 === 0 && window._totalViewed>0){
     adTimers.push = setTimeout(()=>{ loadMonetagPush(false); }, 3000);
   }
+  // Vignette + Social - only if user stays 90s
   adTimers.vignette = setTimeout(()=>{ loadMonetagPush(true); }, 90000);
   adTimers.social = setTimeout(()=>{ loadAdsterraSocialBar(); }, 90000);
-}
-function shouldShowInlineAd(feedType){
-  if(feedType !== 'ForYou' && feedType !== 'Reels') return false;
-  let viewed = parseInt(localStorage.getItem('gv_total_viewed') || '0');
-  viewed++;
-  localStorage.setItem('gv_total_viewed', viewed.toString());
-  window._totalViewed = viewed;
-  return viewed % 5 === 0;
+
+  // Native every 5th ForYou/Reels - ONLY when actually viewed, not on render
+  let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
+  if((feedType==='ForYou' || feedType==='Reels') && window._totalViewed % 5 === 0 && window._totalViewed>0){
+    let existing = reelElement.querySelector('.inline-ad-box');
+    if(!existing){
+      let adBox = document.createElement('div');
+      reelElement.appendChild(adBox);
+      loadAdsterraNative(adBox);
+    }
+  }
 }
 /* ========== AD LOGIC END ========== */
 async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const target=map[type];let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);renderFeed(filtered);}
@@ -301,45 +295,12 @@ async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.
 async function renderFeed(posts){
   const c=document.getElementById('feed');c.innerHTML='';
   if(!posts||!posts.length){c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}
-  c.style.overflowY='scroll';
-  let postIndex=0;
-  let currentFeedType=document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
-  
   for(const p of posts){
-    postIndex++;
-    let showInlineAd = shouldShowInlineAd(currentFeedType);
-    
-    if(p.type==='reel'){
-      const reelEl=await createReel(p); 
-      reelEl.dataset.globalIndex=postIndex;
-      if(showInlineAd){ 
-        const adBox=document.createElement('div'); 
-        adBox.id='ad-native-'+p.id+'-'+Date.now(); 
-        reelEl.appendChild(adBox); 
-        setTimeout(()=>loadAdsterraNative(adBox), 800); 
-      }
-      c.appendChild(reelEl);
-    } else if(p.type==='store'){
-      const reelEl=await createImageReel(p); 
-      reelEl.dataset.globalIndex=postIndex;
-      if(showInlineAd){ 
-        const adBox=document.createElement('div'); 
-        adBox.id='ad-banner-'+p.id+'-'+Date.now(); 
-        reelEl.appendChild(adBox); 
-        setTimeout(()=>loadAdsterraBanner(adBox), 800); 
-      }
-      c.appendChild(reelEl);
-    } else {
-      const reelEl=await createTextReel(p); 
-      reelEl.dataset.globalIndex=postIndex;
-      if(showInlineAd){ 
-        const adBox=document.createElement('div'); 
-        adBox.id='ad-banner-'+p.id+'-'+Date.now(); 
-        reelEl.appendChild(adBox); 
-        setTimeout(()=>loadAdsterraBanner(adBox), 800); 
-      }
-      c.appendChild(reelEl);
-    }
+    let reelEl;
+    if(p.type==='reel') reelEl=await createReel(p); 
+    else if(p.type==='store') reelEl=await createImageReel(p);
+    else reelEl=await createTextReel(p);
+    c.appendChild(reelEl);
   }
   setupReelObserver();
   applyCurrencyLabels();
