@@ -1,4 +1,3 @@
-So what about load nest video what functions do it and what is curse not playing 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -437,64 +436,48 @@ function setupReelObserver(){
         startAdTimers(e.target, feedType, window._totalViewed);
 
         if(video){
-          video.muted = true;
-          GLOBAL_MUTED = true;
-          video.playsInline = true;
-          video.setAttribute('webkit-playsinline','');
-
+          video.muted=GLOBAL_MUTED;
           video.ontimeupdate=()=>{
             if(progressFill&&video.duration){
               progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;
             }
           };
-
           video.onerror=()=>{
             if(skel) skel.style.display='none';
             if(overlay) overlay.style.display='flex';
-            video.dataset.loaded="";
-          };
-
-          video.onended = ()=>{
-            video.currentTime = 0;
-            video.play().catch(()=>{});
           };
 
           if(!video.dataset.loaded){
             video.dataset.loaded="true";
             getSignedUrl(postId).then(url=>{
+              if(skel) skel.style.display='none';
               if(!url){
-                if(skel) skel.style.display='none';
                 if(overlay) overlay.style.display='flex';
-                video.dataset.loaded="";
+                video.dataset.loaded=""; // allow retry on next view
                 return;
               }
-              if(skel) skel.style.display='none';
-
-              if(url.includes('.m3u8') && window.Hls && Hls.isSupported()){
-                if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
-                const hls=new Hls({maxBufferLength:10, enableWorker:true});
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hlsInstances[postId]=hls;
-                hls.on(Hls.Events.MANIFEST_PARSED,()=>{
-                  video.play().then(()=>{ if(overlay) overlay.style.display='none'; }).catch(()=>{ if(overlay) overlay.style.display='flex'; });
-                });
-                hls.on(Hls.Events.ERROR,()=>{
-                  if(overlay) overlay.style.display='flex';
-                });
-              }else{
-                video.src=url;
-                video.load();
-                const playPromise = video.play();
-                if(playPromise){
-                  playPromise.then(()=>{
-                    if(overlay) overlay.style.display='none';
-                  }).catch(()=>{
+              if(url.includes('.m3u8')){
+                if(window.Hls&&Hls.isSupported()){
+                  if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
+                  const hls=new Hls({maxBufferLength:10});
+                  hls.loadSource(url);
+                  hls.attachMedia(video);
+                  hlsInstances[postId]=hls;
+                  hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});
+                  hls.on(Hls.Events.ERROR,()=>{
+                    if(skel) skel.style.display='none';
                     if(overlay) overlay.style.display='flex';
                   });
+                }else{
+                  video.src=url;
+                  video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
                 }
+              }else{
+                video.src=url;
+                video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
               }
 
+              // Preload next reel
               const next = e.target.nextElementSibling;
               if(next && next.dataset.id){
                 const nid = next.dataset.id;
@@ -507,11 +490,7 @@ function setupReelObserver(){
               video.dataset.loaded="";
             });
           }else{
-            video.play().then(()=>{
-              if(overlay) overlay.style.display='none';
-            }).catch(()=>{
-              if(overlay) overlay.style.display='flex';
-            });
+            video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
           }
         }
 
@@ -520,6 +499,7 @@ function setupReelObserver(){
             getSignedUrl(postId).then(url=>{
               if(skel) skel.style.display='none';
               if(url) img.src=url;
+              else img.style.background='#111';
             }).catch(()=>{
               if(skel) skel.style.display='none';
             });
