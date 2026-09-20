@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="monetag" content="6ce58fb93fd596470117d55094beb955">
-<script>window.AdsterraLoaded = {}; window.MonetagLoaded = false; window._totalViewed = parseInt(localStorage.getItem('gv_total_viewed')||'0');</script>
+<script>
+window.AdsterraLoaded = {};
+window.MonetagLoaded = false;
+window._totalViewed = parseInt(localStorage.getItem('gv_total_viewed')||'0');
+window._viewedForYou = parseInt(localStorage.getItem('gv_viewed_foryou')||'0');
+window._viewedReels = parseInt(localStorage.getItem('gv_viewed_reels')||'0');
+</script>
 <title>GolViral - Earn Money Creating Short Videos & Stories</title>
 <meta name="description" content="GolViral is TikTok-style platform where you earn money. Watch reels, post short stories, memes, videos and get paid for views, likes, comments and referrals. Start earning today.">
 <meta name="keywords" content="GolViral, earn money online, short videos, reels, memes, Nigerian TikTok, make money watching videos, creator earnings">
@@ -221,7 +227,7 @@ async function getSignedUrl(postId){
   return url;
 }
 
-/* ========== AD LOGIC - FINAL CLEAN ========== */
+/* ========== AD LOGIC - SEPARATE FORYOU / REELS ========== */
 let adTimers = {push:null, vignette:null, social:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
 let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
@@ -270,22 +276,23 @@ function cancelAdTimers(){ clearTimeout(adTimers.push); clearTimeout(adTimers.vi
 
 function startAdTimers(reelElement){
   cancelAdTimers();
-  // Push every 3rd after 3s - NO auto on load, only when viewed
+  let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
+
+  // Push every 3rd globally
   if(window._totalViewed % 3 === 0 && window._totalViewed>0){
     adTimers.push = setTimeout(()=>{ loadMonetagPush(false); }, 3000);
   }
-  // Vignette + Social - only if user stays 90s
   adTimers.vignette = setTimeout(()=>{ loadMonetagPush(true); }, 90000);
   adTimers.social = setTimeout(()=>{ loadAdsterraSocialBar(); }, 90000);
 
-  // Native every 5th ForYou/Reels - ONLY when actually viewed, not on render
-  let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
-  if((feedType==='ForYou' || feedType==='Reels') && window._totalViewed % 5 === 0 && window._totalViewed>0){
-    let existing = reelElement.querySelector('.inline-ad-box');
-    if(!existing){
-      let adBox = document.createElement('div');
-      reelElement.appendChild(adBox);
-      loadAdsterraNative(adBox);
+  // SEPARATE NATIVE: ForYou uses gv_viewed_foryou, Reels uses gv_viewed_reels
+  if(feedType==='ForYou' && window._viewedForYou % 5 === 0 && window._viewedForYou>0){
+    if(!reelElement.querySelector('.inline-ad-box')){
+      let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraNative(adBox);
+    }
+  } else if(feedType==='Reels' && window._viewedReels % 5 === 0 && window._viewedReels>0){
+    if(!reelElement.querySelector('.inline-ad-box')){
+      let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraNative(adBox);
     }
   }
 }
@@ -297,7 +304,7 @@ async function renderFeed(posts){
   if(!posts||!posts.length){c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}
   for(const p of posts){
     let reelEl;
-    if(p.type==='reel') reelEl=await createReel(p); 
+    if(p.type==='reel') reelEl=await createReel(p);
     else if(p.type==='store') reelEl=await createImageReel(p);
     else reelEl=await createTextReel(p);
     c.appendChild(reelEl);
@@ -393,102 +400,62 @@ function setupReelObserver(){
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
       const progressFill=e.target.querySelector(`#progress-${postId}`);
-      const globalIdx = parseInt(e.target.dataset.globalIndex) || ++window._totalViewed;
 
       if(e.intersectionRatio>0.6){
-        if(e.target.dataset.globalIndex) window._totalViewed = Math.max(window._totalViewed, parseInt(e.target.dataset.globalIndex));
-        else e.target.dataset.globalIndex = window._totalViewed;
+        if(!e.target.dataset.counted){
+          e.target.dataset.counted='1';
+          let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
 
-        let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
-        startAdTimers(e.target, feedType, window._totalViewed);
+          // Global counter for Push
+          window._totalViewed = parseInt(localStorage.getItem('gv_total_viewed')||'0') + 1;
+          localStorage.setItem('gv_total_viewed', window._totalViewed.toString());
+
+          // Separate counters
+          if(feedType==='ForYou'){
+            window._viewedForYou = parseInt(localStorage.getItem('gv_viewed_foryou')||'0') + 1;
+            localStorage.setItem('gv_viewed_foryou', window._viewedForYou.toString());
+          } else if(feedType==='Reels'){
+            window._viewedReels = parseInt(localStorage.getItem('gv_viewed_reels')||'0') + 1;
+            localStorage.setItem('gv_viewed_reels', window._viewedReels.toString());
+          }
+        }
+        startAdTimers(e.target);
 
         if(video){
           video.muted=GLOBAL_MUTED;
-          video.ontimeupdate=()=>{
-            if(progressFill&&video.duration){
-              progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;
-            }
-          };
-          video.onerror=()=>{
-            if(skel) skel.style.display='none';
-            if(overlay) overlay.style.display='flex';
-          };
-
+          video.ontimeupdate=()=>{ if(progressFill&&video.duration) progressFill.style.width=`${(video.currentTime/video.duration)*100}%`; };
+          video.onerror=()=>{ if(skel) skel.style.display='none'; if(overlay) overlay.style.display='flex'; };
           if(!video.dataset.loaded){
             video.dataset.loaded="true";
             getSignedUrl(postId).then(url=>{
               if(skel) skel.style.display='none';
-              if(!url){
-                if(overlay) overlay.style.display='flex';
-                video.dataset.loaded=""; // allow retry on next view
-                return;
-              }
+              if(!url){ if(overlay) overlay.style.display='flex'; video.dataset.loaded=""; return; }
               if(url.includes('.m3u8')){
                 if(window.Hls&&Hls.isSupported()){
                   if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
                   const hls=new Hls({maxBufferLength:10});
-                  hls.loadSource(url);
-                  hls.attachMedia(video);
-                  hlsInstances[postId]=hls;
+                  hls.loadSource(url); hls.attachMedia(video); hlsInstances[postId]=hls;
                   hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});
-                  hls.on(Hls.Events.ERROR,()=>{
-                    if(skel) skel.style.display='none';
-                    if(overlay) overlay.style.display='flex';
-                  });
-                }else{
-                  video.src=url;
-                  video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
-                }
-              }else{
-                video.src=url;
-                video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
-              }
-
-              // Preload next reel
+                }else{ video.src=url; video.play().catch(()=>{if(overlay) overlay.style.display='flex';}); }
+              }else{ video.src=url; video.play().catch(()=>{if(overlay) overlay.style.display='flex';}); }
               const next = e.target.nextElementSibling;
-              if(next && next.dataset.id){
-                const nid = next.dataset.id;
-                if(!signedUrlCache.has(nid)) getSignedUrl(nid);
-              }
-
-            }).catch(()=>{
-              if(skel) skel.style.display='none';
-              if(overlay) overlay.style.display='flex';
-              video.dataset.loaded="";
-            });
-          }else{
-            video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
-          }
+              if(next && next.dataset.id &&!signedUrlCache.has(next.dataset.id)) getSignedUrl(next.dataset.id);
+            }).catch(()=>{ if(skel) skel.style.display='none'; if(overlay) overlay.style.display='flex'; video.dataset.loaded=""; });
+          }else{ video.play().catch(()=>{if(overlay) overlay.style.display='flex';}); }
         }
-
         if(img){
           if(!img.src){
-            getSignedUrl(postId).then(url=>{
-              if(skel) skel.style.display='none';
-              if(url) img.src=url;
-              else img.style.background='#111';
-            }).catch(()=>{
-              if(skel) skel.style.display='none';
-            });
-          } else {
-            if(skel) skel.style.display='none';
-          }
+            getSignedUrl(postId).then(url=>{ if(skel) skel.style.display='none'; if(url) img.src=url; }).catch(()=>{ if(skel) skel.style.display='none'; });
+          } else { if(skel) skel.style.display='none'; }
         }
-
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
-
       }else{
         cancelAdTimers();
-        if(video){
-          video.pause();
-          const hls = hlsInstances[postId];
-          if(hls){ try{ hls.destroy(); }catch{} delete hlsInstances[postId]; }
-        }
+        if(video){ video.pause(); const hls=hlsInstances[postId]; if(hls){ try{ hls.destroy(); }catch{} delete hlsInstances[postId]; } }
         if(overlay) overlay.style.display='none';
       }
     });
   },{threshold:0.6});
-
   document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
 }
 async function likePost(postId,creatorId,btn){
