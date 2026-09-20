@@ -199,9 +199,7 @@ const inflightRequests = new Map();
 const signedUrlCache = new Map();
 function getSignedUrl(postId){
   if(signedUrlCache.has(postId)) return signedUrlCache.get(postId);
-  // This URL itself IS the video - it 302 redirects to Telegram
-  // No JSON, no second request
-  const url = `${API}/api/media/sign?postId=${postId}`;
+  const url = `${API}/api/media/sign?postId=${postId}&token=${TOKEN}`;
   signedUrlCache.set(postId, url);
   return url;
 }
@@ -400,7 +398,7 @@ function triggerHeartAnimation(container,x,y){const rect=container.getBoundingCl
 function manualPlay(o){const v=o.parentElement.querySelector('video');if(v){v.muted=false;v.play().then(()=>{o.style.display='none';}).catch(()=>{v.muted=true;v.play();o.style.display='none';});}}
 function setupReelObserver(){
   const obs=new IntersectionObserver(entries=>{
-    entries.forEach(async e=>{
+    entries.forEach(e=>{
       const video=e.target.querySelector('video');
       const img=e.target.querySelector('img');
       const skel=e.target.querySelector('.reel-skeleton');
@@ -410,44 +408,22 @@ function setupReelObserver(){
       const progressFill=e.target.querySelector(`#progress-${postId}`);
 
       if(e.intersectionRatio>0.6){
-        let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
-        startAdTimers(e.target, feedType, parseInt(e.target.dataset.globalIndex)||0);
-
         if(video){
-          video.muted=true;
-          video.playsInline=true;
-          video.setAttribute('webkit-playsinline','');
-
-          video.ontimeupdate=()=>{
-            if(progressFill&&video.duration) progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;
-          };
-          video.onerror=()=>{ if(overlay) overlay.style.display='flex'; };
-          video.onended=()=>{ video.currentTime=0; video.play().catch(()=>{}); };
-
           if(!video.src){
-            const url = getSignedUrl(postId);
-            if(skel) skel.style.display='none';
-            video.src=url; // <-- This is your API that 302 to TG
+            video.src = getSignedUrl(postId);
             video.load();
-            video.play().then(()=>{ if(overlay) overlay.style.display='none'; })
-                        .catch(()=>{ if(overlay) overlay.style.display='flex'; });
-          }else{
-            video.play().catch(()=>{ if(overlay) overlay.style.display='flex'; });
           }
-        }
-        if(img &&!img.src){
-          const url = getSignedUrl(postId);
+          video.muted=GLOBAL_MUTED;
+          video.play().catch(()=> overlay.style.display='flex');
           if(skel) skel.style.display='none';
-          img.src=url;
         }
-        api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
+        if(img && !img.src){
+          img.src = getSignedUrl(postId);
+          if(skel) skel.style.display='none';
+        }
       }else{
-        cancelAdTimers();
-        if(video){
-          video.pause();
-          const hls = hlsInstances[postId];
-          if(hls){ try{ hls.destroy(); }catch{} delete hlsInstances[postId]; }
-        }
+        if(video) video.pause();
+        if(overlay) overlay.style.display='none';
       }
     });
   },{threshold:0.6});
