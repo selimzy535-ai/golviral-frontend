@@ -221,63 +221,61 @@ async function getSignedUrl(postId){
   return url;
 }
 
-/* ========== AD LOGIC - FIXED 45s ========== */
+/* ========== AD LOGIC - GOLVIRAL FIXED 90s + 5,6,7 ========== */
 let adCounters = {ForYou:0, Reels:0, Novels:0, Stories:0};
 let adTimers = {small:null, big:null};
-let bigAdCooldown = 0;
+let socialBarLoaded = false;
 let lastAdTime = 0;
 
+// NATIVE - FIXED ID so it actually shows
 function loadAdsterraNative(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
-  const uid = 'ad-native-' + Date.now() + '-' + Math.random().toString(36).substr(2,5);
   container.className = 'inline-ad-box native';
-  container.style.display='block';
-  container.style.position='absolute';
-  container.style.bottom='80px';
-  container.style.left='12px';
-  container.style.right='80px';
-  container.style.zIndex='10';
-  container.innerHTML = `<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;letter-spacing:1px">SPONSORED <span onclick="this.parentElement.parentElement.remove()" style="float:right;cursor:pointer;color:#fff;background:#222;padding:2px 8px;border-radius:10px">✕</span></div><div id="${uid}"></div>`;
+  container.style.cssText = 'display:block;position:absolute;bottom:80px;left:12px;right:80px;z-index:10;background:#fff;padding:8px;border-radius:10px;';
+  container.innerHTML = `<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;letter-spacing:1px">SPONSORED <span onclick="this.parentElement.remove()" style="float:right;cursor:pointer;color:#fff;background:#222;padding:2px 8px;border-radius:10px">✕</span></div><div id="container-851999cd56faf8ed4b378278159ac3c0"></div>`;
   const s = document.createElement('script');
   s.async = true;
+  s.setAttribute('data-cfasync','false');
   s.src = 'https://fixesconsessionconsession.com/851999cd56faf8ed4b378278159ac3c0/invoke.js';
   container.appendChild(s);
-  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 15000);
+  // Auto remove after 25s so it doesn't block forever
+  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000);
 }
 
+// SOCIAL BAR - 90s + ONCE
 function loadAdsterraSocialBar(){
-  if(Date.now() - lastAdTime < 45000) return;
+  if(socialBarLoaded) return;
+  if(Date.now() - lastAdTime < 90000) return; // 90s
+  socialBarLoaded = true;
   lastAdTime = Date.now();
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
   document.body.appendChild(s);
 }
 
+// BANNER 300x250 - FIXED
 function loadAdsterraBanner(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
-  container.className='inline-ad-box banner';
-  container.style.display='flex';
-  container.style.position='absolute';
-  container.style.bottom='80px';
-  container.style.left='50%';
-  container.style.transform='translateX(-50%)';
-  container.style.zIndex='10';
-  container.innerHTML=`<div style="color:#555;font-size:10px;margin-bottom:6px;width:100%;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;color:#fff;background:#222;padding:2px 8px;border-radius:10px">✕ Close</span></div>`;
+  // atOptions MUST be before script
   window.atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
+  container.className='inline-ad-box banner';
+  container.style.cssText = 'display:flex;flex-direction:column;position:absolute;bottom:80px;left:50%;transform:translateX(-50%);z-index:10;background:#fff;padding:6px;border-radius:10px;';
+  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;color:#fff;background:#222;padding:2px 8px;border-radius:10px">✕ Close</span></div><div class="banner-inner"></div>`;
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
-  container.appendChild(s);
-  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 12000);
+  container.querySelector('.banner-inner').appendChild(s);
+  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 20000); // 20s
 }
 
+// MONETAG - SAME ZONE = In-Page Push + Vignette (depends on timing)
 function loadMonetagPush(isVignette=false){
-  if(Date.now() - lastAdTime < 45000) return;
+  if(Date.now() - lastAdTime < 45000 &&!isVignette) return; // push respects 45s, vignette can bypass
   lastAdTime = Date.now();
   const s = document.createElement('script');
   s.dataset.zone = '11803455';
-  s.src = 'https://nap5k.com/tag.min.js?'+Date.now();
+  s.src = 'https://nap5k.com/tag.min.js?'+Date.now()+(isVignette? '&v=1' : '');
   document.head.appendChild(s);
 }
 
@@ -289,30 +287,29 @@ function cancelAdTimers(){
 
 function startAdTimers(reelElement, feedType, postIndexGlobal){
   cancelAdTimers();
-  const isThirdPost = (postIndexGlobal % 3 === 0);
-  if(isThirdPost){
-    adTimers.small = setTimeout(()=>{
-      loadMonetagPush(false);
-    }, 4000);
+  // Small ad every 3rd post - after 4s
+  if(postIndexGlobal % 3 === 0){
+    adTimers.small = setTimeout(()=>{ loadMonetagPush(false); }, 4000);
   }
-  let bigTime = (feedType==='Novels' || feedType==='Stories')? 35000 : 45000;
+  // Big ad - 90s for Social Bar
+  let bigTime = (feedType==='Novels' || feedType==='Stories')? 40000 : 90000;
   adTimers.big = setTimeout(()=>{
-    if(bigAdCooldown > 0) return;
-    if(feedType==='Novels' || feedType==='Stories') loadMonetagPush(true);
-    else loadAdsterraSocialBar();
-    bigAdCooldown = 2;
+    if(feedType==='Novels' || feedType==='Stories') loadMonetagPush(true); // Vignette
+    else loadAdsterraSocialBar(); // Social Bar at 90s
   }, bigTime);
 }
 
+// 5,6,7 as you asked
 function shouldShowInlineAd(feedType){
-  if(bigAdCooldown > 0) bigAdCooldown--;
   adCounters[feedType]++;
-  let nth = {ForYou:6, Reels:8, Novels:10, Stories:8}[feedType] || 6;
-  if(adCounters[feedType] >= nth){ adCounters[feedType]=0; return true; }
+  let nth = {ForYou:5, Reels:6, Novels:7, Stories:6}[feedType] || 5;
+  if(adCounters[feedType] >= nth){
+    adCounters[feedType]=0;
+    return true;
+  }
   return false;
 }
 /* ========== AD LOGIC END ========== */
-
 async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const target=map[type];let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);renderFeed(filtered);}
 
 async function renderFeed(posts){
