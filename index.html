@@ -194,13 +194,30 @@ function applyCurrencyLabels(){
 function toast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 async function api(p,o={}){try{const r=await fetch(API+p,{...o,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...o.headers}});if(r.status===401) location.href='auth.html';const d=await r.json().catch(()=>({}));if(r.status>=400) return{error:d.error||'Request failed'};return d;}catch{toast('Network error');return{};}}
 async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
+const signedUrlCache = new Map();
 const inflightRequests = new Map();
 
-const signedUrlCache = new Map();
-function getSignedUrl(postId){
+async function getSignedUrl(postId){
   if(signedUrlCache.has(postId)) return signedUrlCache.get(postId);
-  const url = `${API}/api/media/sign?postId=${postId}&token=${TOKEN}`;
-  signedUrlCache.set(postId, url);
+  if(inflightRequests.has(postId)) return inflightRequests.get(postId);
+
+  const promise = (async()=>{
+    for(let attempt=0; attempt<2; attempt++){
+      try{
+        const d = await api(`/api/media/sign?postId=${postId}`);
+        if(d?.url){
+          signedUrlCache.set(postId, d.url);
+          return d.url;
+        }
+      }catch(e){}
+      await new Promise(r=>setTimeout(r, 700));
+    }
+    return null;
+  })();
+
+  inflightRequests.set(postId, promise);
+  const url = await promise;
+  inflightRequests.delete(postId);
   return url;
 }
 
@@ -340,7 +357,7 @@ async function createReel(p){
   const initial=(user.username||p.userId||'U')[0].toUpperCase();
   div.innerHTML=`
     <div class="reel-skeleton"></div>
-    <video class="main-vid" muted playsinline webkit-playsinline crossorigin="anonymous" preload="metadata" data-postid="${p.id}"></video>
+    <video class="main-vid" autoplay muted loop playsinline webkit-playsinline preload="auto" data-postid="${p.id}"></video>
     <div class="progress-bar-container"><div class="progress-bar-fill" id="progress-${p.id}"></div></div>
     <div class="play-overlay" style="display:none" onclick="manualPlay(this)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
     <div class="reel-content-overlay"><div class="creator-info"><div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div><b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${user.username||p.userId}</b>${followHtml}</div><p style="font-size:14px;line-height:1.4;word-break:break-word;"><span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>${(p.caption||'').length>90?`<span id="cap-btn-${p.id}" style="color:#fff;font-weight:800;cursor:pointer;background:rgba(0,0,0,0.6);padding:2px 6px;border-radius:8px;margin-left:4px;" onclick="toggleCaption('${p.id}')">...more</span>`:''}</p></div>
@@ -406,27 +423,102 @@ function setupReelObserver(){
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
       const progressFill=e.target.querySelector(`#progress-${postId}`);
+      const globalIdx = parseInt(e.target.dataset.globalIndex) || ++window._totalViewed;
 
       if(e.intersectionRatio>0.6){
+        if(e.target.dataset.globalIndex) window._totalViewed = Math.max(window._totalViewed, parseInt(e.target.dataset.globalIndex));
+        else e.target.dataset.globalIndex = window._totalViewed;
+
+        let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
+        startAdTimers(e.target, feedType, window._totalViewed);
+
         if(video){
-          if(!video.src){
-            video.src = getSignedUrl(postId);
-            video.load();
-          }
           video.muted=GLOBAL_MUTED;
-          video.play().catch(()=> overlay.style.display='flex');
-          if(skel) skel.style.display='none';
+          video.ontimeupdate=()=>{
+            if(progressFill&&video.duration){
+              progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;
+            }
+          };
+          video.onerror=()=>{
+            if(skel) skel.style.display='none';
+            if(overlay) overlay.style.display='flex';
+          };
+
+          if(!video.dataset.loaded){
+            video.dataset.loaded="true";
+            getSignedUrl(postId).then(url=>{
+              if(skel) skel.style.display='none';
+              if(!url){
+                if(overlay) overlay.style.display='flex';
+                video.dataset.loaded=""; // allow retry on next view
+                return;
+              }
+              if(url.includes('.m3u8')){
+                if(window.Hls&&Hls.isSupported()){
+                  if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
+                  const hls=new Hls({maxBufferLength:10});
+                  hls.loadSource(url);
+                  hls.attachMedia(video);
+                  hlsInstances[postId]=hls;
+                  hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});
+                  hls.on(Hls.Events.ERROR,()=>{
+                    if(skel) skel.style.display='none';
+                    if(overlay) overlay.style.display='flex';
+                  });
+                }else{
+                  video.src=url;
+                  video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
+                }
+              }else{
+                video.src=url;
+                video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
+              }
+
+              // Preload next reel
+              const next = e.target.nextElementSibling;
+              if(next && next.dataset.id){
+                const nid = next.dataset.id;
+                if(!signedUrlCache.has(nid)) getSignedUrl(nid);
+              }
+
+            }).catch(()=>{
+              if(skel) skel.style.display='none';
+              if(overlay) overlay.style.display='flex';
+              video.dataset.loaded="";
+            });
+          }else{
+            video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
+          }
         }
-        if(img && !img.src){
-          img.src = getSignedUrl(postId);
-          if(skel) skel.style.display='none';
+
+        if(img){
+          if(!img.src){
+            getSignedUrl(postId).then(url=>{
+              if(skel) skel.style.display='none';
+              if(url) img.src=url;
+              else img.style.background='#111';
+            }).catch(()=>{
+              if(skel) skel.style.display='none';
+            });
+          } else {
+            if(skel) skel.style.display='none';
+          }
         }
+
+        api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
+
       }else{
-        if(video) video.pause();
+        cancelAdTimers();
+        if(video){
+          video.pause();
+          const hls = hlsInstances[postId];
+          if(hls){ try{ hls.destroy(); }catch{} delete hlsInstances[postId]; }
+        }
         if(overlay) overlay.style.display='none';
       }
     });
   },{threshold:0.6});
+
   document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
 }
 async function likePost(postId,creatorId,btn){
