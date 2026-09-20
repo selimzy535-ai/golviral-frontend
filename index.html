@@ -221,93 +221,88 @@ async function getSignedUrl(postId){
   return url;
 }
 
-/* ========== AD LOGIC - GOLVIRAL FIXED 90s + 5,6,7 ========== */
-let adCounters = {ForYou:0, Reels:0, Novels:0, Stories:0};
-let adTimers = {small:null, big:null};
-let socialBarLoaded = false;
-let lastAdTime = 0;
+/* ========== AD LOGIC - FINAL ========== */
+let adTimers = {push:null, vignette:null, social:null};
+let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
+let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
 
-// NATIVE - FIXED ID so it actually shows
-function loadAdsterraNative(container){
+// NATIVE - every 5th ForYou + Reels with localStorage
+function loadAdsterraNative(container, postId){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
+  let uniqueId = `container-851999cd56faf8ed4b378278159ac3c0-${postId}-${Date.now()}`;
   container.className = 'inline-ad-box native';
-  container.style.cssText = 'display:block;position:absolute;bottom:80px;left:12px;right:80px;z-index:10;background:#fff;padding:8px;border-radius:10px;';
-  container.innerHTML = `<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;letter-spacing:1px">SPONSORED <span onclick="this.parentElement.remove()" style="float:right;cursor:pointer;color:#fff;background:#222;padding:2px 8px;border-radius:10px">✕</span></div><div id="container-851999cd56faf8ed4b378278159ac3c0"></div>`;
+  container.style.cssText = 'display:block;position:absolute;bottom:85px;left:12px;right:80px;z-index:20;background:#fff;padding:8px;border-radius:12px;';
+  container.innerHTML = `<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="float:right;cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕</span></div><div id="${uniqueId}"></div>`;
   const s = document.createElement('script');
-  s.async = true;
-  s.setAttribute('data-cfasync','false');
+  s.async = true; s.setAttribute('data-cfasync','false');
   s.src = 'https://fixesconsessionconsession.com/851999cd56faf8ed4b378278159ac3c0/invoke.js';
   container.appendChild(s);
-  // Auto remove after 25s so it doesn't block forever
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000);
 }
 
-// SOCIAL BAR - 90s + ONCE
+// BANNER
+function loadAdsterraBanner(container, postId){
+  if(!container || container.dataset.loaded) return;
+  container.dataset.loaded='1';
+  window.atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
+  container.className='inline-ad-box banner';
+  container.style.cssText = 'display:flex;flex-direction:column;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:20;background:#fff;padding:6px;border-radius:12px;';
+  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div><div class="banner-inner"></div>`;
+  const s = document.createElement('script');
+  s.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
+  container.querySelector('.banner-inner').appendChild(s);
+  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 20000);
+}
+
+// SOCIAL BAR - every 90s with localStorage, survives refresh
 function loadAdsterraSocialBar(){
-  if(socialBarLoaded) return;
-  if(Date.now() - lastAdTime < 90000) return; // 90s
-  socialBarLoaded = true;
-  lastAdTime = Date.now();
+  let now = Date.now();
+  if(now - lastSocialBar < 90000) return;
+  lastSocialBar = now;
+  localStorage.setItem('gv_lastSocial', now.toString());
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
   document.body.appendChild(s);
 }
 
-// BANNER 300x250 - FIXED
-function loadAdsterraBanner(container){
-  if(!container || container.dataset.loaded) return;
-  container.dataset.loaded='1';
-  // atOptions MUST be before script
-  window.atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
-  container.className='inline-ad-box banner';
-  container.style.cssText = 'display:flex;flex-direction:column;position:absolute;bottom:80px;left:50%;transform:translateX(-50%);z-index:10;background:#fff;padding:6px;border-radius:10px;';
-  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;color:#fff;background:#222;padding:2px 8px;border-radius:10px">✕ Close</span></div><div class="banner-inner"></div>`;
-  const s = document.createElement('script');
-  s.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
-  container.querySelector('.banner-inner').appendChild(s);
-  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 20000); // 20s
-}
-
-// MONETAG - SAME ZONE = In-Page Push + Vignette (depends on timing)
+// MONETAG PUSH (no delay) + VIGNETTE (90s with localStorage)
 function loadMonetagPush(isVignette=false){
-  if(Date.now() - lastAdTime < 45000 &&!isVignette) return; // push respects 45s, vignette can bypass
-  lastAdTime = Date.now();
+  if(isVignette){
+    let now = Date.now();
+    if(now - lastVignette < 90000) return;
+    lastVignette = now;
+    localStorage.setItem('gv_lastVignette', now.toString());
+  }
   const s = document.createElement('script');
   s.dataset.zone = '11803455';
-  s.src = 'https://nap5k.com/tag.min.js?'+Date.now()+(isVignette? '&v=1' : '');
+  s.src = 'https://nap5k.com/tag.min.js?'+Date.now();
   document.head.appendChild(s);
 }
 
 function cancelAdTimers(){
-  clearTimeout(adTimers.small);
-  clearTimeout(adTimers.big);
-  adTimers.small=null; adTimers.big=null;
+  clearTimeout(adTimers.push); clearTimeout(adTimers.vignette); clearTimeout(adTimers.social);
 }
 
-function startAdTimers(reelElement, feedType, postIndexGlobal){
+function startAdTimers(reelElement, feedType){
   cancelAdTimers();
-  // Small ad every 3rd post - after 4s
-  if(postIndexGlobal % 3 === 0){
-    adTimers.small = setTimeout(()=>{ loadMonetagPush(false); }, 4000);
+  // PUSH: every 3rd video after 3s, NO 45s delay
+  if(window._totalViewed % 3 === 0){
+    adTimers.push = setTimeout(()=>{ loadMonetagPush(false); }, 3000);
   }
-  // Big ad - 90s for Social Bar
-  let bigTime = (feedType==='Novels' || feedType==='Stories')? 40000 : 90000;
-  adTimers.big = setTimeout(()=>{
-    if(feedType==='Novels' || feedType==='Stories') loadMonetagPush(true); // Vignette
-    else loadAdsterraSocialBar(); // Social Bar at 90s
-  }, bigTime);
+  // VIGNETTE + SOCIAL BAR: if user stays 90s on any video
+  adTimers.vignette = setTimeout(()=>{ loadMonetagPush(true); }, 90000);
+  adTimers.social = setTimeout(()=>{ loadAdsterraSocialBar(); }, 90000);
 }
 
-// 5,6,7 as you asked
+// NATIVE every 5th ForYou + Reels with localStorage
 function shouldShowInlineAd(feedType){
-  adCounters[feedType]++;
-  let nth = {ForYou:5, Reels:6, Novels:7, Stories:6}[feedType] || 5;
-  if(adCounters[feedType] >= nth){
-    adCounters[feedType]=0;
-    return true;
-  }
-  return false;
+  if(feedType !== 'ForYou' && feedType !== 'Reels') return false;
+  let viewed = parseInt(localStorage.getItem('gv_total_viewed') || '0');
+  viewed++;
+  localStorage.setItem('gv_total_viewed', viewed.toString());
+  window._totalViewed = viewed;
+  return viewed % 5 === 0;
 }
 /* ========== AD LOGIC END ========== */
 async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const target=map[type];let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);renderFeed(filtered);}
