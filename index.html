@@ -227,16 +227,33 @@ async function getSignedUrl(postId){
   return url;
 }
 
-/* ========== AD LOGIC - SEPARATE FORYOU / REELS ========== */
+/* ========== AD LOGIC - FINAL - CHECKED ========== */
 let adTimers = {push:null, vignette:null, social:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
 let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
 
+function loadAdsterraBanner(container){
+  if(!container || container.dataset.loaded) return;
+  container.dataset.loaded='1';
+  container.className='inline-ad-box banner';
+  container.style.cssText = 'display:block;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:25;background:#fff;padding:6px;border-radius:12px;width:312px;';
+  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div><div class="ad-slot"></div>`;
+  const slot = container.querySelector('.ad-slot');
+  // EXACT BANNER CODE
+  const s1 = document.createElement('script');
+  s1.text = "atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};";
+  slot.appendChild(s1);
+  const s2 = document.createElement('script');
+  s2.src = "https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js";
+  slot.appendChild(s2);
+  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000); // 25s stay
+}
+
 function loadAdsterraNative(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
-  container.className = 'inline-ad-box native';
-  container.style.cssText = 'display:block;position:absolute;bottom:85px;left:12px;right:80px;z-index:20;background:#fff;padding:8px;border-radius:12px;';
+  container.className='inline-ad-box native';
+  container.style.cssText = 'display:block;position:absolute;bottom:85px;left:12px;right:80px;z-index:25;background:#fff;padding:8px;border-radius:12px;';
   container.innerHTML = `<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="float:right;cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕</span></div><div id="container-851999cd56faf8ed4b378278159ac3c0"></div>`;
   const s = document.createElement('script');
   s.async = true; s.setAttribute('data-cfasync','false');
@@ -244,26 +261,16 @@ function loadAdsterraNative(container){
   container.appendChild(s);
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000);
 }
-function loadAdsterraBanner(container){
-  if(!container || container.dataset.loaded) return;
-  container.dataset.loaded='1';
-  container.className='inline-ad-box banner';
-  container.style.cssText = 'display:flex;flex-direction:column;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:20;background:#fff;padding:6px;border-radius:12px;';
-  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div>`;
-  window.atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
-  const s2 = document.createElement('script');
-  s2.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
-  container.appendChild(s2);
-  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 20000);
-}
+
 function loadAdsterraSocialBar(){
   let now = Date.now();
-  if(now - lastSocialBar < 90000) return;
+  if(now - lastSocialBar < 45000) return; // 45s gap
   lastSocialBar = now; localStorage.setItem('gv_lastSocial', now.toString());
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
   document.body.appendChild(s);
 }
+
 function loadMonetagPush(isVignette=false){
   if(isVignette){
     let now = Date.now();
@@ -272,31 +279,40 @@ function loadMonetagPush(isVignette=false){
   }
   (function(s){s.dataset.zone='11803455',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
 }
+
 function cancelAdTimers(){ clearTimeout(adTimers.push); clearTimeout(adTimers.vignette); clearTimeout(adTimers.social); }
 
 function startAdTimers(reelElement){
   cancelAdTimers();
   let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
 
-  // Push every 3rd globally
+  // 1. PUSH EVERYWHERE - every 3rd - after 2s watch
   if(window._totalViewed % 3 === 0 && window._totalViewed>0){
-    adTimers.push = setTimeout(()=>{ loadMonetagPush(false); }, 3000);
+    adTimers.push = setTimeout(()=>{ loadMonetagPush(false); }, 2000);
   }
-  adTimers.vignette = setTimeout(()=>{ loadMonetagPush(true); }, 90000);
-  adTimers.social = setTimeout(()=>{ loadAdsterraSocialBar(); }, 90000);
 
-  // SEPARATE NATIVE: ForYou uses gv_viewed_foryou, Reels uses gv_viewed_reels
+  // 2. VIGNETTE - NOVELS TAB ONLY - after 25s
+  if(feedType==='Novels'){
+    adTimers.vignette = setTimeout(()=>{ loadMonetagPush(true); }, 25000);
+  }
+
+  // 3. SOCIAL BAR - 45s long view - EVERYWHERE
+  adTimers.social = setTimeout(()=>{ loadAdsterraSocialBar(); }, 45000);
+
+  // 4. BANNER 300x250 - FORYOU + REELS ONLY - every 5th - 25s stay
   if(feedType==='ForYou' && window._viewedForYou % 5 === 0 && window._viewedForYou>0){
     if(!reelElement.querySelector('.inline-ad-box')){
-      let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraNative(adBox);
+      let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraBanner(adBox);
     }
   } else if(feedType==='Reels' && window._viewedReels % 5 === 0 && window._viewedReels>0){
     if(!reelElement.querySelector('.inline-ad-box')){
-      let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraNative(adBox);
+      let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraBanner(adBox);
     }
   }
+  // Images (Stories) + Novels = no banner = less annoying
 }
 /* ========== AD LOGIC END ========== */
+
 async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const target=map[type];let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);renderFeed(filtered);}
 
 async function renderFeed(posts){
