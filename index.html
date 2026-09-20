@@ -194,30 +194,15 @@ function applyCurrencyLabels(){
 function toast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 async function api(p,o={}){try{const r=await fetch(API+p,{...o,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...o.headers}});if(r.status===401) location.href='auth.html';const d=await r.json().catch(()=>({}));if(r.status>=400) return{error:d.error||'Request failed'};return d;}catch{toast('Network error');return{};}}
 async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
-const signedUrlCache = new Map();
 const inflightRequests = new Map();
 
-async function getSignedUrl(postId){
+const signedUrlCache = new Map();
+function getSignedUrl(postId){
   if(signedUrlCache.has(postId)) return signedUrlCache.get(postId);
-  if(inflightRequests.has(postId)) return inflightRequests.get(postId);
-
-  const promise = (async()=>{
-    for(let attempt=0; attempt<2; attempt++){
-      try{
-        const d = await api(`/api/media/sign?postId=${postId}`);
-        if(d?.url){
-          signedUrlCache.set(postId, d.url);
-          return d.url;
-        }
-      }catch(e){}
-      await new Promise(r=>setTimeout(r, 700));
-    }
-    return null;
-  })();
-
-  inflightRequests.set(postId, promise);
-  const url = await promise;
-  inflightRequests.delete(postId);
+  // This URL itself IS the video - it 302 redirects to Telegram
+  // No JSON, no second request
+  const url = `${API}/api/media/sign?postId=${postId}`;
+  signedUrlCache.set(postId, url);
   return url;
 }
 
@@ -415,7 +400,7 @@ function triggerHeartAnimation(container,x,y){const rect=container.getBoundingCl
 function manualPlay(o){const v=o.parentElement.querySelector('video');if(v){v.muted=false;v.play().then(()=>{o.style.display='none';}).catch(()=>{v.muted=true;v.play();o.style.display='none';});}}
 function setupReelObserver(){
   const obs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
+    entries.forEach(async e=>{
       const video=e.target.querySelector('video');
       const img=e.target.querySelector('img');
       const skel=e.target.querySelector('.reel-skeleton');
@@ -423,90 +408,39 @@ function setupReelObserver(){
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
       const progressFill=e.target.querySelector(`#progress-${postId}`);
-      const globalIdx = parseInt(e.target.dataset.globalIndex) || ++window._totalViewed;
 
       if(e.intersectionRatio>0.6){
-        if(e.target.dataset.globalIndex) window._totalViewed = Math.max(window._totalViewed, parseInt(e.target.dataset.globalIndex));
-        else e.target.dataset.globalIndex = window._totalViewed;
-
         let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
-        startAdTimers(e.target, feedType, window._totalViewed);
+        startAdTimers(e.target, feedType, parseInt(e.target.dataset.globalIndex)||0);
 
         if(video){
-          video.muted=GLOBAL_MUTED;
+          video.muted=true;
+          video.playsInline=true;
+          video.setAttribute('webkit-playsinline','');
+
           video.ontimeupdate=()=>{
-            if(progressFill&&video.duration){
-              progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;
-            }
+            if(progressFill&&video.duration) progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;
           };
-          video.onerror=()=>{
+          video.onerror=()=>{ if(overlay) overlay.style.display='flex'; };
+          video.onended=()=>{ video.currentTime=0; video.play().catch(()=>{}); };
+
+          if(!video.src){
+            const url = getSignedUrl(postId);
             if(skel) skel.style.display='none';
-            if(overlay) overlay.style.display='flex';
-          };
-
-          if(!video.dataset.loaded){
-            video.dataset.loaded="true";
-            getSignedUrl(postId).then(url=>{
-              if(skel) skel.style.display='none';
-              if(!url){
-                if(overlay) overlay.style.display='flex';
-                video.dataset.loaded=""; // allow retry on next view
-                return;
-              }
-              if(url.includes('.m3u8')){
-                if(window.Hls&&Hls.isSupported()){
-                  if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
-                  const hls=new Hls({maxBufferLength:10});
-                  hls.loadSource(url);
-                  hls.attachMedia(video);
-                  hlsInstances[postId]=hls;
-                  hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});
-                  hls.on(Hls.Events.ERROR,()=>{
-                    if(skel) skel.style.display='none';
-                    if(overlay) overlay.style.display='flex';
-                  });
-                }else{
-                  video.src=url;
-                  video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
-                }
-              }else{
-                video.src=url;
-                video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
-              }
-
-              // Preload next reel
-              const next = e.target.nextElementSibling;
-              if(next && next.dataset.id){
-                const nid = next.dataset.id;
-                if(!signedUrlCache.has(nid)) getSignedUrl(nid);
-              }
-
-            }).catch(()=>{
-              if(skel) skel.style.display='none';
-              if(overlay) overlay.style.display='flex';
-              video.dataset.loaded="";
-            });
+            video.src=url; // <-- This is your API that 302 to TG
+            video.load();
+            video.play().then(()=>{ if(overlay) overlay.style.display='none'; })
+                        .catch(()=>{ if(overlay) overlay.style.display='flex'; });
           }else{
-            video.play().catch(()=>{if(overlay) overlay.style.display='flex';});
+            video.play().catch(()=>{ if(overlay) overlay.style.display='flex'; });
           }
         }
-
-        if(img){
-          if(!img.src){
-            getSignedUrl(postId).then(url=>{
-              if(skel) skel.style.display='none';
-              if(url) img.src=url;
-              else img.style.background='#111';
-            }).catch(()=>{
-              if(skel) skel.style.display='none';
-            });
-          } else {
-            if(skel) skel.style.display='none';
-          }
+        if(img &&!img.src){
+          const url = getSignedUrl(postId);
+          if(skel) skel.style.display='none';
+          img.src=url;
         }
-
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
-
       }else{
         cancelAdTimers();
         if(video){
@@ -514,11 +448,9 @@ function setupReelObserver(){
           const hls = hlsInstances[postId];
           if(hls){ try{ hls.destroy(); }catch{} delete hlsInstances[postId]; }
         }
-        if(overlay) overlay.style.display='none';
       }
     });
   },{threshold:0.6});
-
   document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
 }
 async function likePost(postId,creatorId,btn){
