@@ -221,19 +221,17 @@ async function getSignedUrl(postId){
   return url;
 }
 
-/* ========== AD LOGIC - FINAL ========== */
+/* ========== AD LOGIC - FINAL - EXACT CODES ========== */
 let adTimers = {push:null, vignette:null, social:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
 let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
 
-// NATIVE - every 5th ForYou + Reels with localStorage
-function loadAdsterraNative(container, postId){
+function loadAdsterraNative(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
-  let uniqueId = `container-851999cd56faf8ed4b378278159ac3c0-${postId}-${Date.now()}`;
   container.className = 'inline-ad-box native';
   container.style.cssText = 'display:block;position:absolute;bottom:85px;left:12px;right:80px;z-index:20;background:#fff;padding:8px;border-radius:12px;';
-  container.innerHTML = `<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="float:right;cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕</span></div><div id="${uniqueId}"></div>`;
+  container.innerHTML = `<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="float:right;cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕</span></div><div id="container-851999cd56faf8ed4b378278159ac3c0"></div>`;
   const s = document.createElement('script');
   s.async = true; s.setAttribute('data-cfasync','false');
   s.src = 'https://fixesconsessionconsession.com/851999cd56faf8ed4b378278159ac3c0/invoke.js';
@@ -241,21 +239,23 @@ function loadAdsterraNative(container, postId){
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000);
 }
 
-// BANNER
-function loadAdsterraBanner(container, postId){
+function loadAdsterraBanner(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
   window.atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
   container.className='inline-ad-box banner';
   container.style.cssText = 'display:flex;flex-direction:column;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:20;background:#fff;padding:6px;border-radius:12px;';
-  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div><div class="banner-inner"></div>`;
-  const s = document.createElement('script');
-  s.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
-  container.querySelector('.banner-inner').appendChild(s);
+  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div>`;
+  const s1 = document.createElement('script');
+  s1.type='text/javascript';
+  s1.innerHTML = `atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};`;
+  container.appendChild(s1);
+  const s2 = document.createElement('script');
+  s2.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
+  container.appendChild(s2);
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 20000);
 }
 
-// SOCIAL BAR - every 90s with localStorage, survives refresh
 function loadAdsterraSocialBar(){
   let now = Date.now();
   if(now - lastSocialBar < 90000) return;
@@ -266,7 +266,6 @@ function loadAdsterraSocialBar(){
   document.body.appendChild(s);
 }
 
-// MONETAG PUSH (no delay) + VIGNETTE (90s with localStorage)
 function loadMonetagPush(isVignette=false){
   if(isVignette){
     let now = Date.now();
@@ -274,28 +273,20 @@ function loadMonetagPush(isVignette=false){
     lastVignette = now;
     localStorage.setItem('gv_lastVignette', now.toString());
   }
-  const s = document.createElement('script');
-  s.dataset.zone = '11803455';
-  s.src = 'https://nap5k.com/tag.min.js?'+Date.now();
-  document.head.appendChild(s);
+  (function(s){s.dataset.zone='11803455',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
 }
 
 function cancelAdTimers(){
   clearTimeout(adTimers.push); clearTimeout(adTimers.vignette); clearTimeout(adTimers.social);
 }
-
-function startAdTimers(reelElement, feedType){
+function startAdTimers(){
   cancelAdTimers();
-  // PUSH: every 3rd video after 3s, NO 45s delay
   if(window._totalViewed % 3 === 0){
     adTimers.push = setTimeout(()=>{ loadMonetagPush(false); }, 3000);
   }
-  // VIGNETTE + SOCIAL BAR: if user stays 90s on any video
   adTimers.vignette = setTimeout(()=>{ loadMonetagPush(true); }, 90000);
   adTimers.social = setTimeout(()=>{ loadAdsterraSocialBar(); }, 90000);
 }
-
-// NATIVE every 5th ForYou + Reels with localStorage
 function shouldShowInlineAd(feedType){
   if(feedType !== 'ForYou' && feedType !== 'Reels') return false;
   let viewed = parseInt(localStorage.getItem('gv_total_viewed') || '0');
@@ -325,18 +316,17 @@ async function renderFeed(posts){
         const adBox=document.createElement('div'); 
         adBox.id='ad-native-'+p.id+'-'+Date.now(); 
         reelEl.appendChild(adBox); 
-        setTimeout(()=>loadAdsterraNative(adBox, p.id), 800); 
+        setTimeout(()=>loadAdsterraNative(adBox), 800); 
       }
       c.appendChild(reelEl);
     } else if(p.type==='store'){
       const reelEl=await createImageReel(p); 
       reelEl.dataset.globalIndex=postIndex;
-      // No native for memes, only banner if you want
       if(showInlineAd){ 
         const adBox=document.createElement('div'); 
         adBox.id='ad-banner-'+p.id+'-'+Date.now(); 
         reelEl.appendChild(adBox); 
-        setTimeout(()=>loadAdsterraBanner(adBox, p.id), 800); 
+        setTimeout(()=>loadAdsterraBanner(adBox), 800); 
       }
       c.appendChild(reelEl);
     } else {
@@ -346,7 +336,7 @@ async function renderFeed(posts){
         const adBox=document.createElement('div'); 
         adBox.id='ad-banner-'+p.id+'-'+Date.now(); 
         reelEl.appendChild(adBox); 
-        setTimeout(()=>loadAdsterraBanner(adBox, p.id), 800); 
+        setTimeout(()=>loadAdsterraBanner(adBox), 800); 
       }
       c.appendChild(reelEl);
     }
