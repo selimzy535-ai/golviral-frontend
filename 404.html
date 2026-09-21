@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="monetag" content="6ce58fb93fd596470117d55094beb955">
-<script>window.AdsterraLoaded = {}; window.MonetagLoaded = false; window._totalViewed = 0;</script>
+<script>
+window.AdsterraLoaded = {};
+window.MonetagLoaded = false;
+window._totalViewed = parseInt(localStorage.getItem('gv_total_viewed')||'0');
+window._viewedForYou = parseInt(localStorage.getItem('gv_viewed_foryou')||'0');
+window._viewedReels = parseInt(localStorage.getItem('gv_viewed_reels')||'0');
+</script>
 <title>GolViral - Earn Money Creating Short Videos & Stories</title>
 <meta name="description" content="GolViral is TikTok-style platform where you earn money. Watch reels, post short stories, memes, videos and get paid for views, likes, comments and referrals. Start earning today.">
 <meta name="keywords" content="GolViral, earn money online, short videos, reels, memes, Nigerian TikTok, make money watching videos, creator earnings">
@@ -128,7 +134,10 @@ svg.icon{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;str
 <div class="tab" onclick="loadFeed('Stories',this)">Memes</div>
 </div>
 </header>
-<main id="feed"></main>
+<main id="feed-foryou" style="height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none"></main>
+<main id="feed-reels" style="display:none;height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none"></main>
+<main id="feed-novels" style="display:none;height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none"></main>
+<main id="feed-stories" style="display:none;height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none"></main>
 <nav class="bottom-nav">
 <div class="nav-btn active"><svg class="icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
 <div class="nav-btn" onclick="openSearch()"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Search</span></div>
@@ -194,104 +203,158 @@ function applyCurrencyLabels(){
 function toast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 async function api(p,o={}){try{const r=await fetch(API+p,{...o,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...o.headers}});if(r.status===401) location.href='auth.html';const d=await r.json().catch(()=>({}));if(r.status>=400) return{error:d.error||'Request failed'};return d;}catch{toast('Network error');return{};}}
 async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
-async function getSignedUrl(postId){const d=await api(`/api/media/sign?postId=${postId}`);return d?d.url:null;}
+const signedUrlCache = new Map();
+const inflightRequests = new Map();
 
-/* ========== AD LOGIC - FINAL ========== */
-let adCounters = {ForYou:0, Reels:0, Novels:0, Stories:0};
-let adTimers = {small:null, big:null, startTime:0, currentReel:null, paused:false};
-let bigAdCooldown = 0;
+async function getSignedUrl(postId){
+  if(signedUrlCache.has(postId)) return signedUrlCache.get(postId);
+  if(inflightRequests.has(postId)) return inflightRequests.get(postId);
 
-function loadAdsterraNative(container){
-  if(!container) return;
-  container.className = 'inline-ad-box native';
-  container.style.display='block';
-  container.innerHTML = '<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;letter-spacing:1px">SPONSORED</div><div id="container-851999cd56faf8ed4b378278159ac3c0"></div>';
-  const s = document.createElement('script');
-  s.async = true; s.src = 'https://fixesconsessionconsession.com/851999cd56faf8ed4b378278159ac3c0/invoke.js';
-  container.appendChild(s);
+  const promise = (async()=>{
+    for(let attempt=0; attempt<2; attempt++){
+      try{
+        const d = await api(`/api/media/sign?postId=${postId}`);
+        if(d?.url){
+          signedUrlCache.set(postId, d.url);
+          return d.url;
+        }
+      }catch(e){}
+      await new Promise(r=>setTimeout(r, 700));
+    }
+    return null;
+  })();
+
+  inflightRequests.set(postId, promise);
+  const url = await promise;
+  inflightRequests.delete(postId);
+  return url;
 }
 
-function loadAdsterraSocialBar(){
-  if(document.querySelector('#adsterra-bar-'+Date.now())) return;
-  const s = document.createElement('script');
-  s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
-  document.body.appendChild(s);
-}
+/* ========== AD LOGIC - FINAL SEPARATE TABS ========== */
+let adTimers = {push:null, vignette:null, social:null};
+let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
+let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
 
 function loadAdsterraBanner(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
   container.className='inline-ad-box banner';
-  container.style.display='flex';
-  container.innerHTML='<div style="color:#555;font-size:10px;margin-bottom:6px">SPONSORED</div>';
-  window.atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
-  const s = document.createElement('script');
-  s.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
-  container.appendChild(s);
+  container.style.cssText = 'display:block;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:25;background:#fff;padding:6px;border-radius:12px;width:312px;pointer-events:auto;';
+  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div><iframe width="300" height="250" frameborder="0" scrolling="no" style="border:0;display:block;background:#fff" sandbox="allow-scripts allow-same-origin"></iframe>`;
+  const iframe = container.querySelector('iframe');
+  setTimeout(()=>{
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(`<html><body style="margin:0;padding:0"><script>atOptions={'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};<\/script><script src="https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js"><\/script></body></html>`);
+    doc.close();
+  }, 800);
+  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000);
 }
+function loadAdsterraSocialBar(){
+  let now = Date.now();
+  if(now - lastSocialBar < 45000) return;
+  // Prevent duplicate script
+  if(document.querySelector('script[src*="05fc07eba706d7e8ed162db503deb645.js"]')) {
+    // If script already loaded, just show the bar again if hidden
+    const existingBar = document.querySelector('.adsterra-social-bar-container');
+    if(existingBar) existingBar.style.display = 'block';
+    return;
+  }
+  lastSocialBar = now;
+  localStorage.setItem('gv_lastSocial', now.toString());
+  
+  const s = document.createElement('script');
+  s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
+  document.body.appendChild(s);
 
+  // Give time to leave - auto hide after 20 sec
+  setTimeout(()=>{
+    const bar = document.querySelectorAll('[id^="adsterra"], [class*="social-bar"], iframe[src*="adsterra"], div[style*="position: fixed"][style*="bottom"]');
+    // Adsterra social bar injects fixed bottom div - hide it
+    document.querySelectorAll('div').forEach(div=>{
+      const style = div.getAttribute('style') || '';
+      if(style.includes('position: fixed') && style.includes('bottom: 0') && div.innerHTML.length < 2000 && div.innerHTML.length > 100){
+        // This is likely the social bar
+        div.style.display = 'none';
+        div.classList.add('adsterra-social-bar-container');
+      }
+    });
+  }, 20000); // leave after 20 sec
+
+  // Fully remove script after 25 sec so it can fire again next time
+  setTimeout(()=>{
+    const scr = document.querySelector('script[src*="05fc07eba706d7e8ed162db503deb645.js"]');
+    if(scr) scr.remove();
+  }, 25000);
+}
 function loadMonetagPush(isVignette=false){
-  const s = document.createElement('script');
-  s.dataset.zone = '11803455';
-  s.src = 'https://nap5k.com/tag.min.js?'+Date.now();
-  document.head.appendChild(s);
+  if(isVignette){
+    let now = Date.now();
+    if(now - lastVignette < 90000) return;
+    lastVignette = now; localStorage.setItem('gv_lastVignette', now.toString());
+  }
+  (function(s){s.dataset.zone='11803455',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
 }
-
-function cancelAdTimers(){
-  clearTimeout(adTimers.small); clearTimeout(adTimers.big);
-  adTimers.small=null; adTimers.big=null; adTimers.startTime=0; adTimers.paused=false;
-}
-
-function startAdTimers(reelElement, feedType, postIndexGlobal){
+function cancelAdTimers(){ clearTimeout(adTimers.push); clearTimeout(adTimers.vignette); clearTimeout(adTimers.social); }
+function startAdTimers(reelElement, feedTypeName){
   cancelAdTimers();
-  adTimers.currentReel = reelElement;
-  adTimers.startTime = Date.now();
-  const isThirdPost = (postIndexGlobal % 3 === 0);
-  adTimers.small = setTimeout(()=>{
-    if(isThirdPost){ loadMonetagPush(false); }
-  }, 3000);
-  let bigTime = (feedType==='Novels' || feedType==='Stories')? 30000 : 45000;
-  adTimers.big = setTimeout(()=>{
-    if(bigAdCooldown > 0) return;
-    if(feedType==='Novels' || feedType==='Stories') loadMonetagPush(true);
-    else loadAdsterraSocialBar();
-    bigAdCooldown = 2;
-  }, bigTime);
-}
-
-function shouldShowInlineAd(feedType){
-  if(bigAdCooldown > 0) bigAdCooldown--;
-  adCounters[feedType]++;
-  let nth = {ForYou:5, Reels:7, Novels:8, Stories:6}[feedType] || 5;
-  if(adCounters[feedType] >= nth){ adCounters[feedType]=0; return true; }
-  return false;
+  let feedType = feedTypeName || document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
+  if(window._totalViewed % 3 === 0 && window._totalViewed>0){
+    adTimers.push = setTimeout(()=>{ loadMonetagPush(false); }, 2000);
+  }
+  if(feedType==='Novels'){
+    adTimers.vignette = setTimeout(()=>{ loadMonetagPush(true); }, 25000);
+  }
+  adTimers.social = setTimeout(()=>{ loadAdsterraSocialBar(); }, 45000);
+  if(feedType==='ForYou' && window._viewedForYou % 5 === 0 && window._viewedForYou>0){
+    if(!reelElement.querySelector('.inline-ad-box')){
+      let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraBanner(adBox);
+    }
+  } else if(feedType==='Reels' && window._viewedReels % 5 === 0 && window._viewedReels>0){
+    if(!reelElement.querySelector('.inline-ad-box')){
+      let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraBanner(adBox);
+    }
+  }
 }
 /* ========== AD LOGIC END ========== */
 
-async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const target=map[type];let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);renderFeed(filtered);}
+let feedsCache = { ForYou: [], Reels: [], Novels: [], Stories: [] };
+let observers = {};
 
-async function renderFeed(posts){
-  const c=document.getElementById('feed');c.innerHTML='';
-  if(!posts||!posts.length){c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}
-  c.style.overflowY='scroll';let postIndex=0;let currentFeedType=document.querySelector('.tab.active').innerText.trim();
-  for(const p of posts){
-    postIndex++;
-    let showInlineAd = postIndex > 2 && shouldShowInlineAd(currentFeedType);
-    if(p.type==='reel'){
-      const reelEl=await createReel(p); reelEl.dataset.globalIndex=postIndex;
-      if(showInlineAd){ const adBox=document.createElement('div'); adBox.id='ad-native-'+p.id; reelEl.appendChild(adBox); setTimeout(()=>loadAdsterraNative(adBox),1000); }
-      c.appendChild(reelEl);
-    } else if(p.type==='store'){
-      const reelEl=await createImageReel(p); reelEl.dataset.globalIndex=postIndex;
-      if(showInlineAd){ const adBox=document.createElement('div'); adBox.id='ad-vignette-'+p.id; reelEl.appendChild(adBox); setTimeout(()=>loadMonetagPush(true),1000); }
-      c.appendChild(reelEl);
-    } else {
-      const reelEl=await createTextReel(p); reelEl.dataset.globalIndex=postIndex;
-      if(showInlineAd){ const adBox=document.createElement('div'); adBox.id='ad-banner-'+p.id; reelEl.appendChild(adBox); setTimeout(()=>loadAdsterraBanner(adBox),1000); }
-      c.appendChild(reelEl);
-    }
+async function loadFeed(type, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('main[id^="feed-"]').forEach(m=>m.style.display='none');
+  let targetMain = document.getElementById(`feed-${type.toLowerCase()}`);
+  if(targetMain) targetMain.style.display='block';
+  if(feedsCache[type] && feedsCache[type].length){
+    renderFeed(feedsCache[type], type);
+    return;
   }
-  setupReelObserver();applyCurrencyLabels();
+  const res=await api('/api/feed');
+  let all=Array.isArray(res)?res:[];
+  const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};
+  const target=map[type];
+  let filtered=target==='all'?all:all.filter(p=>p.type===target);
+  feedsCache[type]=filtered;
+  renderFeed(filtered, type);
+}
+
+async function renderFeed(posts, type){
+  const idMap = {ForYou:'feed-foryou', Reels:'feed-reels', Novels:'feed-novels', Stories:'feed-stories'};
+  const c=document.getElementById(idMap[type]);
+  if(!c) return;
+  c.innerHTML='';
+  if(!posts||!posts.length){c.innerHTML=`<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet in ${type}</p>`;return;}
+  for(const p of posts){
+    let reelEl;
+    if(p.type==='reel') reelEl=await createReel(p);
+    else if(p.type==='store') reelEl=await createImageReel(p);
+    else reelEl=await createTextReel(p);
+    c.appendChild(reelEl);
+  }
+  setupReelObserver(type);
+  applyCurrencyLabels();
 }
 function toggleCaption(postId){
   const cap=document.getElementById(`cap-${postId}`);
@@ -371,7 +434,12 @@ async function createTextReel(p){
 function setupDoubleTap(div,postId,userId){let lastTap=0;div.addEventListener('touchend',(e)=>{const now=Date.now();if(now-lastTap<300){const touch=e.changedTouches[0];triggerHeartAnimation(div,touch.clientX,touch.clientY);likePost(postId,userId,div.querySelector('.action-btn'));}lastTap=now;});}
 function triggerHeartAnimation(container,x,y){const rect=container.getBoundingClientRect();const heart=document.createElement('div');heart.className='heart-pop';heart.style.left=`${x-rect.left}px`;heart.style.top=`${y-rect.top}px`;heart.innerHTML=`<svg viewBox="0 0 24 24" style="width:100%;height:100%;fill:var(--pink)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;container.appendChild(heart);setTimeout(()=>heart.remove(),800);}
 function manualPlay(o){const v=o.parentElement.querySelector('video');if(v){v.muted=false;v.play().then(()=>{o.style.display='none';}).catch(()=>{v.muted=true;v.play();o.style.display='none';});}}
-function setupReelObserver(){
+function setupReelObserver(feedTypeName){
+  const idMap = {ForYou:'feed-foryou', Reels:'feed-reels', Novels:'feed-novels', Stories:'feed-stories'};
+  const containerId = idMap[feedTypeName] || 'feed-foryou';
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  if(observers[feedTypeName]){ try{ observers[feedTypeName].disconnect(); }catch{} }
   const obs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       const video=e.target.querySelector('video');
@@ -381,44 +449,57 @@ function setupReelObserver(){
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
       const progressFill=e.target.querySelector(`#progress-${postId}`);
-      const globalIdx = parseInt(e.target.dataset.globalIndex) || ++window._totalViewed;
-
       if(e.intersectionRatio>0.6){
-        if(e.target.dataset.globalIndex) window._totalViewed = Math.max(window._totalViewed, parseInt(e.target.dataset.globalIndex));
-        else e.target.dataset.globalIndex = window._totalViewed;
-
-        let feedType = document.querySelector('.tab.active').innerText.trim();
-        startAdTimers(e.target, feedType, window._totalViewed);
-
+        if(!e.target.dataset.counted){
+          e.target.dataset.counted='1';
+          window._totalViewed = parseInt(localStorage.getItem('gv_total_viewed')||'0') + 1;
+          localStorage.setItem('gv_total_viewed', window._totalViewed.toString());
+          if(feedTypeName==='ForYou'){
+            window._viewedForYou = parseInt(localStorage.getItem('gv_viewed_foryou')||'0') + 1;
+            localStorage.setItem('gv_viewed_foryou', window._viewedForYou.toString());
+          } else if(feedTypeName==='Reels'){
+            window._viewedReels = parseInt(localStorage.getItem('gv_viewed_reels')||'0') + 1;
+            localStorage.setItem('gv_viewed_reels', window._viewedReels.toString());
+          }
+        }
+        startAdTimers(e.target, feedTypeName);
         if(video){
           video.muted=GLOBAL_MUTED;
-          video.ontimeupdate=()=>{if(progressFill&&video.duration){progressFill.style.width=`${(video.currentTime/video.duration)*100}%`;}};
+          video.ontimeupdate=()=>{ if(progressFill&&video.duration) progressFill.style.width=`${(video.currentTime/video.duration)*100}%`; };
+          video.onerror=()=>{ if(skel) skel.style.display='none'; if(overlay) overlay.style.display='flex'; };
           if(!video.dataset.loaded){
             video.dataset.loaded="true";
             getSignedUrl(postId).then(url=>{
               if(skel) skel.style.display='none';
-              if(url){
-                if(url.includes('.m3u8')){
-                  if(window.Hls&&Hls.isSupported()){
-                    const hls=new Hls();hls.loadSource(url);hls.attachMedia(video);hlsInstances[postId]=hls;
-                    hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});
-                  }else{video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}
-                }else{video.src=url;video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}
-              }
-            });
-          }else{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});}
+              if(!url){ if(overlay) overlay.style.display='flex'; video.dataset.loaded=""; return; }
+              if(url.includes('.m3u8')){
+                if(window.Hls&&Hls.isSupported()){
+                  if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
+                  const hls=new Hls({maxBufferLength:10});
+                  hls.loadSource(url); hls.attachMedia(video); hlsInstances[postId]=hls;
+                  hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});
+                }else{ video.src=url; video.play().catch(()=>{if(overlay) overlay.style.display='flex';}); }
+              }else{ video.src=url; video.play().catch(()=>{if(overlay) overlay.style.display='flex';}); }
+              const next = e.target.nextElementSibling;
+              if(next && next.dataset.id &&!signedUrlCache.has(next.dataset.id)) getSignedUrl(next.dataset.id);
+            }).catch(()=>{ if(skel) skel.style.display='none'; if(overlay) overlay.style.display='flex'; video.dataset.loaded=""; });
+          }else{ video.play().catch(()=>{if(overlay) overlay.style.display='flex';}); }
         }
-        if(img&&!img.src){getSignedUrl(postId).then(url=>{if(skel) skel.style.display='none';if(url) img.src=url;});}
+        if(img){
+          if(!img.src){
+            getSignedUrl(postId).then(url=>{ if(skel) skel.style.display='none'; if(url) img.src=url; }).catch(()=>{ if(skel) skel.style.display='none'; });
+          } else { if(skel) skel.style.display='none'; }
+        }
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
       }else{
-        // User scrolled away - pause timers, they will resume on next post
         cancelAdTimers();
-        if(video) video.pause();
+        if(video){ video.pause(); const hls=hlsInstances[postId]; if(hls){ try{ hls.destroy(); }catch{} delete hlsInstances[postId]; } }
         if(overlay) overlay.style.display='none';
       }
     });
   },{threshold:0.6});
-  document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
+  container.querySelectorAll('.reel').forEach(r=>obs.observe(r));
+  observers[feedTypeName]=obs;
 }
 async function likePost(postId,creatorId,btn){
   if(btn.dataset.locked) return;
