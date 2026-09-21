@@ -202,7 +202,31 @@ function applyCurrencyLabels(){
 }
 function toast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 async function api(p,o={}){try{const r=await fetch(API+p,{...o,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...o.headers}});if(r.status===401) location.href='auth.html';const d=await r.json().catch(()=>({}));if(r.status>=400) return{error:d.error||'Request failed'};return d;}catch{toast('Network error');return{};}}
-async function getUser(id){if(userCache[id]) return userCache[id];const u=await api(`/api/user/${id}`);userCache[id]=u;return u;}
+
+// load cache from localStorage once
+try{
+  const saved = JSON.parse(localStorage.getItem('gv_userCache')||'{}');
+  Object.assign(userCache, saved);
+}catch{}
+
+async function getUser(id){
+  if(userCache[id] && userCache[id]._cachedAt && Date.now() - userCache[id]._cachedAt < 5*60*1000){
+    return userCache[id];
+  }
+  if(userCache[id] &&!userCache[id]._cachedAt) return userCache[id];
+  const u = await api(`/api/user/${id}`);
+  if(u && u.id){
+    u._cachedAt = Date.now();
+    userCache[id]=u;
+    try{
+      const keys = Object.keys(userCache);
+      if(keys.length>100) delete userCache[keys[0]];
+      localStorage.setItem('gv_userCache', JSON.stringify(userCache));
+    }catch{}
+  }
+  return u;
+}
+
 const signedUrlCache = new Map();
 const inflightRequests = new Map();
 
