@@ -463,27 +463,30 @@ function setupReelObserver(feedTypeName){
           }
         }
         startAdTimers(e.target, feedTypeName);
+        if(overlay) overlay.style.display='none'; // NEVER show play button on scroll
         if(video){
-          video.muted=GLOBAL_MUTED;
+          video.muted=true; // force muted = browser allows autoplay
+          video.playsInline=true;
           video.ontimeupdate=()=>{ if(progressFill&&video.duration) progressFill.style.width=`${(video.currentTime/video.duration)*100}%`; };
-          video.onerror=()=>{ if(skel) skel.style.display='none'; if(overlay) overlay.style.display='flex'; };
           if(!video.dataset.loaded){
             video.dataset.loaded="true";
             getSignedUrl(postId).then(url=>{
               if(skel) skel.style.display='none';
-              if(!url){ if(overlay) overlay.style.display='flex'; video.dataset.loaded=""; return; }
+              if(!url){ video.dataset.loaded=""; return; }
+              const playNow = ()=>{ video.muted=true; video.play().catch(()=>setTimeout(()=>video.play().catch(()=>{}),300)); };
               if(url.includes('.m3u8')){
                 if(window.Hls&&Hls.isSupported()){
                   if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
                   const hls=new Hls({maxBufferLength:10});
                   hls.loadSource(url); hls.attachMedia(video); hlsInstances[postId]=hls;
-                  hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{if(overlay) overlay.style.display='flex';});});
-                }else{ video.src=url; video.play().catch(()=>{if(overlay) overlay.style.display='flex';}); }
-              }else{ video.src=url; video.play().catch(()=>{if(overlay) overlay.style.display='flex';}); }
-              const next = e.target.nextElementSibling;
-              if(next && next.dataset.id &&!signedUrlCache.has(next.dataset.id)) getSignedUrl(next.dataset.id);
-            }).catch(()=>{ if(skel) skel.style.display='none'; if(overlay) overlay.style.display='flex'; video.dataset.loaded=""; });
-          }else{ video.play().catch(()=>{if(overlay) overlay.style.display='flex';}); }
+                  hls.on(Hls.Events.MANIFEST_PARSED, playNow);
+                }else{ video.src=url; playNow(); }
+              }else{ video.src=url; playNow(); }
+            }).catch(()=>{ if(skel) skel.style.display='none'; video.dataset.loaded=""; });
+          }else{
+            video.muted=true;
+            video.play().catch(()=>{});
+          }
         }
         if(img){
           if(!img.src){
@@ -493,8 +496,7 @@ function setupReelObserver(feedTypeName){
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
       }else{
         cancelAdTimers();
-        if(video){ video.pause(); const hls=hlsInstances[postId]; if(hls){ try{ hls.destroy(); }catch{} delete hlsInstances[postId]; } }
-        if(overlay) overlay.style.display='none';
+        if(video){ video.pause(); }
       }
     });
   },{threshold:0.6});
