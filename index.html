@@ -463,9 +463,9 @@ function setupReelObserver(feedTypeName){
           }
         }
         startAdTimers(e.target, feedTypeName);
-        if(overlay) overlay.style.display='none'; // NEVER show play button on scroll
-                if(video){
-          video.muted=GLOBAL_MUTED; // respect user's unmute
+        if(overlay) overlay.style.display='none';
+        if(video){
+          video.muted=GLOBAL_MUTED;
           video.playsInline=true;
           video.ontimeupdate=()=>{ if(progressFill&&video.duration) progressFill.style.width=`${(video.currentTime/video.duration)*100}%`; };
           if(!video.dataset.loaded){
@@ -475,11 +475,7 @@ function setupReelObserver(feedTypeName){
               if(!url){ video.dataset.loaded=""; return; }
               const playNow = ()=>{
                 video.muted=GLOBAL_MUTED;
-                video.play().catch(()=>{
-                  // browser blocked unmuted autoplay -> try muted
-                  video.muted=true;
-                  video.play().catch(()=>{});
-                });
+                video.play().catch(()=>{ video.muted=true; video.play().catch(()=>{}); });
               };
               if(url.includes('.m3u8')){
                 if(window.Hls&&Hls.isSupported()){
@@ -489,35 +485,13 @@ function setupReelObserver(feedTypeName){
                   hls.on(Hls.Events.MANIFEST_PARSED, playNow);
                 }else{ video.src=url; playNow(); }
               }else{ video.src=url; playNow(); }
+              // preload next
+              const nextEl = e.target.nextElementSibling;
+              if(nextEl && nextEl.dataset.id &&!signedUrlCache.has(nextEl.dataset.id)) getSignedUrl(nextEl.dataset.id);
             }).catch(()=>{ if(skel) skel.style.display='none'; video.dataset.loaded=""; });
           }else{
             video.muted=GLOBAL_MUTED;
-            video.play().catch(()=>{
-              video.muted=true;
-              video.play().catch(()=>{});
-            });
-          }
-        } // force muted = browser allows autoplay
-          video.playsInline=true;
-          video.ontimeupdate=()=>{ if(progressFill&&video.duration) progressFill.style.width=`${(video.currentTime/video.duration)*100}%`; };
-          if(!video.dataset.loaded){
-            video.dataset.loaded="true";
-            getSignedUrl(postId).then(url=>{
-              if(skel) skel.style.display='none';
-              if(!url){ video.dataset.loaded=""; return; }
-              const playNow = ()=>{ video.muted=true; video.play().catch(()=>setTimeout(()=>video.play().catch(()=>{}),300)); };
-              if(url.includes('.m3u8')){
-                if(window.Hls&&Hls.isSupported()){
-                  if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
-                  const hls=new Hls({maxBufferLength:10});
-                  hls.loadSource(url); hls.attachMedia(video); hlsInstances[postId]=hls;
-                  hls.on(Hls.Events.MANIFEST_PARSED, playNow);
-                }else{ video.src=url; playNow(); }
-              }else{ video.src=url; playNow(); }
-            }).catch(()=>{ if(skel) skel.style.display='none'; video.dataset.loaded=""; });
-          }else{
-            video.muted=true;
-            video.play().catch(()=>{});
+            video.play().catch(()=>{ video.muted=true; video.play().catch(()=>{}); });
           }
         }
         if(img){
