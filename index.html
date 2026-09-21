@@ -210,12 +210,15 @@ try{
 }catch{}
 
 async function getUser(id){
+  // return from memory if <5min old
   if(userCache[id] && userCache[id]._cachedAt && Date.now() - userCache[id]._cachedAt < 5*60*1000){
     return userCache[id];
   }
   if(userCache[id] &&!userCache[id]._cachedAt) return userCache[id];
+
   const u = await api(`/api/user/${id}`);
-  if(u && u.id){
+  if(u && (u.id || u.username || u.userId)){
+    u.id = u.id || id;
     u._cachedAt = Date.now();
     userCache[id]=u;
     try{
@@ -357,6 +360,7 @@ async function loadFeed(type, el){
   }
   const res=await api('/api/feed');
   let all=Array.isArray(res)?res:[];
+  feedData = all; // FIX: now Boost can find post title
   const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};
   const target=map[type];
   let filtered=target==='all'?all:all.filter(p=>p.type===target);
