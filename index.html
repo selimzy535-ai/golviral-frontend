@@ -134,7 +134,10 @@ svg.icon{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;str
 <div class="tab" onclick="loadFeed('Stories',this)">Memes</div>
 </div>
 </header>
-<main id="feed"></main>
+<main id="feed-foryou" style="height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none"></main>
+<main id="feed-reels" style="display:none;height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none"></main>
+<main id="feed-novels" style="display:none;height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none"></main>
+<main id="feed-stories" style="display:none;height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none"></main>
 <nav class="bottom-nav">
 <div class="nav-btn active"><svg class="icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
 <div class="nav-btn" onclick="openSearch()"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Search</span></div>
@@ -227,7 +230,7 @@ async function getSignedUrl(postId){
   return url;
 }
 
-/* ========== AD LOGIC - FINAL - CHECKED ========== */
+/* ========== AD LOGIC - FINAL SEPARATE TABS ========== */
 let adTimers = {push:null, vignette:null, social:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
 let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
@@ -236,52 +239,54 @@ function loadAdsterraBanner(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
   container.className='inline-ad-box banner';
-  container.style.cssText = 'display:block;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:25;background:#fff;padding:6px;border-radius:12px;width:312px;';
-  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div><div class="ad-slot"></div>`;
-  const slot = container.querySelector('.ad-slot');
-  // EXACT BANNER CODE
-  const s1 = document.createElement('script');
-  s1.text = "atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};";
-  slot.appendChild(s1);
-  const s2 = document.createElement('script');
-  s2.src = "https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js";
-  slot.appendChild(s2);
-  setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000); // 25s stay
-}
-
-function loadAdsterraBanner(container){
-  if(!container || container.dataset.loaded) return;
-  container.dataset.loaded='1';
-  container.className='inline-ad-box banner';
   container.style.cssText = 'display:block;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:25;background:#fff;padding:6px;border-radius:12px;width:312px;pointer-events:auto;';
-  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div><iframe id="ad-frame-${Date.now()}" width="300" height="250" frameborder="0" scrolling="no" style="border:0;display:block;background:#fff" sandbox="allow-scripts allow-same-origin"></iframe>`;
-  
+  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div><iframe width="300" height="250" frameborder="0" scrolling="no" style="border:0;display:block;background:#fff" sandbox="allow-scripts allow-same-origin"></iframe>`;
   const iframe = container.querySelector('iframe');
-  // Block auto-redirect by loading banner inside sandboxed iframe after 1s
   setTimeout(()=>{
     const doc = iframe.contentDocument || iframe.contentWindow.document;
     doc.open();
-    doc.write(`
-      <html><body style="margin:0;padding:0;overflow:hidden">
-      <script>atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};<\/script>
-      <script src="https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js"><\/script>
-      </body></html>
-    `);
+    doc.write(`<html><body style="margin:0;padding:0"><script>atOptions={'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};<\/script><script src="https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js"><\/script></body></html>`);
     doc.close();
-  }, 1000);
-
+  }, 800);
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000);
 }
-
 function loadAdsterraSocialBar(){
   let now = Date.now();
-  if(now - lastSocialBar < 45000) return; // 45s gap
-  lastSocialBar = now; localStorage.setItem('gv_lastSocial', now.toString());
+  if(now - lastSocialBar < 45000) return;
+  // Prevent duplicate script
+  if(document.querySelector('script[src*="05fc07eba706d7e8ed162db503deb645.js"]')) {
+    // If script already loaded, just show the bar again if hidden
+    const existingBar = document.querySelector('.adsterra-social-bar-container');
+    if(existingBar) existingBar.style.display = 'block';
+    return;
+  }
+  lastSocialBar = now;
+  localStorage.setItem('gv_lastSocial', now.toString());
+  
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
   document.body.appendChild(s);
-}
 
+  // Give time to leave - auto hide after 20 sec
+  setTimeout(()=>{
+    const bar = document.querySelectorAll('[id^="adsterra"], [class*="social-bar"], iframe[src*="adsterra"], div[style*="position: fixed"][style*="bottom"]');
+    // Adsterra social bar injects fixed bottom div - hide it
+    document.querySelectorAll('div').forEach(div=>{
+      const style = div.getAttribute('style') || '';
+      if(style.includes('position: fixed') && style.includes('bottom: 0') && div.innerHTML.length < 2000 && div.innerHTML.length > 100){
+        // This is likely the social bar
+        div.style.display = 'none';
+        div.classList.add('adsterra-social-bar-container');
+      }
+    });
+  }, 20000); // leave after 20 sec
+
+  // Fully remove script after 25 sec so it can fire again next time
+  setTimeout(()=>{
+    const scr = document.querySelector('script[src*="05fc07eba706d7e8ed162db503deb645.js"]');
+    if(scr) scr.remove();
+  }, 25000);
+}
 function loadMonetagPush(isVignette=false){
   if(isVignette){
     let now = Date.now();
@@ -290,27 +295,17 @@ function loadMonetagPush(isVignette=false){
   }
   (function(s){s.dataset.zone='11803455',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
 }
-
 function cancelAdTimers(){ clearTimeout(adTimers.push); clearTimeout(adTimers.vignette); clearTimeout(adTimers.social); }
-
-function startAdTimers(reelElement){
+function startAdTimers(reelElement, feedTypeName){
   cancelAdTimers();
-  let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
-
-  // 1. PUSH EVERYWHERE - every 3rd - after 2s watch
+  let feedType = feedTypeName || document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
   if(window._totalViewed % 3 === 0 && window._totalViewed>0){
     adTimers.push = setTimeout(()=>{ loadMonetagPush(false); }, 2000);
   }
-
-  // 2. VIGNETTE - NOVELS TAB ONLY - after 25s
   if(feedType==='Novels'){
     adTimers.vignette = setTimeout(()=>{ loadMonetagPush(true); }, 25000);
   }
-
-  // 3. SOCIAL BAR - 45s long view - EVERYWHERE
   adTimers.social = setTimeout(()=>{ loadAdsterraSocialBar(); }, 45000);
-
-  // 4. BANNER 300x250 - FORYOU + REELS ONLY - every 5th - 25s stay
   if(feedType==='ForYou' && window._viewedForYou % 5 === 0 && window._viewedForYou>0){
     if(!reelElement.querySelector('.inline-ad-box')){
       let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraBanner(adBox);
@@ -320,15 +315,37 @@ function startAdTimers(reelElement){
       let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraBanner(adBox);
     }
   }
-  // Images (Stories) + Novels = no banner = less annoying
 }
 /* ========== AD LOGIC END ========== */
 
-async function loadFeed(type,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(el) el.classList.add('active');const res=await api('/api/feed');feedData=Array.isArray(res)?res:[];const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};const target=map[type];let filtered=target==='all'?feedData:feedData.filter(p=>p.type===target);renderFeed(filtered);}
+let feedsCache = { ForYou: [], Reels: [], Novels: [], Stories: [] };
+let observers = {};
 
-async function renderFeed(posts){
-  const c=document.getElementById('feed');c.innerHTML='';
-  if(!posts||!posts.length){c.innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet</p>';return;}
+async function loadFeed(type, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('main[id^="feed-"]').forEach(m=>m.style.display='none');
+  let targetMain = document.getElementById(`feed-${type.toLowerCase()}`);
+  if(targetMain) targetMain.style.display='block';
+  if(feedsCache[type] && feedsCache[type].length){
+    renderFeed(feedsCache[type], type);
+    return;
+  }
+  const res=await api('/api/feed');
+  let all=Array.isArray(res)?res:[];
+  const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};
+  const target=map[type];
+  let filtered=target==='all'?all:all.filter(p=>p.type===target);
+  feedsCache[type]=filtered;
+  renderFeed(filtered, type);
+}
+
+async function renderFeed(posts, type){
+  const idMap = {ForYou:'feed-foryou', Reels:'feed-reels', Novels:'feed-novels', Stories:'feed-stories'};
+  const c=document.getElementById(idMap[type]);
+  if(!c) return;
+  c.innerHTML='';
+  if(!posts||!posts.length){c.innerHTML=`<p style="text-align:center;padding:40px;color:var(--muted)">No posts yet in ${type}</p>`;return;}
   for(const p of posts){
     let reelEl;
     if(p.type==='reel') reelEl=await createReel(p);
@@ -336,7 +353,7 @@ async function renderFeed(posts){
     else reelEl=await createTextReel(p);
     c.appendChild(reelEl);
   }
-  setupReelObserver();
+  setupReelObserver(type);
   applyCurrencyLabels();
 }
 function toggleCaption(postId){
@@ -417,7 +434,12 @@ async function createTextReel(p){
 function setupDoubleTap(div,postId,userId){let lastTap=0;div.addEventListener('touchend',(e)=>{const now=Date.now();if(now-lastTap<300){const touch=e.changedTouches[0];triggerHeartAnimation(div,touch.clientX,touch.clientY);likePost(postId,userId,div.querySelector('.action-btn'));}lastTap=now;});}
 function triggerHeartAnimation(container,x,y){const rect=container.getBoundingClientRect();const heart=document.createElement('div');heart.className='heart-pop';heart.style.left=`${x-rect.left}px`;heart.style.top=`${y-rect.top}px`;heart.innerHTML=`<svg viewBox="0 0 24 24" style="width:100%;height:100%;fill:var(--pink)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;container.appendChild(heart);setTimeout(()=>heart.remove(),800);}
 function manualPlay(o){const v=o.parentElement.querySelector('video');if(v){v.muted=false;v.play().then(()=>{o.style.display='none';}).catch(()=>{v.muted=true;v.play();o.style.display='none';});}}
-function setupReelObserver(){
+function setupReelObserver(feedTypeName){
+  const idMap = {ForYou:'feed-foryou', Reels:'feed-reels', Novels:'feed-novels', Stories:'feed-stories'};
+  const containerId = idMap[feedTypeName] || 'feed-foryou';
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  if(observers[feedTypeName]){ try{ observers[feedTypeName].disconnect(); }catch{} }
   const obs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       const video=e.target.querySelector('video');
@@ -427,27 +449,20 @@ function setupReelObserver(){
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
       const progressFill=e.target.querySelector(`#progress-${postId}`);
-
       if(e.intersectionRatio>0.6){
         if(!e.target.dataset.counted){
           e.target.dataset.counted='1';
-          let feedType = document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
-
-          // Global counter for Push
           window._totalViewed = parseInt(localStorage.getItem('gv_total_viewed')||'0') + 1;
           localStorage.setItem('gv_total_viewed', window._totalViewed.toString());
-
-          // Separate counters
-          if(feedType==='ForYou'){
+          if(feedTypeName==='ForYou'){
             window._viewedForYou = parseInt(localStorage.getItem('gv_viewed_foryou')||'0') + 1;
             localStorage.setItem('gv_viewed_foryou', window._viewedForYou.toString());
-          } else if(feedType==='Reels'){
+          } else if(feedTypeName==='Reels'){
             window._viewedReels = parseInt(localStorage.getItem('gv_viewed_reels')||'0') + 1;
             localStorage.setItem('gv_viewed_reels', window._viewedReels.toString());
           }
         }
-        startAdTimers(e.target);
-
+        startAdTimers(e.target, feedTypeName);
         if(video){
           video.muted=GLOBAL_MUTED;
           video.ontimeupdate=()=>{ if(progressFill&&video.duration) progressFill.style.width=`${(video.currentTime/video.duration)*100}%`; };
@@ -483,7 +498,8 @@ function setupReelObserver(){
       }
     });
   },{threshold:0.6});
-  document.querySelectorAll('.reel').forEach(r=>obs.observe(r));
+  container.querySelectorAll('.reel').forEach(r=>obs.observe(r));
+  observers[feedTypeName]=obs;
 }
 async function likePost(postId,creatorId,btn){
   if(btn.dataset.locked) return;
