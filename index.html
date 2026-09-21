@@ -249,16 +249,27 @@ function loadAdsterraBanner(container){
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000); // 25s stay
 }
 
-function loadAdsterraNative(container){
+function loadAdsterraBanner(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
-  container.className='inline-ad-box native';
-  container.style.cssText = 'display:block;position:absolute;bottom:85px;left:12px;right:80px;z-index:25;background:#fff;padding:8px;border-radius:12px;';
-  container.innerHTML = `<div style="color:#555;font-size:10px;text-align:center;margin-bottom:6px;">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="float:right;cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕</span></div><div id="container-851999cd56faf8ed4b378278159ac3c0"></div>`;
-  const s = document.createElement('script');
-  s.async = true; s.setAttribute('data-cfasync','false');
-  s.src = 'https://fixesconsessionconsession.com/851999cd56faf8ed4b378278159ac3c0/invoke.js';
-  container.appendChild(s);
+  container.className='inline-ad-box banner';
+  container.style.cssText = 'display:block;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:25;background:#fff;padding:6px;border-radius:12px;width:312px;pointer-events:auto;';
+  container.innerHTML = `<div style="color:#555;font-size:10px;margin-bottom:6px;width:300px;display:flex;justify-content:space-between">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#222;color:#fff;padding:2px 8px;border-radius:10px">✕ Close</span></div><iframe id="ad-frame-${Date.now()}" width="300" height="250" frameborder="0" scrolling="no" style="border:0;display:block;background:#fff" sandbox="allow-scripts allow-same-origin"></iframe>`;
+  
+  const iframe = container.querySelector('iframe');
+  // Block auto-redirect by loading banner inside sandboxed iframe after 1s
+  setTimeout(()=>{
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+      <html><body style="margin:0;padding:0;overflow:hidden">
+      <script>atOptions = {'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};<\/script>
+      <script src="https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js"><\/script>
+      </body></html>
+    `);
+    doc.close();
+  }, 1000);
+
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000);
 }
 
