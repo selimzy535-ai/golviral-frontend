@@ -83,10 +83,10 @@ self.addEventListener('fetch', event => {
   const method = event.request.method;
 
   // === NEW: CACHE PROFILE & FEED API - STALE WHILE REVALIDATE ===
+  // === CACHE ONLY PROFILE & SEARCH, NOT FEED ===
   if (method==='GET' && (
       url.pathname.startsWith('/api/user/') || 
-      url.pathname.startsWith('/api/feed') || 
-      url.pathname.startsWith('/api/search/') ||
+      url.pathname.startsWith('/api/search/') || 
       url.pathname.startsWith('/api/post/') ||
       url.hostname.includes('onrender.com') && url.pathname.includes('/api/user/')
   )){
@@ -99,7 +99,6 @@ self.addEventListener('fetch', event => {
           }
           return networkRes;
         }).catch(()=>cached);
-        // instant from cache if exists
         return cached || fetchPromise;
       })
     );
