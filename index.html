@@ -373,30 +373,29 @@ async function loadFeed(type, el){
 
   const res=await api('/api/feed');
   let all=Array.isArray(res)?res:[];
-
-  // === DEDUP - THIS FIXES SAME VIDEO EVERY SCROLL ===
-  const seen = new Map();
-  all.forEach(p=>{ if(p && p.id &&!seen.has(p.id)) seen.set(p.id, p); });
-  all = Array.from(seen.values());
-
-  feedData = all;
+  feedData = all; // for Boost preview
 
   let filtered = [];
   if(type==='ForYou'){
-    let reels = all.filter(p=>p.type==='reel');
-    const boosted = reels.filter(p=> p.boostedUntil && new Date(p.boostedUntil) > new Date());
-    const normal = reels.filter(p=>!(p.boostedUntil && new Date(p.boostedUntil) > new Date()));
-    normal.sort((a,b)=>(b.views||0)-(a.views||0));
-    // shuffle only normal
-    for(let i=normal.length-1;i>0;i--){
+    // ForYou = VIDEO ONLY - boosted + popular + shuffled (TikTok algorithm)
+    filtered = all.filter(p=>p.type==='reel');
+    // put boosted on top
+    filtered.sort((a,b)=>{
+      const aBoost = a.boostedUntil && new Date(a.boostedUntil) > new Date()? 1:0;
+      const bBoost = b.boostedUntil && new Date(b.boostedUntil) > new Date()? 1:0;
+      if(aBoost!==bBoost) return bBoost - aBoost;
+      return (b.views||0) - (a.views||0);
+    });
+    // shuffle slightly for freshness
+    for(let i=filtered.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
-      [normal[i],normal[j]]=[normal[j],normal[i]];
+      [filtered[i],filtered[j]]=[filtered[j],filtered[i]];
     }
-    filtered = [...boosted,...normal];
   }
   else if(type==='Reels'){
+    // Reels = VIDEO ONLY - newest first (Instagram style)
     filtered = all.filter(p=>p.type==='reel')
-                 .sort((a,b)=> new Date(b.createdAt||0) - new Date(a.createdAt||0));
+                  .sort((a,b)=> new Date(b.createdAt||0) - new Date(a.createdAt||0));
   }
   else if(type==='Novels'){
     filtered = all.filter(p=>p.type==='novel');
@@ -405,15 +404,9 @@ async function loadFeed(type, el){
     filtered = all.filter(p=>p.type==='store');
   }
 
-  // Final dedup again after filter
-  const seen2 = new Map();
-  filtered.forEach(p=>{ if(!seen2.has(p.id)) seen2.set(p.id,p); });
-  filtered = Array.from(seen2.values());
-
   feedsCache[type]=filtered;
   renderFeed(filtered, type);
 }
-
 async function renderFeed(posts, type){
   const idMap = {ForYou:'feed-foryou', Reels:'feed-reels', Novels:'feed-novels', Stories:'feed-stories'};
   const c=document.getElementById(idMap[type]);
