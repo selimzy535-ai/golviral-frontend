@@ -257,12 +257,27 @@ async function getSignedUrl(postId){
   return url;
 }
 
-/* ========== AD LOGIC - FINAL SEPARATE TABS ========== */
+/* ========== AD LOGIC - WITH COLLISION DETECTION ========== */
 let adTimers = {push:null, vignette:null, social:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
 let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
 
+function isAnyAdOnScreen(){
+  // 1. Check banner inside reel
+  if(document.querySelector('.inline-ad-box')) return true;
+  // 2. Check social bar (Adsterra injects fixed bottom div)
+  const fixedBottoms = Array.from(document.querySelectorAll('div[style*="position: fixed"]'));
+  for(const d of fixedBottoms){
+    const s = d.getAttribute('style')||'';
+    if(s.includes('bottom: 0') && d.offsetHeight>0 && d.innerHTML.length>50) return true;
+  }
+  // 3. Check Monetag vignette / push overlay
+  if(document.querySelector('[id*="monetag"], [class*="monetag"], [id*="push"]')) return true;
+  return false;
+}
+
 function loadAdsterraBanner(container){
+  if(isAnyAdOnScreen()) return; // BLOCK if other ad visible
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
   container.className='inline-ad-box banner';
@@ -277,44 +292,36 @@ function loadAdsterraBanner(container){
   }, 800);
   setTimeout(()=>{ if(container.parentElement) container.remove(); }, 25000);
 }
+
 function loadAdsterraSocialBar(){
+  if(isAnyAdOnScreen()) return; // BLOCK if banner already
   let now = Date.now();
   if(now - lastSocialBar < 45000) return;
-  // Prevent duplicate script
-  if(document.querySelector('script[src*="05fc07eba706d7e8ed162db503deb645.js"]')) {
-    // If script already loaded, just show the bar again if hidden
-    const existingBar = document.querySelector('.adsterra-social-bar-container');
-    if(existingBar) existingBar.style.display = 'block';
-    return;
-  }
+  if(document.querySelector('script[src*="05fc07eba706d7e8ed162db503deb645.js"]')) return;
   lastSocialBar = now;
   localStorage.setItem('gv_lastSocial', now.toString());
-  
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
   document.body.appendChild(s);
-
-  // Give time to leave - auto hide after 20 sec
   setTimeout(()=>{
-    const bar = document.querySelectorAll('[id^="adsterra"], [class*="social-bar"], iframe[src*="adsterra"], div[style*="position: fixed"][style*="bottom"]');
-    // Adsterra social bar injects fixed bottom div - hide it
     document.querySelectorAll('div').forEach(div=>{
       const style = div.getAttribute('style') || '';
       if(style.includes('position: fixed') && style.includes('bottom: 0') && div.innerHTML.length < 2000 && div.innerHTML.length > 100){
-        // This is likely the social bar
-        div.style.display = 'none';
         div.classList.add('adsterra-social-bar-container');
       }
     });
-  }, 20000); // leave after 20 sec
-
-  // Fully remove script after 25 sec so it can fire again next time
+  }, 3000);
+  setTimeout(()=>{
+    document.querySelectorAll('.adsterra-social-bar-container').forEach(d=>d.style.display='none');
+  }, 20000);
   setTimeout(()=>{
     const scr = document.querySelector('script[src*="05fc07eba706d7e8ed162db503deb645.js"]');
     if(scr) scr.remove();
   }, 25000);
 }
+
 function loadMonetagPush(isVignette=false){
+  if(isAnyAdOnScreen()) return; // BLOCK if banner/social visible
   if(isVignette){
     let now = Date.now();
     if(now - lastVignette < 90000) return;
@@ -322,23 +329,27 @@ function loadMonetagPush(isVignette=false){
   }
   (function(s){s.dataset.zone='11803455',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
 }
+
 function cancelAdTimers(){ clearTimeout(adTimers.push); clearTimeout(adTimers.vignette); clearTimeout(adTimers.social); }
+
 function startAdTimers(reelElement, feedTypeName){
   cancelAdTimers();
   let feedType = feedTypeName || document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
-  if(window._totalViewed % 3 === 0 && window._totalViewed>0){
-    adTimers.push = setTimeout(()=>{ loadMonetagPush(false); }, 2000);
+  // Only queue if no ad on screen
+  if(!isAnyAdOnScreen() && window._totalViewed % 3 === 0 && window._totalViewed>0){
+    adTimers.push = setTimeout(()=>{ if(!isAnyAdOnScreen()) loadMonetagPush(false); }, 2000);
   }
-  if(feedType==='Novels'){
-    adTimers.vignette = setTimeout(()=>{ loadMonetagPush(true); }, 25000);
+  if(!isAnyAdOnScreen() && feedType==='Novels'){
+    adTimers.vignette = setTimeout(()=>{ if(!isAnyAdOnScreen()) loadMonetagPush(true); }, 25000);
   }
-  adTimers.social = setTimeout(()=>{ loadAdsterraSocialBar(); }, 45000);
+  adTimers.social = setTimeout(()=>{ if(!isAnyAdOnScreen()) loadAdsterraSocialBar(); }, 45000);
+
   if(feedType==='ForYou' && window._viewedForYou % 5 === 0 && window._viewedForYou>0){
-    if(!reelElement.querySelector('.inline-ad-box')){
+    if(!reelElement.querySelector('.inline-ad-box') && !isAnyAdOnScreen()){
       let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraBanner(adBox);
     }
   } else if(feedType==='Reels' && window._viewedReels % 5 === 0 && window._viewedReels>0){
-    if(!reelElement.querySelector('.inline-ad-box')){
+    if(!reelElement.querySelector('.inline-ad-box') && !isAnyAdOnScreen()){
       let adBox=document.createElement('div'); reelElement.appendChild(adBox); loadAdsterraBanner(adBox);
     }
   }
@@ -354,16 +365,45 @@ async function loadFeed(type, el){
   document.querySelectorAll('main[id^="feed-"]').forEach(m=>m.style.display='none');
   let targetMain = document.getElementById(`feed-${type.toLowerCase()}`);
   if(targetMain) targetMain.style.display='block';
+
   if(feedsCache[type] && feedsCache[type].length){
     renderFeed(feedsCache[type], type);
     return;
   }
+
   const res=await api('/api/feed');
   let all=Array.isArray(res)?res:[];
-  feedData = all; // FIX: now Boost can find post title
-  const map={ForYou:'all',Reels:'reel',Novels:'novel',Stories:'store'};
-  const target=map[type];
-  let filtered=target==='all'?all:all.filter(p=>p.type===target);
+  feedData = all; // for Boost preview
+
+  let filtered = [];
+  if(type==='ForYou'){
+    // ForYou = VIDEO ONLY - boosted + popular + shuffled (TikTok algorithm)
+    filtered = all.filter(p=>p.type==='reel');
+    // put boosted on top
+    filtered.sort((a,b)=>{
+      const aBoost = a.boostedUntil && new Date(a.boostedUntil) > new Date()? 1:0;
+      const bBoost = b.boostedUntil && new Date(b.boostedUntil) > new Date()? 1:0;
+      if(aBoost!==bBoost) return bBoost - aBoost;
+      return (b.views||0) - (a.views||0);
+    });
+    // shuffle slightly for freshness
+    for(let i=filtered.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [filtered[i],filtered[j]]=[filtered[j],filtered[i]];
+    }
+  }
+  else if(type==='Reels'){
+    // Reels = VIDEO ONLY - newest first (Instagram style)
+    filtered = all.filter(p=>p.type==='reel')
+                  .sort((a,b)=> new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  }
+  else if(type==='Novels'){
+    filtered = all.filter(p=>p.type==='novel');
+  }
+  else if(type==='Stories'){
+    filtered = all.filter(p=>p.type==='store');
+  }
+
   feedsCache[type]=filtered;
   renderFeed(filtered, type);
 }
