@@ -1,6 +1,6 @@
-const CACHE_NAME = 'golviral-v12'; // bumped v11 -> v12
-const APP_BASE_URL = 'https://golviral.com';
-const APP_FOLDER = '';
+const CACHE_NAME = 'golviral-v11'; // bumped for custom domain
+const APP_BASE_URL = 'https://golviral.com'; // NEW DOMAIN
+const APP_FOLDER = ''; // NO FOLDER ANYMORE - root!
 
 const PRECACHE_URLS = [
   `${APP_BASE_URL}/`,
@@ -33,6 +33,7 @@ self.addEventListener('activate', e => {
   );
 });
 
+// Throttled cleanup
 let isCleaning = false;
 async function cleanupOldVideos() {
   if (isCleaning) return;
@@ -82,32 +83,10 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const method = event.request.method;
 
-  // === NEW: CACHE PROFILE & FEED API - STALE WHILE REVALIDATE ===
-  // === CACHE ONLY PROFILE & SEARCH, NOT FEED ===
-  if (method==='GET' && (
-      url.pathname.startsWith('/api/user/') || 
-      url.pathname.startsWith('/api/search/') || 
-      url.pathname.startsWith('/api/post/') ||
-      url.hostname.includes('onrender.com') && url.pathname.includes('/api/user/')
-  )){
-    event.respondWith(
-      caches.open(CACHE_NAME).then(async cache=>{
-        const cached = await cache.match(event.request);
-        const fetchPromise = fetch(event.request).then(networkRes=>{
-          if(networkRes && networkRes.status===200){
-            cache.put(event.request, networkRes.clone());
-          }
-          return networkRes;
-        }).catch(()=>cached);
-        return cached || fetchPromise;
-      })
-    );
-    return;
-  }
-
-  // Original bypass - but now API is already handled above
   if (
     method!== 'GET' ||
+    url.hostname.includes('onrender.com') ||
+    url.pathname.startsWith('/api/') ||
     url.pathname.includes('admin.html')
   ) {
     return event.respondWith(fetch(event.request));
@@ -198,6 +177,7 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
   const relativeUrl = event.notification.data?.url || `/index.html#feed`;
   const urlToOpen = new URL(relativeUrl, APP_BASE_URL).href;
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
