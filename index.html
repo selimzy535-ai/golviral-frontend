@@ -1,4 +1,3 @@
-All good now 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -233,11 +232,89 @@ async function getUser(id){
 
 const signedUrlCache = new Map();
 const inflightRequests = new Map();
+const blobUrlCache = new Map(); // for TG ffmpeg fix
+
+class SmartAndroidPlayer {
+  constructor(videoElement, videoUrl) {
+    this.video = videoElement;
+    this.url = videoUrl;
+    this.isAndroid = /android/i.test(navigator.userAgent || navigator.vendor);
+    this.isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    this.init();
+  }
+  init() {
+    if (this.isAndroid) this.applyAndroidFixes();
+    else this.applyIOSFixes();
+    this.video.src = this.url;
+    this.attachErrorRecovery();
+    this.attemptPlay();
+  }
+  applyAndroidFixes() {
+    this.video.muted = true;
+    this.video.defaultMuted = true;
+    this.video.playsInline = true;
+    this.video.setAttribute('playsinline','');
+    this.video.setAttribute('webkit-playsinline','');
+    this.video.setAttribute('muted','');
+    this.video.crossOrigin = 'anonymous';
+    this.video.preload = 'auto';
+    this.video.loop = true;
+  }
+  applyIOSFixes() {
+    this.video.playsInline = true;
+    this.video.setAttribute('playsinline','');
+    this.video.setAttribute('webkit-playsinline','');
+    this.video.preload = 'metadata';
+    this.video.loop = true;
+  }
+  attemptPlay() {
+    const p = this.video.play();
+    if(p!==undefined){
+      p.catch(()=>{
+        if(this.isAndroid &&!this.video.muted){
+          this.video.muted = true;
+          this.video.play().catch(()=>{});
+        }else{
+          const ov = this.video.parentElement?.querySelector('.play-overlay');
+          if(ov) ov.style.display='flex';
+        }
+      });
+    }
+  }
+  attachErrorRecovery() {
+    this.video.onerror = () => {
+      if(this.isAndroid){
+        console.log('[SmartPlayer] Android error, blob fallback for TG ffmpeg');
+        this.recoverViaBlob();
+      }
+    };
+  }
+  async recoverViaBlob() {
+    try{
+      if(blobUrlCache.has(this.url)){
+        this.video.src = blobUrlCache.get(this.url);
+        this.video.load();
+        this.attemptPlay();
+        return;
+      }
+      const response = await fetch(this.url);
+      if(!response.ok) throw new Error('HTTP '+response.status);
+      const blob = await response.blob();
+      const fixedBlob = new Blob([blob], { type: 'video/mp4' });
+      const objectUrl = URL.createObjectURL(fixedBlob);
+      blobUrlCache.set(this.url, objectUrl);
+      this.video.src = objectUrl;
+      this.video.load();
+      this.attemptPlay();
+    }catch(e){
+      console.error('[SmartPlayer] Blob failed', e);
+    }
+  }
+}
 
 async function getSignedUrl(postId){
   if(signedUrlCache.has(postId)) return signedUrlCache.get(postId);
   if(inflightRequests.has(postId)) return inflightRequests.get(postId);
-
   const promise = (async()=>{
     for(let attempt=0; attempt<2; attempt++){
       try{
@@ -251,13 +328,11 @@ async function getSignedUrl(postId){
     }
     return null;
   })();
-
   inflightRequests.set(postId, promise);
   const url = await promise;
   inflightRequests.delete(postId);
   return url;
 }
-
 /* ========== AD LOGIC - WITH COLLISION DETECTION ========== */
 let adTimers = {push:null, vignette:null, social:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
@@ -509,12 +584,12 @@ function setupReelObserver(feedTypeName){
   const container = document.getElementById(containerId);
   if(!container) return;
   if(observers[feedTypeName]){ try{ observers[feedTypeName].disconnect(); }catch{} }
+  const isAndroid = /android/i.test(navigator.userAgent);
   const obs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       const video=e.target.querySelector('video');
       const img=e.target.querySelector('img');
       const skel=e.target.querySelector('.reel-skeleton');
-      const overlay=e.target.querySelector('.play-overlay');
       const postId=e.target.dataset.id;
       const creatorId=e.target.dataset.creator;
       const progressFill=e.target.querySelector(`#progress-${postId}`);
@@ -532,29 +607,35 @@ function setupReelObserver(feedTypeName){
           }
         }
         startAdTimers(e.target, feedTypeName);
-        if(overlay) overlay.style.display='none';
         if(video){
-          video.muted=GLOBAL_MUTED;
-          video.playsInline=true;
           video.ontimeupdate=()=>{ if(progressFill&&video.duration) progressFill.style.width=`${(video.currentTime/video.duration)*100}%`; };
           if(!video.dataset.loaded){
             video.dataset.loaded="true";
             getSignedUrl(postId).then(url=>{
+              if(!url){ video.dataset.loaded=""; if(skel) skel.style.display='none'; return; }
               if(skel) skel.style.display='none';
-              if(!url){ video.dataset.loaded=""; return; }
-              const playNow = ()=>{
-                video.muted=GLOBAL_MUTED;
-                video.play().catch(()=>{ video.muted=true; video.play().catch(()=>{}); });
-              };
+              // CRITICAL FIX: set data-src to prevent SW ignoreSearch reuse
+              video.dataset.src = url;
               if(url.includes('.m3u8')){
                 if(window.Hls&&Hls.isSupported()){
                   if(hlsInstances[postId]){ try{ hlsInstances[postId].destroy(); }catch{} }
-                  const hls=new Hls({maxBufferLength:10});
-                  hls.loadSource(url); hls.attachMedia(video); hlsInstances[postId]=hls;
-                  hls.on(Hls.Events.MANIFEST_PARSED, playNow);
-                }else{ video.src=url; playNow(); }
-              }else{ video.src=url; playNow(); }
-              // preload next
+                  const hls=new Hls({maxBufferLength:10, enableWorker:true});
+                  hls.loadSource(url);
+                  hls.attachMedia(video);
+                  hlsInstances[postId]=hls;
+                  hls.on(Hls.Events.MANIFEST_PARSED, ()=>{
+                    video.muted=GLOBAL_MUTED;
+                    video.play().catch(()=>{ video.muted=true; video.play().catch(()=>{}); });
+                  });
+                }else{
+                  video.src=url;
+                  video.muted=GLOBAL_MUTED;
+                  video.play().catch(()=>{});
+                }
+              }else{
+                // MP4 TG ffmpeg -> use SmartAndroidPlayer bulletproof
+                new SmartAndroidPlayer(video, url);
+              }
               const nextEl = e.target.nextElementSibling;
               if(nextEl && nextEl.dataset.id &&!signedUrlCache.has(nextEl.dataset.id)) getSignedUrl(nextEl.dataset.id);
             }).catch(()=>{ if(skel) skel.style.display='none'; video.dataset.loaded=""; });
@@ -571,10 +652,10 @@ function setupReelObserver(feedTypeName){
         api('/api/view',{method:'POST',body:JSON.stringify({postId,userId:creatorId,viewerId:USER_ID})});
       }else{
         cancelAdTimers();
-        if(video){ video.pause(); }
+        if(video) video.pause();
       }
     });
-  },{threshold:0.6});
+  },{threshold:0.6, rootMargin: isAndroid?'300px 0px':'0px'});
   container.querySelectorAll('.reel').forEach(r=>obs.observe(r));
   observers[feedTypeName]=obs;
 }
