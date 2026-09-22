@@ -645,6 +645,22 @@ function closeProfileCard(e){document.getElementById('profile-card-modal').class
 function viewFullProfile(){if(activeProfileUserId) location.href=`profile.html?id=${activeProfileUserId}`;}
 document.querySelectorAll('.sheet').forEach(sheet=>{let startY=0,currentY=0;sheet.addEventListener('touchstart',e=>{startY=e.touches[0].clientY;});sheet.addEventListener('touchmove',e=>{currentY=e.touches[0].clientY;const diff=currentY-startY;if(diff>0) sheet.style.transform=`translateY(${diff}px)`;});sheet.addEventListener('touchend',()=>{const diff=currentY-startY;if(diff>120){sheet.parentElement.classList.remove('active');}sheet.style.transform='translateY(0)';startY=0;currentY=0;});});
 loadFeed('ForYou',document.querySelector('.tab'));applyCurrencyLabels();
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  // show your own install button
+  console.log('App can be installed');
+  // example: document.getElementById('installBtn').style.display='block'
+});
+async function installApp(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const {outcome} = await deferredPrompt.userChoice;
+  console.log(outcome);
+  deferredPrompt=null;
+}
+window.addEventListener('appinstalled', ()=>{ toast('App installed ✓'); localStorage.setItem('gv_installed','1'); });
 </script>
 </body>
 </html>
