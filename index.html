@@ -249,14 +249,14 @@ class SmartAndroidPlayer {
     this.attachErrorRecovery();
     this.attemptPlay();
   }
-  applyAndroidFixes() {
+    applyAndroidFixes() {
     this.video.muted = true;
     this.video.defaultMuted = true;
     this.video.playsInline = true;
     this.video.setAttribute('playsinline','');
     this.video.setAttribute('webkit-playsinline','');
     this.video.setAttribute('muted','');
-    this.video.crossOrigin = 'anonymous';
+    // this.video.crossOrigin = 'anonymous';  <- DELETE THIS
     this.video.preload = 'auto';
     this.video.loop = true;
   }
