@@ -1,3 +1,4 @@
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -232,57 +233,82 @@ async function getUser(id){
 
 const signedUrlCache = new Map();
 const inflightRequests = new Map();
-const blobUrlCache = new Map();
+const blobUrlCache = new Map(); // for TG ffmpeg fix
 
 class SmartAndroidPlayer {
   constructor(videoElement, videoUrl) {
     this.video = videoElement;
     this.url = videoUrl;
-    this.isAndroid = /android/i.test(navigator.userAgent);
+    this.isAndroid = /android/i.test(navigator.userAgent || navigator.vendor);
+    this.isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     this.init();
   }
   init() {
-    // CRITICAL: remove crossOrigin - it kills Android when no CORS header
-    this.video.removeAttribute('crossorigin');
-    this.video.crossOrigin = null;
-    this.video.removeAttribute('crossOrigin');
-
+    if (this.isAndroid) this.applyAndroidFixes();
+    else this.applyIOSFixes();
+    this.video.src = this.url;
+    this.attachErrorRecovery();
+    this.attemptPlay();
+  }
+  applyAndroidFixes() {
     this.video.muted = true;
     this.video.defaultMuted = true;
     this.video.playsInline = true;
     this.video.setAttribute('playsinline','');
     this.video.setAttribute('webkit-playsinline','');
     this.video.setAttribute('muted','');
+    this.video.crossOrigin = 'anonymous';
     this.video.preload = 'auto';
     this.video.loop = true;
-    this.video.src = this.url;
-
-    // if direct src fails (moov at end), auto blob fallback
-    this.video.addEventListener('error', () => {
-      this.recoverViaBlob();
-    }, { once: true });
-
-    this.video.play().catch(()=>{});
+  }
+  applyIOSFixes() {
+    this.video.playsInline = true;
+    this.video.setAttribute('playsinline','');
+    this.video.setAttribute('webkit-playsinline','');
+    this.video.preload = 'metadata';
+    this.video.loop = true;
+  }
+  attemptPlay() {
+    const p = this.video.play();
+    if(p!==undefined){
+      p.catch(()=>{
+        if(this.isAndroid &&!this.video.muted){
+          this.video.muted = true;
+          this.video.play().catch(()=>{});
+        }else{
+          const ov = this.video.parentElement?.querySelector('.play-overlay');
+          if(ov) ov.style.display='flex';
+        }
+      });
+    }
+  }
+  attachErrorRecovery() {
+    this.video.onerror = () => {
+      if(this.isAndroid){
+        console.log('[SmartPlayer] Android error, blob fallback for TG ffmpeg');
+        this.recoverViaBlob();
+      }
+    };
   }
   async recoverViaBlob() {
     try{
       if(blobUrlCache.has(this.url)){
         this.video.src = blobUrlCache.get(this.url);
         this.video.load();
-        this.video.play().catch(()=>{});
+        this.attemptPlay();
         return;
       }
-      // blob download = bypasses moov-at-end + no Range needed
-      const res = await fetch(this.url, { mode: 'cors', cache: 'no-store' });
-      if(!res.ok) throw new Error(res.status);
-      const blob = await res.blob();
-      const objUrl = URL.createObjectURL(blob);
-      blobUrlCache.set(this.url, objUrl);
-      this.video.src = objUrl;
+      const response = await fetch(this.url);
+      if(!response.ok) throw new Error('HTTP '+response.status);
+      const blob = await response.blob();
+      const fixedBlob = new Blob([blob], { type: 'video/mp4' });
+      const objectUrl = URL.createObjectURL(fixedBlob);
+      blobUrlCache.set(this.url, objectUrl);
+      this.video.src = objectUrl;
       this.video.load();
-      this.video.play().catch(()=>{});
+      this.attemptPlay();
     }catch(e){
-      console.log('Blob failed, CORS missing:', e);
+      console.error('[SmartPlayer] Blob failed', e);
     }
   }
 }
@@ -294,7 +320,10 @@ async function getSignedUrl(postId){
     for(let attempt=0; attempt<2; attempt++){
       try{
         const d = await api(`/api/media/sign?postId=${postId}`);
-        if(d?.url) return d.url;
+        if(d?.url){
+          signedUrlCache.set(postId, d.url);
+          return d.url;
+        }
       }catch(e){}
       await new Promise(r=>setTimeout(r, 700));
     }
@@ -303,14 +332,8 @@ async function getSignedUrl(postId){
   inflightRequests.set(postId, promise);
   const url = await promise;
   inflightRequests.delete(postId);
-  if(url){
-    signedUrlCache.set(postId, url);
-    // expire after 3h - Telegram URLs expire in 4h, caching forever = 404 black screen
-    setTimeout(()=>signedUrlCache.delete(postId), 3*60*60*1000);
-  }
   return url;
 }
-
 /* ========== AD LOGIC - WITH COLLISION DETECTION ========== */
 let adTimers = {push:null, vignette:null, social:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
@@ -612,8 +635,7 @@ function setupReelObserver(feedTypeName){
                 }
               }else{
                 // MP4 TG ffmpeg -> use SmartAndroidPlayer bulletproof
-                video.dataset.postid = postId;
-new SmartAndroidPlayer(video, url);
+                new SmartAndroidPlayer(video, url);
               }
               const nextEl = e.target.nextElementSibling;
               if(nextEl && nextEl.dataset.id &&!signedUrlCache.has(nextEl.dataset.id)) getSignedUrl(nextEl.dataset.id);
