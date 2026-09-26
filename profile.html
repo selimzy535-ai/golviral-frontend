@@ -235,33 +235,52 @@ async function loadProfile(){
 }
 function copyLink(id){navigator.clipboard.writeText(document.getElementById(id).innerText);toast('Copied to clipboard')}
 let playingVideoId=null;
-function renderPosts(d){
-  postsCacheData=d||[];
-  if(!d||d.length===0){document.getElementById('tab-posts').innerHTML=`<p style="text-align:center;color:var(--muted);padding:40px">No posts yet</p>`;return}
-  document.getElementById('tab-posts').innerHTML=`<div class="grid">${d.map(p=>{
-    const media=p.cdn_url||p.mediaUrl||'';
-    const isImage=p.type==='image'||p.type==='photo'||p.type==='store'||/\.(jpg|jpeg|png|webp)$/i.test(media);
-    if(isImage&&media){return `<div class="grid-item" onclick="location.href='view.html?id=${p.id||p._id}'"><img src="${media}" loading="lazy"><div class="grid-overlay">❤️ ${formatNumber(p.likes||0)}</div></div>`;}
-    if(media){return `<div class="grid-item" id="post-${p.id}" onclick="playInGrid('${p.id}')"><video id="video-${p.id}" poster="${p.cdn_url}" playsinline preload="metadata"><source src="${p.cdn_url}" type="video/mp4"></video><div class="grid-play-btn" id="btn-${p.id}"><svg style="width:20px;height:20px;color:#fff" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><div class="grid-overlay"><svg style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${formatNumber(p.views||0)}</div></div>`;}
-    return `<div class="grid-item" style="padding:10px;font-size:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100%;text-align:center">${escapeHtml(p.title||p.caption||'Text')}</div>`;
-  }).join('')}</div>`;
+
+function renderPosts(d){ 
+ postsCacheData=d||[]; 
+ if(!d||d.length===0){ 
+  document.getElementById('tab-posts').innerHTML=`<p style="text-align:center;color:var(--muted);padding:40px">No posts yet</p>`; 
+  return 
+ } 
+ document.getElementById('tab-posts').innerHTML=`<div class="grid">${d.map(p=>{ 
+  const media=p.cdn_url||p.mediaUrl||''; 
+  const isImage=p.type==='image'||/\.(jpg|jpeg|png|webp)$/i.test(media); 
+  if(isImage&&media) return `<div class="grid-item" onclick="location.href='view.html?id=${p.id}'"><img src="${media}" loading="lazy"><div class="grid-overlay"><svg style="width:14px;height:14px;fill:#fff;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${formatNumber(p.likes||0)}</div></div>`; 
+  if(media) return `<div class="grid-item" id="post-${p.id}" onclick="playInGrid('${p.id}')"><video id="video-${p.id}" poster="${p.cdn_url}" playsinline preload="metadata"></video><div class="grid-play-btn" id="btn-${p.id}"><svg style="width:20px;height:20px;fill:#fff" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><div class="grid-overlay"><svg style="width:14px;height:14px;fill:#fff;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg> ${formatNumber(p.views||0)}</div></div>`; 
+  return `<div class="grid-item" style="padding:10px;font-size:12px;display:flex;align-items:center;justify-content:center">${escapeHtml(p.title||'')}</div>`; 
+ }).join('')}</div>`; 
 }
+
 async function loadPosts(){const d=await api(`/api/user/${profileId}/posts`); if(Array.isArray(d)){setCachedPosts(d); renderPosts(d);} }
-async function playInGrid(postId){const video=document.getElementById(`video-${postId}`);const btn=document.getElementById(`btn-${postId}`);if(!video)return; if(playingVideoId&&playingVideoId!==postId){const prevVideo=document.getElementById(`video-${playingVideoId}`);const prevBtn=document.getElementById(`btn-${playingVideoId}`);if(prevVideo){prevVideo.pause();if(prevBtn)prevBtn.style.display='flex'}} if(video.paused){if(!video.src||video.src===window.location.href){const res=await api(`/api/media/sign?postId=${postId}`);if(res.url)video.src=res.url;else return toast('Video not ready')} video.play();if(btn)btn.style.display='none';playingVideoId=postId}else{video.pause();if(btn)btn.style.display='flex';playingVideoId=null} video.onended=()=>{if(btn)btn.style.display='flex';playingVideoId=null}}
-function showList(type){
-  const list=(type==='followers'?(profileData.followersList||profileData.followersData):(profileData.followingList||profileData.followingData))||[];
-  document.getElementById('list-title').innerText=type==='followers'?'Followers':'Following';
-  const body=document.getElementById('list-content');
-  if(!list.length){body.innerHTML='<p style="color:#777">No '+type+' yet</p>';}
-  else{
-    body.innerHTML=list.map(u=>{
-      const letter=avatarLetter(u.username||u.name);
-      const avatar=u.avatarUrl||u.avatar?`<img src="${u.avatarUrl||u.avatar}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">`:`<div class="avatar-letter">${letter}</div>`;
-      return `<div class="user-row" onclick="location.href='profile.html?id=${u.id||u._id||u.userId}'">${avatar}<div><b>@${escapeHtml(u.username||'user')}</b>${u.isVerified?' <span style="color:var(--blue)"> ✓</span>':''}</div></div>`;
-    }).join('');
+
+async function playInGrid(postId){
+  const video=document.getElementById(`video-${postId}`);
+  const btn=document.getElementById(`btn-${postId}`);
+  if(!video) return;
+
+  if(playingVideoId && playingVideoId!==postId){
+    const prevVideo=document.getElementById(`video-${playingVideoId}`);
+    const prevBtn=document.getElementById(`btn-${playingVideoId}`);
+    if(prevVideo){prevVideo.pause(); if(prevBtn) prevBtn.style.display='flex';}
   }
-  document.getElementById('list-modal').classList.add('active');
+
+  if(video.paused){
+    if(!video.src || video.src===window.location.href){
+      const res=await api(`/api/media/sign?postId=${postId}`);
+      if(!res.url) return toast('Video not ready');
+      video.src=res.url; // SIGNED URL HERE - bro this is the key
+    }
+    video.play(); 
+    if(btn) btn.style.display='none';
+    playingVideoId=postId;
+  }else{
+    video.pause(); 
+    if(btn) btn.style.display='flex';
+    playingVideoId=null;
+  }
+  video.onended=()=>{if(btn) btn.style.display='flex'; playingVideoId=null;}
 }
+
 function closeList(){document.getElementById('list-modal').classList.remove('active')}
 function showTab(tab,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active'); document.querySelectorAll('[id^=tab-]').forEach(d=>d.style.display='none');document.getElementById('tab-'+tab).style.display='block'; if(tab==='analytics')loadAnalytics();if(tab==='wallet')loadWallet();if(tab==='gifts')loadGifts();if(tab==='support')loadSupport();}
 async function loadAnalytics(){
@@ -276,7 +295,7 @@ async function loadWallet(){
   document.getElementById('tab-wallet').innerHTML=`
   <div class="card" style="background:linear-gradient(135deg,rgba(0,255,136,0.08),transparent)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <b>Identity Verification Rules</b><span style="font-size:11px;color:var(--muted);">${kyc.canWithdraw?'[ Verified ]':'[ Action Needed ]'} ${isNG?'🇳🇬 NG':''}</span>
+      <b>Identity Verification Rules</b><span style="font-size:11px;color:var(--muted);">${kyc.canWithdraw?'[ VerifAction Needed ]'} ${isNG?'🇳🇬 NG':''}</span>
     </div>
     <div style="font-size:12px;line-height:1.6;color:var(--muted);background:#121212;padding:10px;border-radius:10px;margin-bottom:12px;border:1px solid var(--border)">
       <p style="color:var(--text);margin-bottom:4px">✔ <b>Face Verification:</b> Required for Monetization & Referral Bonus.</p>
