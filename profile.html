@@ -328,15 +328,32 @@ function logout(){localStorage.clear();location.href='auth.html'}
 async function loadKYCStatus(){const kyc=await api('/api/profile/kyc-status');const badgesWrap=document.getElementById('badges');if(kyc&&kyc.faceVerified&&kyc.idVerified){if(!badgesWrap.querySelector('.badge.kyc')){badgesWrap.insertAdjacentHTML('beforeend',`<span class="badge kyc"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>KYC Verified</span>`)}}}
 async function saveBio(){const bio=document.getElementById('bio-input').value;const res=await api('/api/profile/bio',{method:'POST',body:JSON.stringify({bio})});if(res.success){toast('Bio updated');localStorage.removeItem(CACHE_PROFILE_KEY);document.getElementById('bio-text').innerHTML=linkifyBio(res.bio||bio)}else toast(res.error||'Failed')}
 async function uploadAvatar(file){
-  if(!file) return; if(file.size>2*1024*1024) return toast('Max 2MB');
+  if(!file) return; 
+  if(file.size>2*1024*1024) return toast('Max 2MB');
   toast('Uploading avatar...');
-  const fd=new FormData();fd.append('file',file);fd.append('userId',localStorage.userId);
+  const fd=new FormData();
+  fd.append('file',file);
+  fd.append('userId',localStorage.userId);
   try{
-    const res=await fetch(CDN_URL+'/api/cdn/avatar',{method:'POST',headers:{'x-api-key':CDN_KEY,'Authorization':'Bearer '+TOKEN},body:fd});
+    const res=await fetch(CDN_URL+'/api/cdn/avatar',{
+      method:'POST',
+      headers:{ 'x-api-key': CDN_KEY }, // only this
+      body: fd
+    });
     const data=await res.json();
-    if(data.success){toast('Avatar updated');const kyc=await api('/api/profile/kyc-status'); if(kyc.avatarUrl) document.getElementById('avatar-img').src=kyc.avatarUrl; document.getElementById('avatar-actions').style.display='flex'; localStorage.removeItem(CACHE_PROFILE_KEY);}
-    else toast(data.error||'Upload failed');
-  }catch(e){toast('Upload failed')}
+    console.log('CDN response', data); // add this to see error
+    if(data.success){
+      toast('Avatar updated');
+      const kyc=await api('/api/profile/kyc-status'); 
+      if(kyc.avatarUrl) document.getElementById('avatar-img').src=kyc.avatarUrl; 
+      document.getElementById('avatar-actions').style.display='flex'; 
+      localStorage.removeItem(CACHE_PROFILE_KEY);
+    }
+    else toast(data.error||'Upload failed: '+(JSON.stringify(data)));
+  }catch(e){
+    console.error(e);
+    toast('Upload failed: '+e.message)
+  }
 }
 async function deleteAvatar(){
   if(!confirm('Delete avatar?')) return;
