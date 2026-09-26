@@ -414,8 +414,11 @@ function renderQuestion(){
 
 function toggleChip(el,id){
   el.classList.toggle('active');
-  const selected=document.querySelectorAll(`#q-${id}.chip.active`).length;
-  if(selected>3) el.classList.remove('active');
+  const selected = document.querySelectorAll(`#q-${id}.chip.active`).length;
+  if(selected > 3){
+    el.classList.remove('active');
+    toast('Max 3 interests');
+  }
 }
 
 function selectRadio(el,id,val){
@@ -441,7 +444,6 @@ function nextQuestion(){
     finishOnboard();
   }
 }
-
 async function finishOnboard(){
   localStorage.onboarding_data=JSON.stringify(surveyData);
   document.getElementById('survey-container').innerHTML = `
