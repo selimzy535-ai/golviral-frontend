@@ -276,7 +276,7 @@ async function loadWallet(){
   document.getElementById('tab-wallet').innerHTML=`
   <div class="card" style="background:linear-gradient(135deg,rgba(0,255,136,0.08),transparent)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <b>Identity Verification Rules</b><span style="font-size:11px;color:var(--muted);">${kyc.canWithdraw?'[ Verified ]':'[ Action Needed ]'} ${isNG?'🇳🇬 NG':''}</span>
+      <b>Identity Verification Rules</b><span style="font-size:11px;color:var(--muted);">${kyc.canWithdraw?'[ Verified ]':'[ Action Needed ]'} ${isNG?'':''}</span>
     </div>
     <div style="font-size:12px;line-height:1.6;color:var(--muted);background:#121212;padding:10px;border-radius:10px;margin-bottom:12px;border:1px solid var(--border)">
       <p style="color:var(--text);margin-bottom:4px">✔ <b>Face Verification:</b> Required for Monetization & Referral Bonus.</p>
