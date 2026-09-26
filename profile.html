@@ -318,10 +318,46 @@ async function confirmWithdraw(){const otpVal=document.getElementById('otp-input
 function loadGifts(){document.getElementById('tab-gifts').innerHTML=`<div class="gift-card" onclick="buyGift('RUBY')"><svg viewBox="0 0 24 24" style="color:var(--pink)"><path d="M6 3h12l4 6-10 13L2 9l4-6z"/></svg><div><b>RUBY</b><p style="color:var(--muted);font-size:12px">₦5,000 - 200pts x 100 gifts</p></div></div><div class="gift-card" onclick="buyGift('GOLD')"><svg viewBox="0 0 24 24" style="color:var(--orange)"><circle cx="12" cy="12" r="10"/></svg><div><b>GOLD</b><p style="color:var(--muted);font-size:12px">₦10,000 - 500pts x 100 gifts</p></div></div><div class="gift-card" onclick="buyGift('DIAMOND')"><svg viewBox="0 0 24 24" style="color:var(--blue)"><path d="M2 9l10 13L22 9"/></svg><div><b>DIAMOND</b><p style="color:var(--muted);font-size:12px">₦15,000 - 1,000pts x 100 gifts</p></div></div>`}
 async function buyGift(type){const d=await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});if(d.selarLink)window.open(d.selarLink)}
 async function loadSupport(){
-  document.getElementById('tab-support').innerHTML=`<div class="card"><input class="input" id="support-subject" placeholder="Subject"><textarea class="input" id="support-msg" placeholder="Describe your issue" rows="4"></textarea><button class="btn" onclick="sendSupport()">Send Ticket</button></div><div id="tickets"></div>`;
-  const t=await api('/api/support/my');document.getElementById('tickets').innerHTML=(t||[]).map(x=>`<div class="card"><b>${escapeHtml(x.subject)}</b><p style="color:var(--muted);font-size:12px;margin:4px 0">You: ${escapeHtml(x.message)}</p>${x.reply?`<p style="color:var(--green);margin-top:8px;font-size:12px"><b>Admin:</b> ${escapeHtml(x.reply)}</p>`:''}<p style="color:${x.status==='RESOLVED'?'var(--green)':'var(--orange)'};font-size:11px;margin-top:8px">${escapeHtml(x.status)}</p></div>`).join('');
+  document.getElementById('tab-support').innerHTML=`
+    <div class="card">
+      <b>Contact Support</b>
+      <input class="input" id="support-subject" placeholder="Subject (e.g. Payout issue, Account)" style="margin-top:10px">
+      <textarea class="input" id="support-msg" placeholder="Describe your issue..." rows="4"></textarea>
+      <button class="btn" onclick="sendSupport()">Send Ticket</button>
+    </div>
+    <div style="padding:0 16px"><b style="font-size:13px;color:var(--muted)">YOUR TICKETS</b></div>
+    <div id="tickets"><p style="text-align:center;color:var(--muted);padding:20px">Loading...</p></div>`;
+
+  const t=await api('/api/support/my');
+  const html = (t||[]).length ? (t||[]).map(x=>`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b>${escapeHtml(x.subject)}</b>
+        <span style="font-size:10px;padding:3px 8px;border-radius:10px;font-weight:800;background:${x.status==='RESOLVED'?'rgba(0,255,136,0.15)':'rgba(249,115,22,0.15)'};color:${x.status==='RESOLVED'?'var(--green)':'var(--orange)'}">${escapeHtml(x.status)}</span>
+      </div>
+      <div style="margin-top:12px;background:#141414;border:1px solid var(--border);border-radius:12px;padding:10px">
+        <p style="color:var(--muted);font-size:11px;font-weight:700;margin-bottom:4px">YOU • ${new Date(x.createdAt).toLocaleDateString()}</p>
+        <p style="font-size:13px">${escapeHtml(x.message)}</p>
+      </div>
+      ${x.reply ? `
+      <div style="margin-top:10px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:12px;padding:10px">
+        <p style="color:var(--green);font-size:11px;font-weight:700;margin-bottom:4px">GOLVIRAL SUPPORT TEAM</p>
+        <p style="font-size:13px">${escapeHtml(x.reply)}</p>
+      </div>` : `<p style="color:var(--muted);font-size:11px;margin-top:10px;font-style:italic">Support team hasn't replied yet</p>`}
+    </div>`).join('') : `<p style="text-align:center;color:var(--muted);padding:20px">No tickets yet</p>`;
+  
+  document.getElementById('tickets').innerHTML = html;
 }
-async function sendSupport(){const subject=document.getElementById('support-subject').value;const message=document.getElementById('support-msg').value;if(!subject||!message) return toast('Fill all fields');const res=await api('/api/support/send',{method:'POST',body:JSON.stringify({subject,message})});if(res.error) return toast(res.error);toast('Ticket sent');loadSupport()}
+
+async function sendSupport(){
+  const subject=document.getElementById('support-subject').value.trim();
+  const message=document.getElementById('support-msg').value.trim();
+  if(!subject||!message) return toast('Fill all fields');
+  const res=await api('/api/support/send',{method:'POST',body:JSON.stringify({subject,message})});
+  if(res.error) return toast(res.error);
+  toast('Ticket sent');
+  loadSupport();
+}
 async function toggleFollow(){if(followLock) return;followLock=true;const btn=document.getElementById('follow-btn');btn.disabled=true;const isFollowing=btn.innerText==='Unfollow';btn.innerText=isFollowing?'Follow':'Unfollow';const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:profileId})});if(res.error){btn.innerText=isFollowing?'Unfollow':'Follow';toast(res.error)}else{toast(isFollowing?'Unfollowed':'Following');localStorage.removeItem(CACHE_PROFILE_KEY);fetchProfileFresh();}setTimeout(()=>{btn.disabled=false;followLock=false},2000)}
 function openChat(userId){localStorage.chatWith=userId||profileId;location.href='messages.html?user='+(userId||profileId)}
 function logout(){localStorage.clear();location.href='auth.html'}
