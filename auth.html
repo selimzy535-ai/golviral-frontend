@@ -2,509 +2,381 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<title>GolViral - Earn Money Watching Short Videos & Reels | Creator Platform</title>
-
-<meta name="description" content="GolViral: The short video and story app where you earn money. Post reels, short novels, memes & photos, and get paid for views, engagement, likes, and referrals. Join millions of creators today.">
-<meta name="keywords" content="GolViral, short videos, earn money online, reels, memes, creator platform, make money watching videos, Nigerian earn app">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google-site-verification" content="0rn74joHgCCJ0qqgQmbX4H9k1VRvOH31qY_SDkGqLbE" />
+<title>GolViral - Creator Profile</title>
+<meta name="description" content="View creator profile on GolViral. Follow, chat, and support creators. Earn money watching their reels, stories and memes.">
+<meta name="keywords" content="GolViral profile, creator, follow, earn money, reels">
 <meta name="author" content="GolViral">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://golviral.com/auth.html">
-
-<!-- Google Verification -->
-<meta name="google-site-verification" content="e-EgiJhgcod4vs0N8eMP1umkPn73WgfE6VVKQ6nBmU0">
-
-<!-- Theme / PWA -->
-<meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GolViral">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" type="image/png" href="icon-192.png">
-<link rel="manifest" href="manifest.json">
-
-<!-- Open Graph for Facebook / WhatsApp -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://golviral.com/auth.html">
-<meta property="og:title" content="GolViral - Earn Money Watching Short Videos & Reels">
-<meta property="og:description" content="Post reels, novels, memes & photos and get paid for views, likes and referrals. Join millions of creators.">
+<link rel="canonical" href="https://golviral.com/profile.html">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<meta property="og:type" content="profile">
+<meta property="og:url" content="https://golviral.com/profile.html">
+<meta property="og:title" content="GolViral Creator Profile">
+<meta property="og:description" content="Check out this creator on GolViral - Follow and earn together.">
 <meta property="og:image" content="https://golviral.com/icon-512.png">
 <meta property="og:site_name" content="GolViral">
-
-<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:url" content="https://golviral.com/auth.html">
-<meta name="twitter:title" content="GolViral - Earn Money Watching Short Videos">
-<meta name="twitter:description" content="Post reels, novels, memes & photos and get paid. Join now.">
+<meta name="twitter:title" content="GolViral Creator Profile">
+<meta name="twitter:description" content="Follow this creator on GolViral">
 <meta name="twitter:image" content="https://golviral.com/icon-512.png">
-
 <style>
 :root{
-  --bg:#000;
-  --card:#0a0a0a;
-  --glass:rgba(10,10,10,0.7);
-  --accent:#00ff88;
-  --purple:#a855f7;
-  --blue:#3b82f6;
-  --text:#fff;
-  --muted:#888;
-  --border:#1a1a1a;
+  --bg:#000;--card:#0d0d0d;--glass:rgba(15,15,15,0.75);--text:#fff;--muted:#777;--border:#1e1e1e;
+  --green:#00ff88;--purple:#a855f7;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;--red:#ef4444;
   --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7)
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
-body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
-header{padding:20px;display:flex;justify-content:center;align-items:center;gap:10px;font-size:22px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:16px;padding:20px;margin:20px}
-.tabs{display:flex;gap:10px;margin-bottom:20px}
-.tab{flex:1;text-align:center;padding:12px;border-radius:12px;color:var(--muted);font-weight:700;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:6px;border:1px solid var(--border)}
-.tab.active{background:var(--gradient);color:#000;border:none}
-.input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;outline:none;margin-bottom:12px;font-size:16px}
-.input:focus{border-color:var(--accent)}
-.pass-container{position:relative;margin-bottom:12px}
-.pass-container.input{margin-bottom:0;padding-right:44px}
-.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px}
-.eye-btn:hover{color:var(--text)}
-.terms-container{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
-.terms-container input[type="checkbox"]{display:none}
-.custom-checkbox{width:18px;height:18px;border:1px solid var(--border);border-radius:4px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:0.2s}
-.terms-container input[type="checkbox"]:checked +.custom-checkbox{background:var(--accent);border-color:var(--accent)}
-.terms-container input[type="checkbox"]:checked +.custom-checkbox svg{display:block;stroke:#000}
-.custom-checkbox svg{display:none;width:12px;height:12px;stroke-width:3}
-.username-note{font-size:12px;color:var(--muted);margin:-6px 0 12px 4px;display:block}
-.btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer;font-size:16px}
-.btn:disabled{opacity:0.5}
-svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(10px);display:none;justify-content:center;align-items:center;z-index:200}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;min-height:100dvh;padding-bottom:30px}
+header{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;cursor:pointer}
+.icon-inline{width:16px;height:16px;vertical-align:middle;display:inline-block}
+.tiktok-profile{padding:20px 16px;text-align:center;background:radial-gradient(circle at 50% 0%,rgba(0,255,136,0.08),transparent 65%)}
+.avatar-wrap{position:relative;width:96px;height:96px;margin:0 auto 12px}
+.avatar{width:100%;height:100%;border-radius:50%;background:var(--gradient);padding:3px;box-shadow:0 0 25px rgba(0,255,136,0.25)}
+.avatar img{width:100%;height:100%;border-radius:50%;background:var(--card);object-fit:cover}
+.badges-wrap{display:flex;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700}
+.badge.verified{background:rgba(59,130,246,0.15);color:var(--blue);border:1px solid rgba(59,130,246,0.3)}
+.badge.creator{background:rgba(168,85,247,0.15);color:var(--purple);border:1px solid rgba(168,85,247,0.3)}
+.badge.kyc{background:rgba(0,255,136,0.15);color:var(--green);border:1px solid rgba(0,255,136,0.3)}
+.tiktok-stats{display:flex;justify-content:center;align-items:center;gap:24px;margin:16px 0;padding:10px 0}
+.tiktok-stat-item{display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.tiktok-stat-item b{font-size:18px;font-weight:800;color:var(--text)}
+.tiktok-stat-item span{font-size:12px;color:var(--muted);margin-top:2px}
+.profile-actions{display:flex;justify-content:center;gap:10px;margin-top:14px}
+.btn-pill{padding:9px 20px;border-radius:24px;font-weight:700;font-size:14px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-pill.primary{background:var(--gradient);color:#000}
+.btn-pill.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg)}
+.tab{flex:1;padding:12px 0;color:var(--muted);cursor:pointer;display:flex;justify-content:center;align-items:center;gap:6px;font-weight:700;font-size:13px;border-bottom:2px solid transparent}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.content{padding:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin:16px}
+.input{width:100%;background:#141414;border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;margin-bottom:10px;outline:none}
+.input:focus{border-color:var(--green)}
+.btn{background:var(--gradient);color:#000;border:none;padding:12px;border-radius:12px;font-weight:800;width:100%;cursor:pointer;font-size:14px}
+.btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.btn[disabled]{opacity:0.4;pointer-events:none}
+.progress{height:8px;background:#1a;border-radius:10px;overflow:hidden;margin:6px 0 12px}
+.progress-bar{height:100%;background:var(--gradient);border-radius:10px;transition:width 0.3s}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:200}
 .modal.active{display:flex}
-.glass-modal{background:var(--glass);backdrop-filter:blur(30px);border:1px solid var(--border);border-radius:20px;padding:24px;width:90%;max-width:400px;max-height:85vh;overflow-y:auto}
-.q-group{margin-bottom:20px}
-.q-title{font-weight:800;margin-bottom:10px;font-size:15px}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:8px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:14px;background:var(--card)}
-.chip.active{background:var(--accent);color:#000;border-color:var(--accent)}
-.radio-group{display:flex;gap:12px;flex-wrap:wrap}
-.radio-option{padding:10px 14px;border:1px solid var(--border);border-radius:12px;cursor:pointer;background:var(--card)}
-.radio-option input{display:none}
-.radio-option.active{border-color:var(--accent);background:rgba(0,255,136,0.1)}
-.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
+.glass-modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;width:90%;max-width:400px}
+.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--green);color:#000;padding:10px 20px;border-radius:20px;font-weight:800;font-size:13px;z-index:999;transition:0.3s;opacity:0}
 .toast.show{transform:translate(-50%,0);opacity:1}
-.progress{height:4px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden}
-.progress-bar{height:100%;width:0%;background:var(--gradient);transition:0.3s}
-.social-proof{text-align:center;padding:20px;margin-top:auto;font-size:13px;color:var(--muted);line-height:1.5}
+.gift-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;margin-bottom:10px;cursor:pointer;border:1px solid var(--border);background:#121212}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:16px}
+.grid-item{aspect-ratio:9/16;background:#000;border-radius:8px;border:1px solid var(--border);position:relative;overflow:hidden;cursor:pointer}
+.grid-item video,.grid-item img{width:100%;height:100%;object-fit:cover;display:block}
+.grid-overlay{position:absolute;bottom:0;left:0;right:0;padding:6px;background:linear-gradient(transparent,rgba(0,0,0,0.75));display:flex;align-items:center;gap:4px;color:#fff;font-size:11px;font-weight:700;pointer-events:none}
+.grid-play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.user-row:last-child{border:0}
+.avatar-letter{width:40px;height:40px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:800;color:#000;flex-shrink:0;font-size:16px}
+.chart-box{margin-top:12px;background:#121212;border:1px solid var(--border);border-radius:14px;padding:14px}
+.trend-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.trend-up{background:rgba(0,255,136,0.15);color:var(--green)}
+.trend-down{background:rgba(239,68,68,0.15);color:var(--red)}
+.earn-badge{background:linear-gradient(135deg,rgba(0,255,136,0.15),rgba(59,130,246,0.15));border:1px solid var(--green);padding:14px;border-radius:14px;margin:16px}
+.earn-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.copy-box{display:flex;justify-content:space-between;align-items:center;background:#141414;border:1px solid var(--border);padding:10px;border-radius:10px;margin-top:8px;font-size:12px;word-break:break-all}
+.bio-display{font-size:13px;color:var(--muted);margin:8px 0 16px 0;line-height:1.4;padding:0 20px;text-align:center;white-space:pre-wrap;word-break:break-word;min-height:18px}
+.bio-display:empty{display:none}
+.bio-display a{color:var(--green);text-decoration:underline;word-break:break-all}
+.edit-avatar-btn{position:absolute;bottom:2px;right:2px;width:28px;height:28px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+.edit-avatar-btn svg{width:14px;height:14px}
 </style>
 </head>
 <body>
 <header>
-  <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-  GolViral
+<svg onclick="location.href='index.html'" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+<b id="username">@user</b>
+<svg onclick="logout()" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
 </header>
 <div id="toast" class="toast"></div>
-<main class="card">
-  <div class="tabs">
-    <div class="tab active" onclick="showTab('login', this)">
-      <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>Login
-    </div>
-    <div class="tab" onclick="showTab('signup', this)">
-      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M8.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6"/></svg>Signup
-    </div>
-    <div class="tab" onclick="showTab('forgot', this)">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>Forgot
+<div class="tiktok-profile">
+  <div class="avatar-wrap">
+    <div class="avatar"><img id="avatar-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"></div>
+    <div id="avatar-edit-btn" class="edit-avatar-btn" onclick="document.getElementById('avatar-input').click()" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
     </div>
   </div>
-  <form id="form-login">
-    <input class="input" id="login-email" type="email" placeholder="Email" required>
-    <div class="pass-container">
-      <input class="input" id="login-pass" type="password" placeholder="Password (min 8 chars)" minlength="8" required>
-      <button type="button" class="eye-btn" onclick="togglePass('login-pass', this)" aria-label="Toggle password visibility">
-        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      </button>
+  <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this.files[0])">
+  <div id="avatar-actions" style="display:none;margin-top:8px;justify-content:center;gap:8px">
+    <button onclick="deleteAvatar()" style="font-size:11px;background:transparent;color:var(--red);border:1px solid var(--red);padding:4px 10px;border-radius:12px;cursor:pointer">Delete Avatar</button>
+  </div>
+  <h2 id="username-display" style="font-size:18px;font-weight:800;"></h2>
+  <p id="user-email" style="font-size:12px;color:var(--muted);margin-top:4px;display:none"></p>
+  <div id="badges" class="badges-wrap"></div>
+  <p id="bio-text" class="bio-display"></p>
+  <div class="tiktok-stats">
+    <div class="tiktok-stat-item" onclick="showList('following')"><b id="following">0</b><span>Following</span></div>
+    <div class="tiktok-stat-item" onclick="showList('followers')"><b id="followers">0</b><span>Followers</span></div>
+    <div class="tiktok-stat-item"><b id="likes">0</b><span>Likes</span></div>
+    <div class="tiktok-stat-item"><b id="views">0</b><span>Views</span></div>
+  </div>
+  <div class="profile-actions">
+    <button id="follow-btn" class="btn-pill primary" onclick="toggleFollow()">Follow</button>
+    <button id="message-btn" class="btn-pill secondary" onclick="openChat()" style="display:none">Message</button>
+  </div>
+  <div id="bio-editor" style="display:none;margin-top:14px;">
+    <textarea id="bio-input" class="input" style="height:60px;resize:none;" placeholder="Update bio (max 150 chars)..." maxlength="150"></textarea>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" style="padding:8px;font-size:12px;" onclick="saveBio()">Save Bio</button>
+      <button class="btn secondary" style="padding:8px;font-size:12px;" onclick="clearBio()">Clear</button>
     </div>
-    <button class="btn" type="submit">Login</button>
-  </form>
-  <form id="form-signup" style="display:none">
-    <input class="input" id="signup-user" placeholder="Username" required>
-    <span class="username-note">Note: Only your bio will be editable; your username cannot be changed once created.</span>
-    <input class="input" id="signup-email" type="email" placeholder="Email" required>
-    <div class="pass-container">
-      <input class="input" id="signup-pass" type="password" placeholder="Password (min 8 chars)" minlength="8" required>
-      <button type="button" class="eye-btn" onclick="togglePass('signup-pass', this)" aria-label="Toggle password visibility">
-        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      </button>
-    </div>
-    <input class="input" id="signup-ref" placeholder="Referral Code Optional">
-    <label class="terms-container">
-      <input type="checkbox" id="signup-terms" required>
-      <span class="custom-checkbox">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-      </span>
-      <span>I agree to the <a href="legal.html" target="_blank" style="color:var(--accent);text-decoration:underline;">Legal Terms</a></span>
-    </label>
-    <button class="btn" type="submit">Create Account</button>
-  </form>
-  <form id="form-forgot" style="display:none">
-    <input class="input" id="forgot-email" type="email" placeholder="Email" required>
-    <button class="btn" type="submit">Send OTP</button>
-  </form>
-</main>
-
-<div id="bot-modal" class="modal">
-  <div class="glass-modal">
-    <h3 style="margin-bottom:12px">Verify You Are Human</h3>
-    <p id="bot-question" style="font-size:20px;font-weight:800;margin-bottom:12px"></p>
-    <input class="input" id="bot-answer" placeholder="Answer">
-    <button class="btn" onclick="verifyBot()">Verify</button>
+  </div>
+  <div id="links-box" style="display:none;margin-top:14px;text-align:left">
+    <b style="font-size:12px;">Referral & Profile Links</b>
+    <div class="copy-box"><div><div style="font-size:10px;color:var(--muted)">Profile Link</div><span id="profile-link"></span></div><svg onclick="copyLink('profile-link')" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></div>
+    <div class="copy-box"><div><div style="font-size:10px;color:var(--muted)">Referral Link</div><span id="referral-link"></span></div><svg onclick="copyLink('referral-link')" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></div>
   </div>
 </div>
-
-<div id="otp-modal" class="modal">
-  <div class="glass-modal">
-    <h3 style="margin-bottom:12px">Reset Password</h3>
-    <input class="input" id="otp-code" placeholder="Enter 6 digit OTP">
-    <div class="pass-container">
-      <input class="input" id="new-pass" type="password" placeholder="New Password (min 8 chars)" minlength="8">
-      <button type="button" class="eye-btn" onclick="togglePass('new-pass', this)" aria-label="Toggle password visibility">
-        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      </button>
-    </div>
-    <button class="btn" onclick="submitReset()">Reset Password</button>
-  </div>
+<div class="tabs">
+  <div class="tab active" onclick="showTab('posts',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>Posts</div>
+  <div class="tab" onclick="showTab('analytics',this)"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Analytics</div>
+  <div class="tab" onclick="showTab('wallet',this)"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M20 12h-4"/></svg>Wallet</div>
+  <div class="tab" onclick="showTab('gifts',this)"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>Gifts</div>
+  <div class="tab" onclick="showTab('support',this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Support</div>
 </div>
-
-<div id="onboard-modal" class="modal">
-  <div class="glass-modal">
-    <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
-    <h3 style="margin-bottom:8px">Welcome to GolViral 🎉</h3>
-    <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Help us personalize your feed</p>
-    <div id="survey-container"></div>
-    <button class="btn" id="next-btn" onclick="nextQuestion()">Continue</button>
-  </div>
+<div class="content">
+  <div id="tab-posts"></div>
+  <div id="tab-analytics" style="display:none"></div>
+  <div id="tab-wallet" style="display:none"></div>
+  <div id="tab-gifts" style="display:none"></div>
+  <div id="tab-support" style="display:none"></div>
 </div>
-
-<footer class="social-proof">
-  Join millions of creators earning with GolViral and meet more friends by following, chatting and more.
-</footer>
-
+<div id="list-modal" class="modal"><div class="glass-modal" style="max-height:70dvh;overflow-y:auto"><div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3 id="list-title">Followers</h3><svg onclick="closeList()" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div id="list-content"></div></div></div>
+<div id="otp-modal" class="modal"><div class="glass-modal"><h3 style="margin-bottom:12px">Verify Withdrawal</h3><p style="color:var(--muted);font-size:12px;margin-bottom:12px">Enter OTP sent to your registered email</p><input class="input" id="otp-input" placeholder="123456"><button class="btn" onclick="confirmWithdraw()">Confirm Withdraw</button></div></div>
 <script>
 const API='https://golviral-api.onrender.com';
-let currentTab='login';
-let pendingData=null;
-let botToken=null;
-let mathAnswer=null;
-let surveyStep=0;
-let surveyData={};
-let captchaText = '';
-
-const surveyQuestions=[
-  {id:'interests', title:'Q1: Pick up to 3 interests', type:'chips', options:['Comedy','Tech','Lifestyle','Music','Novels','News','Gaming','Sports','Crypto','Motivation']},
-  {id:'age', title:'Q2: Your Age Group', type:'radio', options:['13-17','18-24','25-34','35+']},
-  {id:'goal', title:'Q3: Why are you here?', type:'radio', options:['Earn Money','Watch Content','Post Content','Just Vibes']},
-  {id:'frequency', title:'Q4: How often will you post?', type:'radio', options:['Daily','Weekly','Monthly','Just Watching']},
-  {id:'language', title:'Q5: Preferred Language', type:'radio', options:['English','Pidgin','Hausa','Yoruba','Igbo']},
-  {id:'country', title:'Q6: Select Country', type:'select', options:['NG','US','UK','CA','GH','KE','ZA']}
-];
-
-function togglePass(id, btn){
-  const input = document.getElementById(id);
-  if(input.type === 'password'){
-    input.type = 'text';
-    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-  } else {
-    input.type = 'password';
-    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const CDN_URL='https://golviral-cdn.onrender.com';
+const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
+const TOKEN=localStorage.token;
+if(!TOKEN) location.href='auth.html';
+let profileId = new URLSearchParams(location.search).get('id');
+if(!profileId){
+  const parts = location.pathname.split('/').filter(Boolean);
+  const uIndex = parts.indexOf('u');
+  if(uIndex!== -1 && parts[uIndex+1]){
+    profileId = parts[uIndex+1];
   }
 }
-
-function showTab(tab, el){
-  currentTab=tab;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('form').forEach(f=>f.style.display='none');
-  el.classList.add('active');
-  document.getElementById('form-'+tab).style.display='block';
+profileId = profileId || localStorage.userId;
+const isSelf=profileId===localStorage.userId;
+let pendingWithdraw=null;
+let followLock=false;
+let profileData={};
+function escapeHtml(str){if(!str)return'';return str.replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]})}
+function linkifyBio(text){
+  if(!text) return '';
+  const safe = escapeHtml(text);
+  return safe.replace(/(https?:\/\/[^\s]+|www\.[^\s]+)/g, function(url){
+    let href=url; if(!href.startsWith('http')) href='https://'+href;
+    return `<a href="${href}" target="_blank" rel="noopener">${url}</a>`;
+  });
 }
-
-function toast(msg){
-  const t=document.getElementById('toast');
-  t.innerText=msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
-}
-
-function generateCaptcha(len=7){
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let res = '';
-  for(let i=0;i<len;i++) res += chars.charAt(Math.floor(Math.random()*chars.length));
-  return res;
-}
-
-function renderGlitchCaptcha(text){
-  const canvas = document.createElement('canvas');
-  canvas.width = 300;
-  canvas.height = 80;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#0a0a0a';
-  ctx.fillRect(0,0,300,80);
-  for(let i=0;i<5;i++){
-    ctx.strokeStyle = `rgba(0,255,136,${Math.random()})`;
-    ctx.beginPath();
-    ctx.moveTo(Math.random()*300,0);
-    ctx.lineTo(Math.random()*300,80);
-    ctx.stroke();
+function avatarLetter(name){return (name?.[0]||'?').toUpperCase();}
+function formatNumber(num){if(num>=1000000)return(num/1000000).toFixed(1)+'M';if(num>=1000)return(num/1000).toFixed(1)+'K';return num}
+function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
+async function api(path,opt={}){try{const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});if(res.status===401)location.href='auth.html';return res.json()}catch{toast('Network error');return{}}}
+function getPercent(str){if(!str)return 0;const[a,b]=str.split('/').map(Number);return b?Math.min(100,Math.round(a/b*100)):0}
+function checkIsNigeria(){try{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"";const lang=navigator.language||"";return tz.includes("Lagos")||lang.includes("NG")||lang.includes("ng")}catch(e){return false}}
+async function fetchUSDToNGNRate(){try{const res=await fetch('https://open.er-api.com/v6/latest/USD');const data=await res.json();if(data&&data.rates&&data.rates.NGN)return data.rates.NGN}catch(e){}return 1500}
+function getAndSaveDailyScores(uid,currentViews,currentLikes){const key=`golviral_daily_scores_${uid}`;let history=[];try{history=JSON.parse(localStorage.getItem(key))||[]}catch(e){history=[]}const todayStr=new Date().toISOString().split('T')[0];const dayName=new Date().toLocaleDateString('en-US',{weekday:'short'});const existingIdx=history.findIndex(item=>item.date===todayStr);if(existingIdx!==-1){history[existingIdx].views=currentViews;history[existingIdx].likes=currentLikes}else{history.push({date:todayStr,day:dayName,views:currentViews,likes:currentLikes})}if(history.length>7)history=history.slice(-7);localStorage.setItem(key,JSON.stringify(history));return history}
+function buildLineAreaChart(data,key,mainColor,gradId){if(!data||data.length===0){return`<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;">No daily data tracked yet</div>`}const width=320;const height=110;const paddingX=25;const paddingY=20;const usableW=width-(paddingX*2);const usableH=height-(paddingY*2);const values=data.map(d=>Number(d[key])||0);const maxVal=Math.max(...values,1);const minVal=0;const points=values.map((val,idx)=>{const x=paddingX+(idx/Math.max(values.length-1,1))*usableW;const y=(height-paddingY)-((val-minVal)/Math.max(maxVal-minVal,1))*usableH;return{x:Math.round(x),y:Math.round(y),val,day:data[idx].day||''}});const lineD=points.map((p,i)=>`${i===0?'M':'L'} ${p.x} ${p.y}`).join(' ');const areaD=`${lineD} L ${points[points.length-1].x} ${height-10} L ${points[0].x} ${height-10} Z`;const nodes=points.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="${mainColor}" stroke="#121212" stroke-width="2"/><text x="${p.x}" y="${height+5}" font-size="9" font-weight="600" fill="var(--muted)" text-anchor="middle">${p.day}</text><text x="${p.x}" y="${Math.max(p.y-7,10)}" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">${p.val}</text>`).join('');return`<svg viewBox="0 0 ${width} ${height+15}" style="width:100%;height:auto;overflow:visible;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${mainColor}" stop-opacity="0.45"/><stop offset="100%" stop-color="${mainColor}" stop-opacity="0.0"/></linearGradient></defs><line x1="${paddingX}" y1="${height-10}" x2="${width-paddingX}" y2="${height-10}" stroke="var(--border)" stroke-width="1"/><path d="${areaD}" fill="url(#${gradId})"/><path d="${lineD}" fill="none" stroke="${mainColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${nodes}</svg>`}
+async function loadProfile(){
+  const u=await api(`/api/user/${profileId}`);
+  if(!u||!u.username) return toast('User not found');
+  profileData=u;
+  const profileUrl = `https://golviral.com/u/${u.userId || profileId}`;
+  document.title = `@${u.username} - ${u.followers||0} Followers | GolViral`;
+  const seoDesc = `${u.username} - ${u.bio||'Creator on GolViral'} - ${u.followers||0} followers, ${u.totalViews||0} views. Follow and earn together.`.slice(0,155);
+  const md = document.querySelector('meta[name="description"]');
+  if(md) md.setAttribute('content', seoDesc);
+  const can = document.querySelector('link[rel="canonical"]');
+  if(can) can.href = profileUrl;
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  if(ogUrl) ogUrl.setAttribute('content', profileUrl);
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if(ogTitle) ogTitle.setAttribute('content', `${u.username} (@${u.username}) on GolViral`);
+  const ogDesc = document.querySelector('meta[property="og:description"]');
+  if(ogDesc) ogDesc.setAttribute('content', seoDesc);
+  if(u.avatarUrl){
+    const ogImg = document.querySelector('meta[property="og:image"]');
+    if(ogImg) ogImg.setAttribute('content', u.avatarUrl);
+    const twImg = document.querySelector('meta[name="twitter:image"]');
+    if(twImg) twImg.setAttribute('content', u.avatarUrl);
   }
-  ctx.font = 'bold 36px monospace';
-  ctx.fillStyle = '#00ff88';
-  for(let i=0;i<text.length;i++){
-    ctx.save();
-    ctx.translate(30 + i*35, 50);
-    ctx.rotate((Math.random()-0.5)*0.3);
-    ctx.fillText(text[i], 0, 0);
-    ctx.restore();
+  let ld = document.getElementById('ld-json');
+  if(!ld){ ld=document.createElement('script'); ld.id='ld-json'; ld.type='application/ld+json'; document.head.appendChild(ld); }
+  ld.textContent = JSON.stringify({"@context":"https://schema.org","@type":"Person","name": u.username,"url": profileUrl,"description": u.bio||"","image": u.avatarUrl||"https://golviral.com/icon-512.png"});
+  document.getElementById('username').innerText='@'+u.username;
+  document.getElementById('username-display').innerText=u.username;
+  if(u.email){
+    const emailEl=document.getElementById('user-email');
+    emailEl.innerText=u.email;
+    emailEl.style.display='block';
   }
-  return canvas.toDataURL();
-}
-
-async function botChallenge(){
-  try{
-    const res=await fetch(API+'/api/bot-challenge',{method:'POST',headers:{'Content-Type':'application/json'}});
-    const data=await res.json();
-    botToken=data.token;
-    if(data.question){
-      const parts = data.question.split(' ');
-      const a = parseInt(parts[0]);
-      const b = parseInt(parts[2]);
-      const op = parts[1];
-      if(op==='+') mathAnswer = a+b;
-      if(op==='-') mathAnswer = a-b;
-      if(op==='*') mathAnswer = a*b;
-    }
-    captchaText = generateCaptcha(7);
-    const img = renderGlitchCaptcha(captchaText);
-    document.getElementById('bot-question').innerHTML = `
-      <img src="${img}" style="width:100%;border-radius:8px;border:1px solid var(--border)"/>
-      <p style="font-size:12px;color:var(--muted);margin-top:8px">Type the 7 characters above</p>
-    `;
-    document.getElementById('bot-modal').classList.add('active');
-  }catch(err){
-    toast('Bot check failed');
+  document.getElementById('followers').innerText=formatNumber(u.followers||0);
+  document.getElementById('following').innerText=formatNumber(u.following||0);
+  document.getElementById('likes').innerText=formatNumber(u.totalLikes||0);
+  document.getElementById('views').innerText=formatNumber(u.totalViews||0);
+  getAndSaveDailyScores(profileId,u.totalViews||0,u.totalLikes||0);
+  document.getElementById('bio-text').innerHTML=linkifyBio(u.bio||'');
+  const avatarImg=document.getElementById('avatar-img');
+  if(u.avatarUrl){avatarImg.src=u.avatarUrl}
+  if(isSelf){
+    document.getElementById('avatar-edit-btn').style.display='flex';
+    if(u.avatarUrl) document.getElementById('avatar-actions').style.display='flex';
   }
-}
-
-async function verifyBot(){
-  const userInput=document.getElementById('bot-answer').value.trim().toUpperCase();
-  if(userInput!== captchaText){
-    toast('Captcha incorrect. Try again');
-    botChallenge();
-    return;
-  }
-  try {
-    const res=await fetch(API+'/api/bot-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:botToken,answer:mathAnswer})});
-    const data=await res.json();
-    if(data.passToken){
-      document.getElementById('bot-modal').classList.remove('active');
-      document.getElementById('bot-answer').value='';
-      if(pendingData.type==='login') doLogin(pendingData, data.passToken);
-      if(pendingData.type==='signup') doSignup(pendingData, data.passToken);
-      if(pendingData.type==='forgot') doForgot(pendingData, data.passToken);
-    }else {
-      toast('Verification failed');
-      botChallenge();
-    }
-  } catch(err) {
-    toast('Verification network error');
-  }
-}
-
-document.getElementById('form-login').onsubmit=async e=>{
-  e.preventDefault();
-  pendingData={type:'login',email:document.getElementById('login-email').value,password:document.getElementById('login-pass').value};
-  botChallenge();
-}
-
-document.getElementById('form-signup').onsubmit=async e=>{
-  e.preventDefault();
-  if(!document.getElementById('signup-terms').checked){
-    toast('You must agree to the Legal Terms');
-    return;
-  }
-  pendingData={type:'signup',username:document.getElementById('signup-user').value,email:document.getElementById('signup-email').value,password:document.getElementById('signup-pass').value,referralCode:document.getElementById('signup-ref').value};
-  botChallenge();
-}
-
-document.getElementById('form-forgot').onsubmit=async e=>{
-  e.preventDefault();
-  pendingData={type:'forgot',email:document.getElementById('forgot-email').value};
-  botChallenge();
-}
-
-async function doLogin(d,passToken){
-  try{
-    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
-    const data=await res.json();
-    if(data.token){localStorage.token=data.token;localStorage.userId=data.userId;window.location.href='index.html'}else toast(data.error||'Login failed')
-  }catch{toast('Network error')}
-}
-
-async function doSignup(d,passToken){
-  try{
-    const res=await fetch(API+'/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
-    const data=await res.json();
-    if(data.token){localStorage.token=data.token;localStorage.userId=data.userId;startSurvey()}else toast(data.error||'Signup failed')
-  }catch{toast('Network error')}
-}
-
-async function doForgot(d,passToken){
-  try{
-    await fetch(API+'/api/auth/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,passToken})});
-    toast('OTP Sent to Email');
-    document.getElementById('otp-modal').classList.add('active');
-  }catch{toast('Failed to send OTP')}
-}
-
-async function submitReset(){
-  const otp=document.getElementById('otp-code').value;
-  const newPass=document.getElementById('new-pass').value;
-  if(!pendingData ||!pendingData.email) {
-    toast('Session expired. Please try again.');
-    return;
-  }
-  try {
-    const res = await fetch(API+'/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingData.email,otp,newPassword:newPass})});
-    const data = await res.json();
-    if(res.ok &&!data.error){
-      toast('Password Reset Successfully');
-      document.getElementById('otp-modal').classList.remove('active');
-      showTab('login', document.querySelectorAll('.tab')[0]);
-    } else {
-      toast(data.error || 'Password Reset Failed');
-    }
-  } catch(err) {
-    toast('Network Error');
-  }
-}
-
-function startSurvey(){
-  surveyStep=0;
-  surveyData={};
-  document.getElementById('onboard-modal').classList.add('active');
-  renderQuestion();
-}
-
-function renderQuestion(){
-  const q=surveyQuestions[surveyStep];
-  const container=document.getElementById('survey-container');
-  document.getElementById('progress-bar').style.width=((surveyStep+1)/surveyQuestions.length*100)+'%';
-  document.getElementById('next-btn').innerText = surveyStep===surveyQuestions.length-1? 'Finish' : 'Next';
-  let html=`<div class="q-group"><div class="q-title">${q.title}</div>`;
-  if(q.type==='chips'){
-    html+=`<div class="chips" id="q-${q.id}">`;
-    q.options.forEach(opt=>html+=`<div class="chip" onclick="toggleChip(this,'${q.id}')">${opt}</div>`);
-    html+=`</div>`;
-  }else if(q.type==='radio'){
-    html+=`<div class="radio-group" id="q-${q.id}">`;
-    q.options.forEach(opt=>html+=`<div class="radio-option" onclick="selectRadio(this,'${q.id}','${opt}')">${opt}</div>`);
-    html+=`</div>`;
-  }else if(q.type==='select'){
-    html+=`<select class="input" id="q-${q.id}">`;
-    q.options.forEach(opt=>html+=`<option>${opt}</option>`);
-    html+=`</select>`;
-  }
-  html+=`</div>`;
-  container.innerHTML=html;
-}
-
-function toggleChip(el,id){
-  el.classList.toggle('active');
-  const selected=document.querySelectorAll(`#q-${id}.chip.active`).length;
-  if(selected>3) el.classList.remove('active');
-}
-
-function selectRadio(el,id,val){
-  document.querySelectorAll(`#q-${id}.radio-option`).forEach(r=>r.classList.remove('active'));
-  el.classList.add('active');
-  surveyData[id]=val;
-}
-
-function nextQuestion(){
-  const q=surveyQuestions[surveyStep];
-  if(q.type==='chips'){
-    surveyData[q.id]=[...document.querySelectorAll(`#q-${q.id}.chip.active`)].map(c=>c.innerText);
-    if(surveyData[q.id].length===0){toast('Pick at least 1');return}
-  }else if(q.type==='radio'){
-    if(!surveyData[q.id]){toast('Select an option');return}
-  }else if(q.type==='select'){
-    surveyData[q.id]=document.getElementById(`q-${q.id}`).value;
-  }
-  surveyStep++;
-  if(surveyStep<surveyQuestions.length){
-    renderQuestion();
+  let badges='';
+  if(u.isVerified) badges+=`<span class="badge verified"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Verified</span>`;
+  if(u.dmUnlocked) badges+=`<span class="badge creator"><svg class="icon-inline" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Creator</span>`;
+  document.getElementById('badges').innerHTML=badges;
+  if(isSelf){
+    document.getElementById('links-box').style.display='block';
+    document.getElementById('profile-link').innerText=u.profileLink||(location.origin+'/profile.html?id='+profileId);
+    document.getElementById('referral-link').innerText=u.referralLink||(location.origin+'/auth.html?ref='+profileId);
+    document.querySelector('.profile-actions').style.display='none';
+    document.getElementById('bio-editor').style.display='block';
+    document.getElementById('bio-input').value=u.bio||'';
+    await loadKYCStatus();
   }else{
-    finishOnboard();
+    document.getElementById('follow-btn').innerText=u.isFollowing?'Unfollow':'Follow';
+    const msgBtn=document.getElementById('message-btn');msgBtn.style.display='inline-flex';
+    if(u.dmUnlocked||u.isVerified){msgBtn.innerText='Message';msgBtn.onclick=()=>openChat(profileId)}else{msgBtn.innerText='Unlock DM';msgBtn.onclick=async()=>{const d=await api('/api/dm/init',{method:'POST'});if(d.selarLink)window.open(d.selarLink)}}
   }
+  loadPosts();
 }
-
-async function finishOnboard(){
-  localStorage.onboarding_data=JSON.stringify(surveyData);
-  document.getElementById('survey-container').innerHTML = `
-    <div style="text-align:center">
-      <div style="font-size:48px;margin-bottom:12px">🔔</div>
-      <h4 style="margin-bottom:8px">Turn On Notifications?</h4>
-      <p style="color:var(--muted);font-size:14px;margin-bottom:20px">
-        Get instant alerts for Likes, Comments, DMs, and Earnings
-      </p>
-      <button class="btn" onclick="requestPush()">Enable Notifications</button>
-      <button class="btn" style="background:#222;margin-top:10px" onclick="skipPush()">Maybe Later</button>
-    </div>
-  `;
-  document.getElementById('progress-bar').style.width='100%';
-  document.getElementById('next-btn').style.display = 'none';
-}
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
-async function requestPush(){
-  try {
-    const permission = await Notification.requestPermission();
-    if(permission!== 'granted') {
-      toast('You can enable notifications later in Settings');
-      skipPush();
-      return;
+function copyLink(id){navigator.clipboard.writeText(document.getElementById(id).innerText);toast('Copied to clipboard')}
+let playingVideoId=null;
+async function loadPosts(){
+  const d=await api(`/api/user/${profileId}/posts`);
+  if(!d||d.length===0){document.getElementById('tab-posts').innerHTML=`<p style="text-align:center;color:var(--muted);padding:40px">No posts yet</p>`;return}
+  document.getElementById('tab-posts').innerHTML=`<div class="grid">${d.map(p=>{
+    const isImage = p.type==='story' || p.type==='store' || p.type==='image' || (p.cdn_url && /\.(jpg|jpeg|png|webp)/i.test(p.cdn_url)) || (p.mediaUrl && /\.(jpg|jpeg|png|webp)/i.test(p.mediaUrl));
+    if(isImage){
+      const imgUrl = p.cdn_url || p.mediaUrl;
+      return `<div class="grid-item" onclick="location.href='post.html?id=${p.id}'"><img src="${imgUrl}" loading="lazy"><div class="grid-overlay"><svg style="width:12px;height:12px" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> ${p.type||'IMG'}</div></div>`;
+    } else {
+      return `<div class="grid-item" id="post-${p.id}" onclick="playInGrid('${p.id}')">${p.cdn_url?`<video id="video-${p.id}" poster="${p.cdn_url}" playsinline preload="metadata"><source src="${p.cdn_url}" type="video/mp4"></video><div class="grid-play-btn" id="btn-${p.id}"><svg style="width:20px;height:20px;color:#fff" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><div class="grid-overlay"><svg style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${formatNumber(p.views||0)}</div>`: `<div style="padding:10px;font-size:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100%;text-align:center">${escapeHtml(p.title||p.caption||'Text')}</div>`}</div>`;
     }
-    const reg = await navigator.serviceWorker.register('/sw.js');
-    const vapidKey = 'BFUBvjiKFi8pBUDFUskcOw6uv4LRa4IXp_cvpphDtanmon2u4YfIzeEOGNB4q0eEIBR3ZZfjKyTL1i6WBL5h7zs';
-    const convertedKey = urlBase64ToUint8Array(vapidKey);
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly:true,
-      applicationServerKey:convertedKey
-    });
-    await fetch(API+'/api/push/subscribe',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+localStorage.token,'Content-Type':'application/json'},
-      body:JSON.stringify({subscription:sub})
-    });
-    toast('Notifications Enabled ✅');
-    skipPush();
-  } catch(err) {
-    toast('Notifications not supported');
-    skipPush();
-  }
+  }).join('')}</div>`;
 }
-
-function skipPush(){
-  document.getElementById('onboard-modal').classList.remove('active');
-  toast('Profile Setup Complete');
-  setTimeout(()=>window.location.href='index.html',1000);
+async function playInGrid(postId){
+  const video=document.getElementById(`video-${postId}`);const btn=document.getElementById(`btn-${postId}`);if(!video)return;
+  if(playingVideoId&&playingVideoId!==postId){const prevVideo=document.getElementById(`video-${playingVideoId}`);const prevBtn=document.getElementById(`btn-${playingVideoId}`);if(prevVideo){prevVideo.pause();prevBtn.style.display='flex'}}
+  if(video.paused){
+    if(!video.src||video.src===window.location.href){const res=await api(`/api/media/sign?postId=${postId}`);if(res.url)video.src=res.url;else return toast('Video not ready')}
+    video.play();btn.style.display='none';playingVideoId=postId
+  }else{video.pause();btn.style.display='flex';playingVideoId=null}
+  video.onended=()=>{btn.style.display='flex';playingVideoId=null}
 }
-
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
+function showList(type){
+  const list=type==='followers'?profileData.followersList:profileData.followingList;
+  document.getElementById('list-title').innerText=type==='followers'?'Followers':'Following';
+  document.getElementById('list-content').innerHTML=list.map(u=>`<div class="user-row" onclick="location.href='profile.html?id=${u.id}'"><div class="avatar-letter">${avatarLetter(u.username)}</div><div><b>@${u.username}</b>${u.isVerified?' <span style="color:var(--blue)"> ✓</span>':''}</div></div>`).join('');
+  document.getElementById('list-modal').classList.add('active');
+}
+function closeList(){document.getElementById('list-modal').classList.remove('active')}
+function showTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('[id^=tab-]').forEach(d=>d.style.display='none');document.getElementById('tab-'+tab).style.display='block';
+  if(tab==='analytics')loadAnalytics();if(tab==='wallet')loadWallet();if(tab==='gifts')loadGifts();if(tab==='support')loadSupport();
+}
+async function loadAnalytics(){
+  const u=await api(`/api/user/${profileId}`);const dailyScores=getAndSaveDailyScores(profileId,u.totalViews||0,u.totalLikes||0);const w=await api('/api/wallet');const usdToNgnRate=await fetchUSDToNGNRate();const isNigeria=checkIsNigeria();const rawNairaBalance=w.cashBalance||0;const usdtValue=(rawNairaBalance/usdToNgnRate).toFixed(2);const formattedNaira=rawNairaBalance.toLocaleString();let likesTrend='up';if(dailyScores.length>1){const prevLikes=dailyScores[dailyScores.length-2].likes||0;const currLikes=dailyScores[dailyScores.length-1].likes||0;likesTrend=currLikes>=prevLikes?'up':'down'}let viewsTrend='up';if(dailyScores.length>1){const prevViews=dailyScores[dailyScores.length-2].views||0;const currViews=dailyScores[dailyScores.length-1].views||0;viewsTrend=currViews>=prevViews?'up':'down'}const likesChartSvg=buildLineAreaChart(dailyScores,'likes','#ec4899','likesGradient');const viewsChartSvg=buildLineAreaChart(dailyScores,'views','#00ff88','viewsGradient');let earningsDisplayHTML=isNigeria?`<div class="earn-row"><span>Naira Earned:</span><b style="color:var(--green);font-size:16px;">₦${formattedNaira}</b></div><div class="earn-row"><span>US Dollar ($) Equivalent:</span><b style="color:var(--blue);font-size:16px;">$${usdtValue} USDT</b></div><p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right;">Auto-rate: 1 USD = ₦${usdToNgnRate.toFixed(2)} </p>`:`<div class="earn-row"><span>Total Earned:</span><b style="color:var(--green);font-size:18px;">$${usdtValue} USDT</b></div><p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right;">Calculated via open.er-api.com</p>`;document.getElementById('tab-analytics').innerHTML=`<div class="earn-badge"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><b style="font-size:13px;color:var(--text)">💰 Auto Estimated Cash Earnings</b><span style="font-size:10px;background:rgba(0,255,136,0.2);color:var(--green);padding:2px 6px;border-radius:6px;font-weight:700">LIVE</span></div>${earningsDisplayHTML}</div><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="font-size:15px;color:var(--pink);">Daily Likes Analytics 💖</h4><p style="font-size:11px;color:var(--muted);">Tracked via real user engagement</p></div><span class="trend-pill ${likesTrend==='up'?'trend-up':'trend-down'}"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="${likesTrend==='up'?'23 6 13.5 15.5 8.5 10.5 1 18':'23 18 13.5 8.5 8.5 13.5 1 6'}"/></svg>${likesTrend==='up'?'Likes Up':'Likes Down'}</span></div><div class="chart-box"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:10px;color:var(--muted)"><span>Likes Performance Curve</span><span style="color:var(--pink);font-weight:700">Total: ${u.totalLikes||0}</span></div>${likesChartSvg}</div></div><div style="text-align:center;padding:10px 0;font-size:12px;color:var(--muted);font-weight:700;">↓ Scroll down to see Views Analytics ↓</div><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="font-size:15px;color:var(--green);">Daily Views Analytics 👁️</h4><p style="font-size:11px;color:var(--muted);">Tracked via real video views</p></div><span class="trend-pill ${viewsTrend==='up'?'trend-up':'trend-down'}"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="${viewsTrend==='up'?'23 6 13.5 15.5 8.5 10.5 1 18':'23 18 13.5 8.5 8.5 13.5 1 6'}"/></svg>${viewsTrend==='up'?'Views Up':'Views Down'}</span></div><div class="chart-box"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:10px;color:var(--muted)"><span>Views Performance Curve</span><span style="color:var(--green);font-weight:700">Total: ${u.totalViews||0}</span></div>${viewsChartSvg}</div></div>`;
+}
+async function loadWallet(){
+  const w=await api('/api/wallet');const kyc=await api('/api/profile/kyc-status');
+  const cap=getPercent(w.dailyCapProgress);const days=getPercent(w.daysProgress);const foll=getPercent(w.followersProgress);
+  document.getElementById('tab-wallet').innerHTML=`
+  <div class="card" style="background:linear-gradient(135deg,rgba(0,255,136,0.08),transparent)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <b>Identity Verification Rules</b><span style="font-size:11px;color:var(--muted);">${kyc.canWithdraw?'[ Verified ]':'[ Action Needed ]'}</span>
+    </div>
+    <div style="font-size:12px;line-height:1.6;color:var(--muted);background:#121212;padding:10px;border-radius:10px;margin-bottom:12px;border:1px solid var(--border)">
+      <p style="color:var(--text);margin-bottom:4px"><svg class="icon-inline" style="color:var(--green)" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> <b>Face Verification:</b> Required for Account Monetization & Referral Bonus counting.</p>
+      <p style="color:var(--text)"><svg class="icon-inline" style="color:var(--blue)" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> <b>ID Document:</b> Required for 1st Cash Withdrawal payout.</p>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Face Check: ${kyc.faceVerified?'✓ Complete':'✗ Pending'} | ID Scan: ${kyc.idVerified?'✓ Complete':'✗ Pending'}</p>
+    <button class="btn" onclick="openKYCPortal()">Launch KYC Portal (New Window)</button>
+  </div>
+  <div class="card"><b>Monetization Status: ${w.monetized?'Monetized':'Not Monetized'}</b></div>
+  <div class="card"><b>Free Credits: ${w.freeCredits||0}</b></div>
+  <div class="card"><b>Cash Balance: ₦${(w.cashBalance||0).toLocaleString()}</b></div>
+  <div class="card">
+  <p style="font-size:12px">Daily Cap ${w.dailyCapProgress||'0/0'}</p><div class="progress"><div class="progress-bar" style="width:${cap}%"></div></div>
+  <p style="font-size:12px">Days to Monetize ${w.daysProgress||'0/0'}</p><div class="progress"><div class="progress-bar" style="width:${days}%"></div></div>
+  <p style="font-size:12px">Followers ${w.followersProgress||'0/0'}</p><div class="progress"><div class="progress-bar" style="width:${foll}%"></div></div>
+  <p style="font-size:12px">Referrals Left: ${w.refsLeft||0}/5</p>
+  </div>
+  <div class="card">
+  <p style="margin-bottom:8px;font-weight:800">Withdraw Cash</p>
+  <p style="font-size:11px;color:var(--muted);margin-bottom:12px">Minimum: 50,000 pts = ₦5,000</p>
+  <input class="input" id="withdraw-amount" type="number" placeholder="Amount in Points">
+  <select class="input" id="withdraw-method" onchange="toggleWithdrawFields()"><option value="BANK">Bank Transfer - Naira</option><option value="USDT">USDT TRC20 - $10 / $100 only</option></select>
+  <div id="bank-fields"><input class="input" id="bank-name" placeholder="Bank Name e.g. GTBank"><input class="input" id="account-number" placeholder="Account Number"><input class="input" id="account-name" placeholder="Account Name"></div>
+  <div id="usdt-fields" style="display:none"><input class="input" id="usdt-address" placeholder="TRC20 Address starts with T"></div>
+  <button class="btn" onclick="requestWithdraw()">Request Withdraw</button>
+  </div>`;
+}
+function toggleWithdrawFields(){const method=document.getElementById('withdraw-method').value;document.getElementById('bank-fields').style.display=method==='BANK'?'block':'none';document.getElementById('usdt-fields').style.display=method==='USDT'?'block':'none'}
+async function requestWithdraw(){
+  const amount=document.getElementById('withdraw-amount').value;const method=document.getElementById('withdraw-method').value;
+  if(Number(amount)<50000) return toast('Min withdrawal is 50,000 pts');
+  let targetDetails={};
+  if(method==='BANK'){const bankName=document.getElementById('bank-name').value;const accountNumber=document.getElementById('account-number').value;const accountName=document.getElementById('account-name').value;if(!bankName||!accountNumber||!accountName) return toast('Fill all bank details');targetDetails={bankName,accountNumber,accountName}}else{const usdt=document.getElementById('usdt-address').value;if(!usdt) return toast('Enter TRC20 Address');if(Number(amount)!==120000&&Number(amount)!==12000000) return toast('USDT only 120k or 12M pts');targetDetails={address:usdt}}
+  pendingWithdraw={amountPoints:Number(amount),method,targetDetails};
+  const res=await api('/api/wallet/withdraw',{method:'POST',body:JSON.stringify(pendingWithdraw)});
+  if(res.authChallenge) document.getElementById('otp-modal').classList.add('active');else if(res.error) toast(res.error);
+}
+async function confirmWithdraw(){const otpVal=document.getElementById('otp-input').value;const res=await api('/api/wallet/withdraw/confirm',{method:'POST',body:JSON.stringify({...pendingWithdraw,otp:otpVal})});if(res.transactionAcknowledged){toast('Withdraw Requested');loadWallet()}else{toast(res.error||'Failed')}document.getElementById('otp-modal').classList.remove('active')}
+function loadGifts(){document.getElementById('tab-gifts').innerHTML=`<div class="gift-card" onclick="buyGift('RUBY')"><svg viewBox="0 0 24 24" style="color:var(--pink)"><path d="M6 3h12l4 6-10 13L2 9l4-6z"/></svg><div><b>RUBY</b><p style="color:var(--muted);font-size:12px">₦5,000 - 200pts x 100 gifts</p></div></div><div class="gift-card" onclick="buyGift('GOLD')"><svg viewBox="0 0 24 24" style="color:var(--orange)"><circle cx="12" cy="12" r="10"/></svg><div><b>GOLD</b><p style="color:var(--muted);font-size:12px">₦10,000 - 500pts x 100 gifts</p></div></div><div class="gift-card" onclick="buyGift('DIAMOND')"><svg viewBox="0 0 24 24" style="color:var(--blue)"><path d="M2 9l10 13L22 9"/></svg><div><b>DIAMOND</b><p style="color:var(--muted);font-size:12px">₦15,000 - 1,000pts x 100 gifts</p></div></div>`}
+async function buyGift(type){const d=await api('/api/gift/init',{method:'POST',body:JSON.stringify({giftType:type})});if(d.selarLink)window.open(d.selarLink)}
+async function loadSupport(){
+  document.getElementById('tab-support').innerHTML=`<div class="card"><input class="input" id="support-subject" placeholder="Subject"><textarea class="input" id="support-msg" placeholder="Describe your issue" rows="4"></textarea><button class="btn" onclick="sendSupport()">Send Ticket</button></div><div id="tickets"></div>`;
+  const t=await api('/api/support/my');document.getElementById('tickets').innerHTML=(t||[]).map(x=>`<div class="card"><b>${escapeHtml(x.subject)}</b><p style="color:var(--muted);font-size:12px;margin:4px 0">You: ${escapeHtml(x.message)}</p>${x.reply?`<p style="color:var(--green);margin-top:8px;font-size:12px"><b>Admin:</b> ${escapeHtml(x.reply)}</p>`:''}<p style="color:${x.status==='RESOLVED'?'var(--green)':'var(--orange)'};font-size:11px;margin-top:8px">${escapeHtml(x.status)}</p></div>`).join('');
+}
+async function sendSupport(){const subject=document.getElementById('support-subject').value;const message=document.getElementById('support-msg').value;if(!subject||!message) return toast('Fill all fields');const res=await api('/api/support/send',{method:'POST',body:JSON.stringify({subject,message})});if(res.error) return toast(res.error);toast('Ticket sent');loadSupport()}
+async function toggleFollow(){if(followLock) return;followLock=true;const btn=document.getElementById('follow-btn');btn.disabled=true;const isFollowing=btn.innerText==='Unfollow';btn.innerText=isFollowing?'Follow':'Unfollow';const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:profileId})});if(res.error){btn.innerText=isFollowing?'Unfollow':'Follow';toast(res.error)}else{toast(isFollowing?'Unfollowed':'Following');loadProfile()}setTimeout(()=>{btn.disabled=false;followLock=false},2000)}
+function openChat(userId){localStorage.chatWith=userId||profileId;location.href='messages.html?user='+(userId||profileId)}
+function logout(){localStorage.clear();location.href='auth.html'}
+async function loadKYCStatus(){const kyc=await api('/api/profile/kyc-status');const badgesWrap=document.getElementById('badges');if(kyc&&kyc.faceVerified&&kyc.idVerified){if(!badgesWrap.querySelector('.badge.kyc')){badgesWrap.insertAdjacentHTML('beforeend',`<span class="badge kyc"><svg class="icon-inline" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>KYC Verified</span>`)}}}
+async function saveBio(){const bio=document.getElementById('bio-input').value;const res=await api('/api/profile/bio',{method:'POST',body:JSON.stringify({bio})});if(res.success){toast('Bio updated');document.getElementById('bio-text').innerHTML=linkifyBio(res.bio)}else toast(res.error||'Failed')}
+async function uploadAvatar(file){
+  if(!file) return;
+  if(file.size>2*1024*1024) return toast('Max 2MB');
+  toast('Uploading avatar...');
+  const fd=new FormData();fd.append('file',file);fd.append('userId',localStorage.userId);
+  try{
+    const res=await fetch(CDN_URL+'/api/cdn/avatar',{method:'POST',headers:{'x-api-key':CDN_KEY},body:fd});
+    const data=await res.json();
+    if(data.success){
+      toast('Avatar updated');
+      const kyc=await api('/api/profile/kyc-status');
+      if(kyc.avatarUrl) document.getElementById('avatar-img').src=kyc.avatarUrl;
+      document.getElementById('avatar-actions').style.display='flex';
+    }else toast(data.error||'Upload failed');
+  }catch(e){toast('Upload failed')}
+}
+async function deleteAvatar(){
+  if(!confirm('Delete avatar?')) return;
+  const res=await api('/api/profile/avatar',{method:'DELETE'});
+  if(res.success){
+    toast('Avatar deleted');
+    document.getElementById('avatar-img').src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
+    document.getElementById('avatar-actions').style.display='none';
+  }else toast(res.error||'Failed')
+}
+async function clearBio(){const res=await api('/api/profile/bio',{method:'DELETE'});if(res.success){toast('Bio cleared');document.getElementById('bio-input').value='';document.getElementById('bio-text').innerHTML=''}else toast(res.error||'Failed')}
+function openKYCPortal(){const kycUrl=`kyc.html?token=${encodeURIComponent(TOKEN)}&api=${encodeURIComponent(API)}`;const kycWin=window.open(kycUrl,"_blank");if(!kycWin) return toast("Please allow popups to open KYC window")}
+loadProfile();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
