@@ -412,35 +412,35 @@ function renderQuestion(){
   container.innerHTML=html;
 }
 
-function toggleChip(el,id){
+function toggleChip(el, id) {
   el.classList.toggle('active');
-  const selected = document.querySelectorAll(`#q-${id}.chip.active`).length;
-  if(selected > 3){
+  const selected = document.querySelectorAll(`#q-${id} .chip.active`).length;
+  if (selected > 3) {
     el.classList.remove('active');
     toast('Max 3 interests');
   }
 }
 
-function selectRadio(el,id,val){
-  document.querySelectorAll(`#q-${id}.radio-option`).forEach(r=>r.classList.remove('active'));
+function selectRadio(el, id, val) {
+  document.querySelectorAll(`#q-${id} .radio-option`).forEach(r => r.classList.remove('active'));
   el.classList.add('active');
-  surveyData[id]=val;
+  surveyData[id] = val;
 }
-
-function nextQuestion(){
-  const q=surveyQuestions[surveyStep];
-  if(q.type==='chips'){
-    surveyData[q.id]=[...document.querySelectorAll(`#q-${q.id}.chip.active`)].map(c=>c.innerText);
-    if(surveyData[q.id].length===0){toast('Pick at least 1');return}
-  }else if(q.type==='radio'){
-    if(!surveyData[q.id]){toast('Select an option');return}
-  }else if(q.type==='select'){
-    surveyData[q.id]=document.getElementById(`q-${q.id}`).value;
+function nextQuestion() {
+  const q = surveyQuestions[surveyStep];
+  if (q.type === 'chips') {
+    // Added missing space between #q-${q.id} and .chip.active
+    surveyData[q.id] = [...document.querySelectorAll(`#q-${q.id} .chip.active`)].map(c => c.innerText);
+    if (surveyData[q.id].length === 0) { toast('Pick at least 1'); return; }
+  } else if (q.type === 'radio') {
+    if (!surveyData[q.id]) { toast('Select an option'); return; }
+  } else if (q.type === 'select') {
+    surveyData[q.id] = document.getElementById(`q-${q.id}`).value;
   }
   surveyStep++;
-  if(surveyStep<surveyQuestions.length){
+  if (surveyStep < surveyQuestions.length) {
     renderQuestion();
-  }else{
+  } else {
     finishOnboard();
   }
 }
