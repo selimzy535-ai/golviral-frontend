@@ -1,4 +1,4 @@
-
+So right now video is playing on iOS but nothing shows on android can u find and tell the single exact why it still not showing on android 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -159,9 +159,18 @@ const USER_ID=localStorage.userId;
 if(!TOKEN) location.href='auth.html';
 let feedData=[],currentPost=null,searchTimer=null,currentBoostPostId=null,currentGiftUserId=null,activeProfileUserId=null;
 const userCache={},followLocks={},hlsInstances={};
-
-let GLOBAL_MUTED = localStorage.getItem('golviral_muted')!=='0';
-true});
+let GLOBAL_MUTED = localStorage.getItem('golviral_muted')==='0'? false : true;
+let userInteracted=false;
+function unlockAudioVideo(){
+  if(userInteracted) return;
+  userInteracted=true;
+  document.querySelectorAll('video').forEach(v=>{
+    v.muted=GLOBAL_MUTED;
+    v.play().catch(()=>{});
+  });
+}
+document.addEventListener('touchstart',unlockAudioVideo,{once:true});
+document.addEventListener('click',unlockAudioVideo,{once:true});
 let CUR={symbol:'₦',code:'NGN',locale:'en-NG'};
 async function fetchGeoCurrency(){
   try{
@@ -222,26 +231,109 @@ async function getUser(id){
   return u;
 }
 
-
 const signedUrlCache = new Map();
-const inflight = new Map();
+const inflightRequests = new Map();
+const blobUrlCache = new Map(); // for TG ffmpeg fix
+
+class SmartAndroidPlayer {
+  constructor(videoElement, videoUrl) {
+    this.video = videoElement;
+    this.url = videoUrl;
+    this.isAndroid = /android/i.test(navigator.userAgent || navigator.vendor);
+    this.isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    this.init();
+  }
+  init() {
+    if (this.isAndroid) this.applyAndroidFixes();
+    else this.applyIOSFixes();
+    this.video.src = this.url;
+    this.attachErrorRecovery();
+    this.attemptPlay();
+  }
+  applyAndroidFixes() {
+    this.video.muted = true;
+    this.video.defaultMuted = true;
+    this.video.playsInline = true;
+    this.video.setAttribute('playsinline','');
+    this.video.setAttribute('webkit-playsinline','');
+    this.video.setAttribute('muted','');
+    this.video.crossOrigin = 'anonymous';
+    this.video.preload = 'auto';
+    this.video.loop = true;
+  }
+  applyIOSFixes() {
+    this.video.playsInline = true;
+    this.video.setAttribute('playsinline','');
+    this.video.setAttribute('webkit-playsinline','');
+    this.video.preload = 'metadata';
+    this.video.loop = true;
+  }
+  attemptPlay() {
+    const p = this.video.play();
+    if(p!==undefined){
+      p.catch(()=>{
+        if(this.isAndroid &&!this.video.muted){
+          this.video.muted = true;
+          this.video.play().catch(()=>{});
+        }else{
+          const ov = this.video.parentElement?.querySelector('.play-overlay');
+          if(ov) ov.style.display='flex';
+        }
+      });
+    }
+  }
+  attachErrorRecovery() {
+    this.video.onerror = () => {
+      if(this.isAndroid){
+        console.log('[SmartPlayer] Android error, blob fallback for TG ffmpeg');
+        this.recoverViaBlob();
+      }
+    };
+  }
+  async recoverViaBlob() {
+    try{
+      if(blobUrlCache.has(this.url)){
+        this.video.src = blobUrlCache.get(this.url);
+        this.video.load();
+        this.attemptPlay();
+        return;
+      }
+      const response = await fetch(this.url);
+      if(!response.ok) throw new Error('HTTP '+response.status);
+      const blob = await response.blob();
+      const fixedBlob = new Blob([blob], { type: 'video/mp4' });
+      const objectUrl = URL.createObjectURL(fixedBlob);
+      blobUrlCache.set(this.url, objectUrl);
+      this.video.src = objectUrl;
+      this.video.load();
+      this.attemptPlay();
+    }catch(e){
+      console.error('[SmartPlayer] Blob failed', e);
+    }
+  }
+}
+
 async function getSignedUrl(postId){
   if(signedUrlCache.has(postId)) return signedUrlCache.get(postId);
-  if(inflight.has(postId)) return inflight.get(postId);
+  if(inflightRequests.has(postId)) return inflightRequests.get(postId);
   const promise = (async()=>{
-    const d = await api(`/api/media/sign?postId=${postId}`);
-    if(d?.url){
-      signedUrlCache.set(postId, d.url);
-      return d.url; // this is already https://golviral-stream.lawal94935.workers.dev/?file_id=...
+    for(let attempt=0; attempt<2; attempt++){
+      try{
+        const d = await api(`/api/media/sign?postId=${postId}`);
+        if(d?.url){
+          signedUrlCache.set(postId, d.url);
+          return d.url;
+        }
+      }catch(e){}
+      await new Promise(r=>setTimeout(r, 700));
     }
     return null;
   })();
-  inflight.set(postId, promise);
+  inflightRequests.set(postId, promise);
   const url = await promise;
-  inflight.delete(postId);
+  inflightRequests.delete(postId);
   return url;
 }
-
 /* ========== AD LOGIC - WITH COLLISION DETECTION ========== */
 let adTimers = {push:null, vignette:null, social:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
