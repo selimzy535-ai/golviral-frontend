@@ -19,8 +19,9 @@ h2{margin-bottom:16px}
 .input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px;outline:none}
 .input:focus{border-color:var(--accent)}
 .drop{border:2px dashed var(--border);border-radius:12px;padding:0;text-align:center;margin-bottom:12px;cursor:pointer;position:relative;height:320px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;background:#000}
-.drop img,.drop video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:12px;z-index:3;background:#000}
+.drop img,.drop video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:12px;z-index:3}
 .drop-placeholder{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1}
+.play-overlay{position:absolute;z-index:4;bottom:10px;left:10px;background:rgba(0,0,0,0.7);border:1px solid #333;padding:6px 12px;border-radius:20px;font-size:12px;display:none;pointer-events:none}
 .progress{height:8px;background:#000;border-radius:10px;overflow:hidden;margin-top:12px;display:none}
 .progress-bar{height:100%;background:var(--gradient);width:0%;transition:0.2s}
 .progress-text{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;display:none}
@@ -53,8 +54,9 @@ h2{margin-bottom:16px}
 <b>Tap to select file</b><p class="tip" id="tip-text">MP4 or MOV - Max 180s - Max 17MB</p>
 </div>
 <img id="img-preview" style="display:none">
-<video id="video-preview" style="display:none" playsinline muted preload="metadata" controls></video>
-<input type="file" id="file-input" accept="video/mp4,video/quicktime,video/mov" style="display:none">
+<video id="video-preview" style="display:none" playsinline muted preload="metadata"></video>
+<div class="play-overlay" id="play-overlay">▶ Tap to preview</div>
+<input type="file" id="file-input" style="display:none">
 </div>
 <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress"></div></div>
 <div class="progress-text" id="progress-text"></div>
@@ -74,182 +76,176 @@ h2{margin-bottom:16px}
 const API='https://golviral-api.onrender.com';
 const CDN_API='https://golviral-cdn.onrender.com';
 const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
-const TOKEN=localStorage.getItem('token');
+const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 function parseJwt(t){try{return JSON.parse(atob(t.split('.')[1]))}catch{location.href='auth.html'}}
 const TYPE_MAP={reel:'reel',photo:'store',shortstory:'novel'};
 let uiType='reel';let selectedFile=null;let isUploading=false;let isAIToggled=false;
-let currentBlobUrl=null;
+let currentObjectUrl=null;
+let isPreviewPlaying=false;
 
 function toast(m,e=false){const t=document.getElementById('toast');t.innerText=m;t.className='toast '+(e?'error':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
-
 function toggleAI(){
- isAIToggled=!isAIToggled;
- document.getElementById('ai-toggle').classList.toggle('on',isAIToggled);
- const cap=document.getElementById('caption');
- if(isAIToggled){
-   if(!cap.value.includes('#AI')) cap.value=(cap.value.trim()+' #AI').trim();
- }else{
-   cap.value=cap.value.replace(/#AI/g,'').replace(/\s+/g,' ').trim();
- }
+  isAIToggled=!isAIToggled;
+  document.getElementById('ai-toggle').classList.toggle('on',isAIToggled);
+  const cap=document.getElementById('caption');
+  if(isAIToggled){ if(!cap.value.includes('#AI')) cap.value=(cap.value.trim()+' #AI').trim(); }
+  else{ cap.value=cap.value.replace(/#AI/g,'').replace(/\s+/g,' ').trim(); }
 }
-
-function cleanupPreview(){
-  const img=document.getElementById('img-preview');
-  const vp=document.getElementById('video-preview');
-  if(vp){ try{vp.pause();}catch{} vp.removeAttribute('src'); vp.style.display='none'; }
-  if(img){ img.removeAttribute('src'); img.style.display='none'; }
-  if(currentBlobUrl){ URL.revokeObjectURL(currentBlobUrl); currentBlobUrl=null; }
-  document.getElementById('placeholder').style.display='flex';
+function safeRevoke(){
+  if(currentObjectUrl){
+    try{ URL.revokeObjectURL(currentObjectUrl); }catch{}
+    currentObjectUrl=null;
+  }
 }
-
 function setType(type){
- uiType=type;
- cleanupPreview();
- selectedFile=null;
- document.getElementById('file-input').value='';
- document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
- document.querySelector(`[data-ui="${type}"]`).classList.add('active');
- const drop=document.getElementById('drop');
- const tip=document.getElementById('tip-text');
- const fileInput=document.getElementById('file-input');
- if(type==='shortstory'){drop.style.display='none';}
- else{
-  drop.style.display='flex';
-  if(type==='reel'){fileInput.accept='video/mp4,video/quicktime,video/mov';tip.innerText='MP4 or MOV - Max 180s - Max 17MB';}
-  if(type==='photo'){fileInput.accept='image/jpeg,image/png,image/webp,image/gif';tip.innerText='JPG, PNG, WEBP - Max 17MB';}
- }
+  uiType=type;
+  safeRevoke();
+  selectedFile=null;
+  document.getElementById('file-input').value='';
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-ui="${type}"]`).classList.add('active');
+  const drop=document.getElementById('drop');
+  const tip=document.getElementById('tip-text');
+  const fileInput=document.getElementById('file-input');
+  const vp=document.getElementById('video-preview');
+  const img=document.getElementById('img-preview');
+  const overlay=document.getElementById('play-overlay');
+  vp.pause(); vp.style.display='none'; vp.removeAttribute('src'); try{vp.load()}catch{}
+  img.style.display='none'; img.removeAttribute('src');
+  overlay.style.display='none';
+  isPreviewPlaying=false;
+  if(type==='shortstory'){drop.style.display='none';}
+  else{
+    drop.style.display='flex';
+    document.getElementById('placeholder').style.display='flex';
+    if(type==='reel'){fileInput.accept='video/mp4,video/quicktime,video/mov';tip.innerText='MP4 or MOV - Max 180s - Max 17MB';}
+    if(type==='photo'){fileInput.accept='image/jpeg,image/png,image/webp,image/gif';tip.innerText='JPG, PNG, WEBP - Max 17MB';}
+  }
 }
 
-document.getElementById('drop').onclick=()=>{ document.getElementById('file-input').click(); };
+// Click to select OR play preview
+document.getElementById('drop').onclick=()=>{
+  const vp=document.getElementById('video-preview');
+  if(uiType==='reel' && vp.style.display==='block' && vp.src){
+    if(isPreviewPlaying){ vp.pause(); isPreviewPlaying=false; document.getElementById('play-overlay').style.display='block'; document.getElementById('play-overlay').innerText='▶ Tap to preview'; }
+    else{ vp.muted=false; vp.play().then(()=>{isPreviewPlaying=true; document.getElementById('play-overlay').style.display='none';}).catch(()=>{ vp.muted=true; vp.play(); }); }
+    return;
+  }
+  document.getElementById('file-input').click();
+};
 
 document.getElementById('file-input').onchange=e=>{
- selectedFile=e.target.files[0];
- if(!selectedFile) return;
- if(selectedFile.size>17*1024*1024){toast('File too big! Max 17MB',true);selectedFile=null;e.target.value='';return;}
+  selectedFile=e.target.files[0];
+  if(!selectedFile) return;
+  if(selectedFile.size>17*1024*1024){toast('File too big! Max 17MB',true);selectedFile=null;e.target.value='';return;}
+  safeRevoke();
+  currentObjectUrl=URL.createObjectURL(selectedFile);
+  document.getElementById('placeholder').style.display='none';
 
- if(currentBlobUrl){ URL.revokeObjectURL(currentBlobUrl); currentBlobUrl=null; }
+  if(uiType==='photo'){
+    const img=document.getElementById('img-preview');
+    img.src=currentObjectUrl;
+    img.style.display='block';
+    document.getElementById('video-preview').style.display='none';
+    document.getElementById('play-overlay').style.display='none';
+  }
+  if(uiType==='reel'){
+    const vp=document.getElementById('video-preview');
+    vp.style.display='block';
+    vp.muted=true;
+    vp.playsInline=true;
+    vp.preload='metadata';
+    vp.src=currentObjectUrl;
+    vp.load();
+    const overlay=document.getElementById('play-overlay');
+    overlay.style.display='block';
+    overlay.innerText='Loading...';
 
- document.getElementById('placeholder').style.display='none';
- currentBlobUrl = URL.createObjectURL(selectedFile);
-
- if(uiType==='photo'){
-  const img=document.getElementById('img-preview');
-  const vp=document.getElementById('video-preview');
-  try{vp.pause();}catch{}
-  vp.style.display='none';
-  img.style.display='block';
-  img.src=currentBlobUrl;
- }
-
- if(uiType==='reel'){
-  const vp=document.getElementById('video-preview');
-  const img=document.getElementById('img-preview');
-  img.style.display='none';
-  vp.style.display='block';
-  vp.muted=true;
-  vp.playsInline=true;
-  vp.controls=true;
-  vp.autoplay=true;
-  vp.loop=true;
-
-  vp.onloadedmetadata=()=>{
-    if(vp.duration>180){
-      toast('Video too long! Max 3 min',true);
-      selectedFile=null;
-      cleanupPreview();
-      document.getElementById('file-input').value='';
-      return;
-    }
-    try{ vp.currentTime=0.1; }catch{}
-    vp.play().catch(()=>{});
-  };
-
-  vp.onerror=()=>{
-    toast('Invalid video file',true);
-    selectedFile=null;
-    cleanupPreview();
-  };
-
-  vp.src=currentBlobUrl;
-  vp.load();
- }
+    vp.onloadedmetadata=()=>{
+      if(vp.duration>180){
+        toast('Video too long! Max 3 min',true);
+        safeRevoke(); selectedFile=null; e.target.value='';
+        document.getElementById('placeholder').style.display='flex';
+        vp.style.display='none'; overlay.style.display='none';
+        return;
+      }
+      try{ vp.currentTime=0.2; }catch{}
+      overlay.innerText='▶ Tap to preview';
+    };
+    vp.onerror=()=>{
+      // still allow upload even if metadata fails on iOS
+      overlay.innerText='▶ Tap to preview';
+    };
+  }
 };
 
 function uploadFileWithProgress(url,formData){
- return new Promise((res,rej)=>{
-  const xhr=new XMLHttpRequest();
-  xhr.open('POST',url);
-  xhr.setRequestHeader('x-api-key',CDN_KEY);
-  xhr.upload.onprogress=e=>{
-   if(e.lengthComputable){
-    let p=(e.loaded/e.total*100).toFixed(0);
-    document.getElementById('progress-wrap').style.display='block';
-    document.getElementById('progress').style.width=p+'%';
-    document.getElementById('progress-text').style.display='block';
-    document.getElementById('progress-text').innerText=`Posting... ${p}%`;
-    document.getElementById('upload-warn').style.display='block';
-   }
-  };
-  xhr.onload=()=>{
-    if(xhr.status>=200&&xhr.status<300){
-      try{ res(JSON.parse(xhr.responseText)); }catch{ res({}); }
-    } else rej(new Error('Post failed '+xhr.status));
-  };
-  xhr.onerror=()=>rej(new Error('Network error'));
-  xhr.send(formData);
- });
-}
-
-async function submitPost(){
- if(uiType!=='shortstory'&&!selectedFile) return toast('Select a file',true);
- if(isUploading) return;
-
- const vp=document.getElementById('video-preview');
- if(vp){ try{vp.pause();}catch{} vp.controls=false; }
-
- const btn=document.getElementById('publish-btn');
- isUploading=true; btn.disabled=true; btn.innerText='Posting...';
- const title=document.getElementById('title').value;
- let caption=document.getElementById('caption').value;
- if(isAIToggled &&!caption.includes('#AI')) caption=(caption+' #AI').trim();
- const backendType=TYPE_MAP[uiType];
- const d=parseJwt(TOKEN); const userId=d.userId||d.id;
-
- try{
-  const intentRes=await fetch(API+'/api/post/create-intent',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-    body:JSON.stringify({postType:backendType,contentType:selectedFile?selectedFile.type:null,fileExtension:selectedFile?selectedFile.name.split('.').pop():null,caption,title,isAI:isAIToggled})
+  return new Promise((res,rej)=>{
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST',url);
+    xhr.timeout=120000;
+    xhr.setRequestHeader('x-api-key',CDN_KEY);
+    xhr.upload.onprogress=e=>{
+      if(e.lengthComputable){
+        let p=(e.loaded/e.total*100).toFixed(0);
+        document.getElementById('progress-wrap').style.display='block';
+        document.getElementById('progress').style.width=p+'%';
+        document.getElementById('progress-text').style.display='block';
+        document.getElementById('progress-text').innerText=`Posting... ${p}%`;
+        document.getElementById('upload-warn').style.display='block';
+      }
+    };
+    xhr.onload=()=>{ if(xhr.status>=200&&xhr.status<300) res(JSON.parse(xhr.responseText)); else rej(new Error('Post failed '+xhr.status)); };
+    xhr.onerror=()=>rej(new Error('Network error'));
+    xhr.ontimeout=()=>rej(new Error('Upload timed out'));
+    xhr.send(formData);
   });
-  const intent=await intentRes.json(); if(intent.error) throw new Error(intent.error);
-
-  if(uiType!=='shortstory'){
-   const form=new FormData();
-   form.append('video',selectedFile);
-   form.append('userId',userId);
-   form.append('postId',intent.postId);
-   form.append('title',title);
-   form.append('caption',caption);
-   await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct',form);
-  }
-
-  if(currentBlobUrl){ URL.revokeObjectURL(currentBlobUrl); currentBlobUrl=null; }
-  selectedFile=null;
-  toast('Posted');
-  location.href='index.html';
-
- }catch(err){
-  toast(err.message,true);
-  btn.disabled=false; btn.innerText='Post';
-  isUploading=false;
-  document.getElementById('progress-wrap').style.display='none';
-  document.getElementById('upload-warn').style.display='none';
-  if(vp) vp.controls=true;
- }
 }
+async function submitPost(){
+  if(uiType!=='shortstory'&&!selectedFile) return toast('Select a file',true);
+  if(isUploading) return;
+  const btn=document.getElementById('publish-btn');
+  isUploading=true; btn.disabled=true; btn.innerText='Posting...';
+  const title=document.getElementById('title').value;
+  let caption=document.getElementById('caption').value;
+  if(isAIToggled &&!caption.includes('#AI')) caption=(caption+' #AI').trim();
+  const backendType=TYPE_MAP[uiType];
+  const d=parseJwt(TOKEN);
+  const userId=d.userId||d.id;
+  // FREE video decoder before upload - fixes iOS crash
+  const vp=document.getElementById('video-preview');
+  if(vp){ vp.pause(); isPreviewPlaying=false; }
 
-window.addEventListener('pagehide',()=>{ if(currentBlobUrl) URL.revokeObjectURL(currentBlobUrl); });
+  try{
+    const intentRes=await fetch(API+'/api/post/create-intent',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({postType:backendType,contentType:selectedFile?selectedFile.type:null,fileExtension:selectedFile?selectedFile.name.split('.').pop():null,caption,title,isAI:isAIToggled})});
+    const intent=await intentRes.json();
+    if(intent.error) throw new Error(intent.error);
+    if(uiType!=='shortstory'){
+      const form=new FormData();
+      form.append('video',selectedFile);
+      form.append('userId',userId);
+      form.append('postId',intent.postId);
+      form.append('title',title);
+      form.append('caption',caption);
+      await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct',form);
+    }
+    safeRevoke();
+    toast('Posted');
+    setTimeout(()=> location.href='index.html', 800);
+  }catch(err){
+    toast(err.message,true);
+    btn.disabled=false; btn.innerText='Post'; isUploading=false;
+    document.getElementById('progress-wrap').style.display='none';
+    document.getElementById('upload-warn').style.display='none';
+    // restore preview src after fail
+    if(uiType==='reel' && currentObjectUrl){
+      document.getElementById('video-preview').src=currentObjectUrl;
+    }
+  }
+}
+// cleanup on leave
+window.addEventListener('pagehide', safeRevoke);
 </script>
 </body>
 </html>
