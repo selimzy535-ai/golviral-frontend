@@ -4,29 +4,34 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GolViral - Create</title>
 <style>
-:root{--bg:#050505;--card:#0f0f0f;--accent:#00ff88;--text:#fff;--muted:#888;--border:#1f1f1f;--danger:#ff4444;--gradient:linear-gradient(135deg,#00ff88,#3b82f6)}
+:root{--bg:#050505;--card:#0f0f0f;--glass:rgba(15,15,15,0.65);--accent:#00ff88;--text:#fff;--muted:#888;--border:#1f1f1f;--danger:#ff4444;--gradient:linear-gradient(135deg,#00ff88,#3b82f6)}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
 body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;display:flex;flex-direction:column}
-header{padding:16px;background:rgba(15,15,15,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
 svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
 .content{flex:1;overflow-y:auto;padding:20px}
 .type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .type-btn{border:1px solid var(--border);background:var(--card);border-radius:14px;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:12px}
 .type-btn.active{border-color:var(--accent);background:rgba(0,255,136,0.1)}
+.type-btn svg{stroke:var(--accent)}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px}
 .input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:12px;margin-bottom:12px;outline:none}
-.drop{border:2px dashed var(--border);border-radius:12px;height:320px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;background:#000;position:relative;cursor:pointer}
-.drop img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:12px;z-index:3}
-.drop-placeholder{display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1;pointer-events:none}
-.file-info{position:absolute;z-index:4;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.9));padding:12px;display:none}
+.input:focus{border-color:var(--accent)}
+.drop{border:2px dashed var(--border);border-radius:12px;padding:0;text-align:center;margin-bottom:12px;cursor:pointer;position:relative;height:320px;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;background:#000}
+.drop img,.drop canvas{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:12px;z-index:3}
+.drop-placeholder{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1}
+.file-badge{position:absolute;bottom:10px;left:10px;z-index:4;background:rgba(0,0,0,0.8);border:1px solid #333;padding:6px 12px;border-radius:20px;font-size:11px;display:none}
 .progress{height:8px;background:#000;border-radius:10px;overflow:hidden;margin-top:12px;display:none}
-.progress-bar{height:100%;background:var(--gradient);width:0%}
+.progress-bar{height:100%;background:var(--gradient);width:0%;transition:0.2s}
+.progress-text{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;display:none}
 .btn{background:var(--gradient);color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;width:100%;cursor:pointer}
+.btn:disabled{opacity:0.6}
 .toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-100px);background:var(--accent);color:#000;padding:12px 20px;border-radius:20px;font-weight:800;z-index:999;transition:0.3s;opacity:0}
 .toast.show{transform:translate(-50%,0);opacity:1}
 .toast.error{background:var(--danger);color:#fff}
+.tip{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
 .ai-row{display:flex;align-items:center;justify-content:space-between;padding:12px;background:#000;border:1px solid var(--border);border-radius:12px;margin-bottom:12px}
-.toggle{width:44px;height:26px;background:#222;border-radius:20px;position:relative;cursor:pointer}
+.toggle{width:44px;height:26px;background:#222;border-radius:20px;position:relative;cursor:pointer;transition:0.2s}
 .toggle.on{background:var(--accent)}
 .toggle::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:3px;left:3px;transition:0.2s}
 .toggle.on::after{left:21px}
@@ -37,24 +42,34 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
 <div id="toast" class="toast"></div>
 <div class="content">
 <div class="type-grid">
-<div class="type-btn active" data-ui="reel" onclick="setType('reel')">Reel</div>
-<div class="type-btn" data-ui="photo" onclick="setType('photo')">Photo</div>
-<div class="type-btn" data-ui="shortstory" onclick="setType('shortstory')">Story</div>
+<div class="type-btn active" data-ui="reel" onclick="setType('reel')"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>Reel</div>
+<div class="type-btn" data-ui="photo" onclick="setType('photo')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>Photo</div>
+<div class="type-btn" data-ui="shortstory" onclick="setType('shortstory')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4h16v13H4z"></path></svg>Short Story</div>
 </div>
 <div class="card">
-<div class="drop" id="drop" onclick="document.getElementById('file-input').click()">
-<div class="drop-placeholder" id="placeholder"><b>Tap to select file</b><p style="font-size:12px;color:#888" id="tip-text">MP4 - Max 180s - Max 17MB</p></div>
+<div class="drop" id="drop">
+<div class="drop-placeholder" id="placeholder">
+<svg width="40" height="40" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>
+<b>Tap to select file</b><p class="tip" id="tip-text">MP4 or MOV - Max 180s - Max 17MB</p>
+</div>
 <img id="img-preview" style="display:none">
-<canvas id="thumb-canvas" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:3;border-radius:12px"></canvas>
-<div class="file-info" id="file-info"><p id="file-name" style="font-size:12px"></p><p id="file-meta" style="font-size:11px;color:#aaa"></p></div>
+<canvas id="video-thumb" style="display:none"></canvas>
+<div class="file-badge" id="file-badge"></div>
 <input type="file" id="file-input" style="display:none">
 </div>
 <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress"></div></div>
-<p id="progress-text" style="font-size:12px;text-align:center;margin-top:6px;display:none"></p>
+<div class="progress-text" id="progress-text"></div>
+<p id="upload-warn" style="display:none;font-size:11px;color:var(--danger);text-align:center;margin-top:6px">Do not close this tab while uploading...</p>
 </div>
-<div class="card"><input class="input" id="title" placeholder="Title"><textarea class="input" id="caption" placeholder="Caption" rows="4"></textarea>
-<div class="ai-row"><div><b style="font-size:13px">AI content</b></div><div class="toggle" id="ai-toggle" onclick="toggleAI()"></div></div>
-<button class="btn" id="publish-btn" onclick="submitPost()">Post</button></div>
+<div class="card" id="details-step">
+<input class="input" id="title" placeholder="Title">
+<textarea class="input" id="caption" placeholder="Caption / Story text" rows="4"></textarea>
+<div class="ai-row">
+<div><b style="font-size:13px">This is AI content</b><p style="font-size:11px;color:var(--muted)">Turn on if AI generated</p></div>
+<div class="toggle" id="ai-toggle" onclick="toggleAI()"></div>
+</div>
+<button class="btn" id="publish-btn" onclick="submitPost()">Post</button>
+</div>
 </div>
 <script>
 const API='https://golviral-api.onrender.com';
@@ -62,64 +77,59 @@ const CDN_API='https://golviral-cdn.onrender.com';
 const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
-
-let uiType='reel', selectedFile=null, isUploading=false, isAIToggled=false;
+function parseJwt(t){try{return JSON.parse(atob(t.split('.')[1]))}catch{location.href='auth.html'}}
+const TYPE_MAP={reel:'reel',photo:'store',shortstory:'novel'};
+let uiType='reel';let selectedFile=null;let isUploading=false;let isAIToggled=false;
 let currentObjectUrl=null;
 
 function toast(m,e=false){const t=document.getElementById('toast');t.innerText=m;t.className='toast '+(e?'error':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
-function toggleAI(){isAIToggled=!isAIToggled;document.getElementById('ai-toggle').classList.toggle('on',isAIToggled)}
-function safeRevoke(){if(currentObjectUrl){try{URL.revokeObjectURL(currentObjectUrl)}catch{} currentObjectUrl=null}}
+function toggleAI(){
+  isAIToggled=!isAIToggled;
+  document.getElementById('ai-toggle').classList.toggle('on',isAIToggled);
+  const cap=document.getElementById('caption');
+  if(isAIToggled){ if(!cap.value.includes('#AI')) cap.value=(cap.value.trim()+' #AI').trim(); }
+  else{ cap.value=cap.value.replace(/#AI/g,'').replace(/\s+/g,' ').trim(); }
+}
+function safeRevoke(){ if(currentObjectUrl){ try{URL.revokeObjectURL(currentObjectUrl)}catch{} currentObjectUrl=null; } }
 
 function setType(type){
   uiType=type; safeRevoke(); selectedFile=null;
   document.getElementById('file-input').value='';
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector(`[data-ui="${type}"]`).classList.add('active');
-  const drop=document.getElementById('drop');
+  const tip=document.getElementById('tip-text');
   const fileInput=document.getElementById('file-input');
   document.getElementById('img-preview').style.display='none';
-  document.getElementById('thumb-canvas').style.display='none';
-  document.getElementById('file-info').style.display='none';
+  document.getElementById('video-thumb').style.display='none';
+  document.getElementById('file-badge').style.display='none';
   document.getElementById('placeholder').style.display='flex';
-  if(type==='shortstory'){drop.style.display='none';}
-  else{
-    drop.style.display='flex';
-    fileInput.accept= type==='reel'? 'video/mp4,video/quicktime' : 'image/jpeg,image/png,image/webp';
-    document.getElementById('tip-text').innerText= type==='reel'? 'MP4 - Max 180s - Max 17MB' : 'JPG/PNG - Max 17MB';
-  }
+  document.getElementById('drop').style.display= type==='shortstory'?'none':'flex';
+  if(type==='reel'){fileInput.accept='video/mp4,video/quicktime,video/mov';tip.innerText='MP4 or MOV - Max 180s - Max 17MB';}
+  if(type==='photo'){fileInput.accept='image/jpeg,image/png,image/webp,image/gif';tip.innerText='JPG, PNG, WEBP - Max 17MB';}
 }
 
-// CRASH-PROOF thumbnail generator - uses 1 frame only, no full video load
-function createVideoThumb(file){
-  return new Promise((resolve)=>{
-    const url = URL.createObjectURL(file);
-    const video = document.createElement('video');
-    video.muted=true; video.playsInline=true; video.preload='metadata';
-    video.src=url;
-    video.onloadedmetadata=()=>{
-      if(video.duration>180){
-        URL.revokeObjectURL(url);
-        resolve({error:'Video too long! Max 3 min'});
-        return;
-      }
-      video.currentTime=0.5;
+document.getElementById('drop').onclick=()=> document.getElementById('file-input').click();
+
+function makeVideoThumb(file){
+  return new Promise(resolve=>{
+    const tempUrl=URL.createObjectURL(file);
+    const v=document.createElement('video');
+    v.muted=true; v.playsInline=true; v.preload='metadata'; v.src=tempUrl;
+    v.onloadedmetadata=()=>{
+      if(v.duration>180){ URL.revokeObjectURL(tempUrl); resolve({err:'Video too long! Max 3 min'}); return; }
+      v.currentTime=0.3;
     };
-    video.onseeked=()=>{
-      const canvas=document.getElementById('thumb-canvas');
-      canvas.width=320; canvas.height=500;
-      const ctx=canvas.getContext('2d');
-      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    v.onseeked=()=>{
+      const canvas=document.getElementById('video-thumb');
+      canvas.width=360; canvas.height=640;
+      canvas.getContext('2d').drawImage(v,0,0,canvas.width,canvas.height);
       canvas.style.display='block';
-      URL.revokeObjectURL(url); // FREE IMMEDIATELY - no leak
-      video.remove();
-      resolve({duration:video.duration});
+      URL.revokeObjectURL(tempUrl);
+      v.remove();
+      resolve({dur:v.duration});
     };
-    video.onerror=()=>{
-      URL.revokeObjectURL(url);
-      resolve({duration:0}); // allow upload even if thumb fails (iOS)
-    };
-    // timeout for iOS
-    setTimeout(()=>{ try{URL.revokeObjectURL(url)}catch{} resolve({duration:0}) }, 3000);
+    v.onerror=()=>{ URL.revokeObjectURL(tempUrl); resolve({dur:0}); };
+    setTimeout(()=>{ try{URL.revokeObjectURL(tempUrl)}catch{} resolve({dur:0}); },4000);
   });
 }
 
@@ -127,11 +137,8 @@ document.getElementById('file-input').onchange=async e=>{
   selectedFile=e.target.files[0];
   if(!selectedFile) return;
   if(selectedFile.size>17*1024*1024){toast('File too big! Max 17MB',true);selectedFile=null;e.target.value='';return;}
-
   document.getElementById('placeholder').style.display='none';
-  const info=document.getElementById('file-info');
-  const nameEl=document.getElementById('file-name');
-  const metaEl=document.getElementById('file-meta');
+  const badge=document.getElementById('file-badge');
 
   if(uiType==='photo'){
     safeRevoke();
@@ -139,40 +146,38 @@ document.getElementById('file-input').onchange=async e=>{
     const img=document.getElementById('img-preview');
     img.src=currentObjectUrl;
     img.style.display='block';
-    info.style.display='block';
-    nameEl.innerText=selectedFile.name;
-    metaEl.innerText=(selectedFile.size/1024/1024).toFixed(1)+' MB';
+    document.getElementById('video-thumb').style.display='none';
+    badge.style.display='block';
+    badge.innerText=(selectedFile.size/1024/1024).toFixed(1)+' MB • '+selectedFile.name;
   } else {
-    // VIDEO - no video element, only canvas thumb = no crash
     document.getElementById('img-preview').style.display='none';
-    document.getElementById('thumb-canvas').style.display='none';
-    info.style.display='block';
-    nameEl.innerText=selectedFile.name;
-    metaEl.innerText='Generating preview...';
-
-    const result=await createVideoThumb(selectedFile);
-    if(result.error){toast(result.error,true);selectedFile=null;e.target.value='';document.getElementById('placeholder').style.display='flex';info.style.display='none';return;}
-    metaEl.innerText=(selectedFile.size/1024/1024).toFixed(1)+' MB • '+Math.round(result.duration||0)+'s • Tap to change';
+    badge.style.display='block';
+    badge.innerText='Generating thumbnail...';
+    const res=await makeVideoThumb(selectedFile);
+    if(res.err){toast(res.err,true);selectedFile=null;e.target.value='';document.getElementById('placeholder').style.display='flex';badge.style.display='none';document.getElementById('video-thumb').style.display='none';return;}
+    badge.innerText=(selectedFile.size/1024/1024).toFixed(1)+' MB • '+Math.round(res.dur||0)+'s • '+selectedFile.name;
   }
 };
 
 function uploadFileWithProgress(url,formData){
   return new Promise((res,rej)=>{
     const xhr=new XMLHttpRequest();
-    xhr.open('POST',url); xhr.timeout=120000;
+    xhr.open('POST',url);
+    xhr.timeout=2100000; // 35 MIN
     xhr.setRequestHeader('x-api-key',CDN_KEY);
     xhr.upload.onprogress=e=>{
       if(e.lengthComputable){
         let p=(e.loaded/e.total*100).toFixed(0);
         document.getElementById('progress-wrap').style.display='block';
         document.getElementById('progress').style.width=p+'%';
-        const t=document.getElementById('progress-text');
-        t.style.display='block'; t.innerText=p+'% uploading...';
+        document.getElementById('progress-text').style.display='block';
+        document.getElementById('progress-text').innerText=`Posting... ${p}%`;
+        document.getElementById('upload-warn').style.display='block';
       }
     };
-    xhr.onload=()=>{ xhr.status>=200&&xhr.status<300? res(JSON.parse(xhr.responseText)) : rej(new Error('Post failed')); };
+    xhr.onload=()=>{ if(xhr.status>=200&&xhr.status<300) res(JSON.parse(xhr.responseText)); else rej(new Error('Post failed '+xhr.status)); };
     xhr.onerror=()=>rej(new Error('Network error'));
-    xhr.ontimeout=()=>rej(new Error('Timed out'));
+    xhr.ontimeout=()=>rej(new Error('Upload timed out after 35min - try smaller file'));
     xhr.send(formData);
   });
 }
@@ -180,26 +185,18 @@ function uploadFileWithProgress(url,formData){
 async function submitPost(){
   if(uiType!=='shortstory'&&!selectedFile) return toast('Select a file',true);
   if(isUploading) return;
-  isUploading=true;
   const btn=document.getElementById('publish-btn');
-  btn.disabled=true; btn.innerText='Posting...';
-
+  isUploading=true; btn.disabled=true; btn.innerText='Posting...';
+  const title=document.getElementById('title').value;
+  let caption=document.getElementById('caption').value;
+  if(isAIToggled &&!caption.includes('#AI')) caption=(caption+' #AI').trim();
+  const backendType=TYPE_MAP[uiType];
+  const d=parseJwt(TOKEN);
+  const userId=d.userId||d.id;
   try{
-    const title=document.getElementById('title').value;
-    let caption=document.getElementById('caption').value;
-    if(isAIToggled &&!caption.includes('#AI')) caption+=' #AI';
-
-    // parse token safely
-    let userId=''; try{ userId=JSON.parse(atob(TOKEN.split('.')[1])).userId }catch{ userId=''; }
-
-    const intentRes=await fetch(API+'/api/post/create-intent',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-      body:JSON.stringify({postType: uiType==='reel'?'reel':uiType==='photo'?'store':'novel', contentType:selectedFile?.type, fileExtension:selectedFile?.name.split('.').pop(), caption, title, isAI:isAIToggled})
-    });
+    const intentRes=await fetch(API+'/api/post/create-intent',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({postType:backendType,contentType:selectedFile?selectedFile.type:null,fileExtension:selectedFile?selectedFile.name.split('.').pop():null,caption,title,isAI:isAIToggled})});
     const intent=await intentRes.json();
     if(intent.error) throw new Error(intent.error);
-
     if(uiType!=='shortstory'){
       const form=new FormData();
       form.append('video',selectedFile);
@@ -210,14 +207,16 @@ async function submitPost(){
       await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct',form);
     }
     safeRevoke();
-    toast('Posted!');
-    setTimeout(()=>location.href='index.html',700);
+    toast('Posted');
+    setTimeout(()=> location.href='index.html', 800);
   }catch(err){
     toast(err.message,true);
     btn.disabled=false; btn.innerText='Post'; isUploading=false;
     document.getElementById('progress-wrap').style.display='none';
+    document.getElementById('upload-warn').style.display='none';
   }
 }
+window.addEventListener('pagehide', safeRevoke);
 </script>
 </body>
 </html>
