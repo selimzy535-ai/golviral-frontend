@@ -226,6 +226,7 @@ async function getSignedUrl(postId){
   return null;
 }
 
+Here 
 /* ========== AD LOGIC - FIXED 300x250 ========== */
 let adTimers = {push:null, vignette:null, social:null, banner:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
@@ -240,11 +241,10 @@ function loadAdsterraBanner(container){
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
   container.className='inline-ad-box banner';
-  // INVISIBLE GRAY - see through, not big
-  container.style.cssText = 'display:block;position:absolute;bottom:85px;left:50%;transform:translateX(-50%);z-index:25;background:rgba(15,15,15,0.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:6px;border-radius:10px;pointer-events:auto;border:1px solid rgba(255,255,255,0.08);width:312px;height:auto;';
+  container.style.cssText = 'display:block;position:absolute;bottom:90px;left:10px;right:60px;z-index:25;background:rgba(30,30,30,0.95);backdrop-filter:blur(12px);padding:8px 10px;border-radius:12px;pointer-events:auto;border:1px solid #333;height:278px;';
   container.innerHTML = `
-    <div style="color:rgba(255,255,255,0.5);font-size:8px;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding:0 2px">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;padding:1px 6px;border-radius:10px;font-size:10px;line-height:14px">✕</span></div>
-    <div id="adsterra-${Date.now()}" style="width:300px;height:250px;overflow:hidden;margin:0 auto;border-radius:6px;background:#000;"></div>
+    <div style="color:#aaa;font-size:9px;display:flex;justify-content:space-between;margin-bottom:6px">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#fff;color:#000;padding:2px 8px;border-radius:10px;font-size:11px">✕</span></div>
+    <div id="adsterra-${Date.now()}" style="width:300px;height:250px;max-width:100%;overflow:hidden;margin:0 auto;"></div>
   `;
   const adDiv = container.querySelector('div[id^="adsterra"]');
   const s1 = document.createElement('script');
