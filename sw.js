@@ -1,6 +1,6 @@
-const CACHE_NAME = 'golviral-v11'; // bumped for custom domain
-const APP_BASE_URL = 'https://golviral.com'; // NEW DOMAIN
-const APP_FOLDER = ''; // NO FOLDER ANYMORE - root!
+const CACHE_NAME = 'golviral-v12';
+const IMAGE_CACHE = 'golviral-images-v12';
+const APP_BASE_URL = 'https://golviral.com';
 
 const PRECACHE_URLS = [
   `${APP_BASE_URL}/`,
@@ -16,151 +16,131 @@ const PRECACHE_URLS = [
   `${APP_BASE_URL}/icon-512.png`
 ];
 
+// Install - precache app shell only
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(c =>
+    caches.open(CACHE_NAME).then(c => 
       Promise.allSettled(PRECACHE_URLS.map(u => c.add(u).catch(()=>{})))
     )
   );
   self.skipWaiting();
 });
 
+// Activate - delete old caches + limit image cache
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k!== CACHE_NAME).map(k => caches.delete(k)))
+    caches.keys().then(keys => 
+      Promise.all(keys.filter(k => !k.includes('v12')).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
-// Throttled cleanup
-let isCleaning = false;
-async function cleanupOldVideos() {
-  if (isCleaning) return;
-  isCleaning = true;
+// Smart image cache cleaner - keep only 100 images max
+async function limitImageCache() {
   try {
-    const cache = await caches.open(CACHE_NAME);
-    const requests = await cache.keys();
-    const now = Date.now();
-    const MAX_AGE = 72 * 60 * 60 * 1000;
-    for (const req of requests) {
-      const res = await cache.match(req);
-      if (!res) continue;
-      const dateHeader = res.headers.get('date');
-      const cachedTime = dateHeader? new Date(dateHeader).getTime() : now;
-      if (now - cachedTime > MAX_AGE) {
-        await cache.delete(req);
-      }
+    const cache = await caches.open(IMAGE_CACHE);
+    const keys = await cache.keys();
+    if (keys.length > 100) {
+      await cache.delete(keys[0]); // delete oldest
     }
-  } catch (err) {
-    console.error("Cleanup failed", err);
-  } finally {
-    isCleaning = false;
-  }
-}
-
-async function returnRangeResponse(request, cachedResponse) {
-  const rangeHeader = request.headers.get('range');
-  if (!rangeHeader) return cachedResponse;
-  const arrayBuffer = await cachedResponse.arrayBuffer();
-  const match = rangeHeader.match(/bytes=(\d+)-(\d+)?/);
-  if (!match) return cachedResponse;
-  const start = parseInt(match[1], 10);
-  const end = match[2]? parseInt(match[2], 10) : arrayBuffer.byteLength - 1;
-  const slicedBuffer = arrayBuffer.slice(start, end + 1);
-  const headers = new Headers(cachedResponse.headers);
-  headers.set('Content-Range', `bytes ${start}-${end}/${arrayBuffer.byteLength}`);
-  headers.set('Content-Length', slicedBuffer.byteLength);
-  headers.set('Accept-Ranges', 'bytes');
-  return new Response(slicedBuffer, {
-    status: 206,
-    statusText: 'Partial Content',
-    headers
-  });
+  } catch {}
 }
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  const method = event.request.method;
-
+  
+  // 1. NEVER INTERCEPT API, ADMIN, ONRENDER, OR NON-GET
   if (
-    method!== 'GET' ||
+    event.request.method !== 'GET' ||
     url.hostname.includes('onrender.com') ||
     url.pathname.startsWith('/api/') ||
-    url.pathname.includes('admin.html')
+    url.pathname.includes('admin.html') ||
+    url.searchParams.has('nocache')
   ) {
-    return event.respondWith(fetch(event.request));
+    return; // go network directly, no SW
   }
 
-  if (event.request.destination === 'video' || url.pathname.includes('/media/') || url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)) {
+  // 2. VIDEO = NETWORK ONLY (THIS FIXES REPETITION + CRASH)
+  // Android TikTok feed should never cache video in SW
+  const isVideo = 
+    event.request.destination === 'video' ||
+    url.pathname.includes('/media/') ||
+    url.pathname.includes('/cdn/') ||
+    url.pathname.match(/\.(mp4|mov|webm|m4v)$/i) ||
+    event.request.headers.has('range');
+
+  if (isVideo) {
+    // Important: don't cache, just pass through
+    // Let browser's native cache handle range
     event.respondWith(
-      caches.open(CACHE_NAME).then(async cache => {
-        const cached = await cache.match(event.request, { ignoreSearch: true });
-        if (cached) return returnRangeResponse(event.request, cached);
-        try {
-          const fetchRequest = event.request.headers.has('range')
-           ? new Request(event.request.url, { headers: { 'Accept': '*/*' } })
-            : event.request;
-          const networkRes = await fetch(fetchRequest);
-          if (networkRes.status === 200) {
-            cache.put(event.request, networkRes.clone());
-            event.waitUntil(cleanupOldVideos());
-          }
-          return returnRangeResponse(event.request, networkRes);
-        } catch {
-          return cached;
-        }
+      fetch(event.request).catch(() => {
+        // offline fallback for video - return empty 503 so UI shows retry
+        return new Response('', { status: 503, statusText: 'Offline' });
       })
     );
     return;
   }
 
+  // 3. IMAGES = STALE WHILE REVALIDATE (SMART)
   if (event.request.destination === 'image') {
     event.respondWith(
-      caches.match(event.request).then(cached =>
-        cached || fetch(event.request).then(res => {
-          if (res.status === 200) {
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, res.clone()));
+      caches.open(IMAGE_CACHE).then(async cache => {
+        const cached = await cache.match(event.request);
+        const fetchPromise = fetch(event.request).then(networkRes => {
+          if (networkRes.status === 200) {
+            cache.put(event.request, networkRes.clone());
+            event.waitUntil(limitImageCache());
           }
-          return res;
-        })
-      )
+          return networkRes;
+        }).catch(() => cached);
+
+        return cached || fetchPromise;
+      })
     );
     return;
   }
 
+  // 4. APP SHELL / PAGES = CACHE FIRST THEN NETWORK
   event.respondWith(
     caches.match(event.request).then(cached => {
-      const fetchPromise = fetch(event.request).then(networkResponse => {
-        if (networkResponse && networkResponse.status === 200) {
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
+      if (cached) {
+        // Update in background
+        event.waitUntil(
+          fetch(event.request).then(res => {
+            if (res.status === 200 && res.type === 'basic') {
+              caches.open(CACHE_NAME).then(c => c.put(event.request, res));
+            }
+          }).catch(()=>{})
+        );
+        return cached;
+      }
+      return fetch(event.request).then(networkRes => {
+        if (networkRes.status === 200 && networkRes.type === 'basic') {
+          const clone = networkRes.clone();
+          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
         }
-        return networkResponse;
-      }).catch(() => cached);
-      return cached || fetchPromise;
+        return networkRes;
+      }).catch(() => {
+        // Offline fallback
+        if (event.request.headers.get('accept')?.includes('text/html')) {
+          return caches.match(`${APP_BASE_URL}/404.html`);
+        }
+      });
     })
   );
 });
 
+// DISABLE video prefetch - this was causing repetition
 self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'PREFETCH_VIDEO') {
-    const url = event.data.url;
-    caches.open(CACHE_NAME).then(cache => {
-      cache.match(url, { ignoreSearch: true }).then(cached => {
-        if (!cached) {
-          fetch(url).then(res => {
-            if (res.status === 200) {
-              cache.put(url, res);
-            }
-          }).catch(()=>{});
-        }
-      });
-    });
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
+  // PREFETCH_VIDEO removed - don't cache videos
 });
 
+// Push notifications
 self.addEventListener('push', event => {
-  const data = event.data? event.data.json() : {};
+  const data = event.data ? event.data.json() : {};
   const title = data.title || 'GolViral';
   const options = {
     body: data.body || 'You have a new notification',
@@ -168,7 +148,8 @@ self.addEventListener('push', event => {
     badge: `${APP_BASE_URL}/icon-192.png`,
     data: data.data || { url: `/index.html#feed` },
     vibrate: [200, 100, 200],
-    tag: data.type || 'general'
+    tag: data.type || 'general',
+    renotify: true
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
@@ -177,11 +158,13 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
   const relativeUrl = event.notification.data?.url || `/index.html#feed`;
   const urlToOpen = new URL(relativeUrl, APP_BASE_URL).href;
-
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
-        if (client.url === urlToOpen && 'focus' in client) return client.focus();
+        if (client.url.includes(APP_BASE_URL) && 'focus' in client) {
+          client.navigate(urlToOpen);
+          return client.focus();
+        }
       }
       if (clients.openWindow) return clients.openWindow(urlToOpen);
     })
