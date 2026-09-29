@@ -1,11 +1,9 @@
-const CACHE_NAME = 'golviral-v12';
+const CACHE_NAME = 'golviral-v13';
 const VIDEO_CACHE = 'golviral-videos-v1';
 const APP_BASE_URL = 'https://golviral.com';
 
 const PRECACHE_URLS = [
-  `/`,
   `/index.html`,
-  `/404.html`,
   `/auth.html`,
   `/post.html`,
   `/profile.html`,
@@ -15,8 +13,6 @@ const PRECACHE_URLS = [
   `/icon-192.png`,
   `/icon-512.png`
 ];
-
-const MAX_VIDEOS = 3; // keep only 3 for instant back-scroll
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -37,56 +33,58 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  const method = event.request.method;
 
-  // 1. ALWAYS BYPASS API + admin
+  // BYPASS - do not cache at all, single respondWith
   if (
-    method !== 'GET' ||
+    event.request.method !== 'GET' ||
     url.hostname.includes('onrender.com') ||
     url.hostname.includes('workers.dev') ||
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('admin.html')
   ) {
-    return event.respondWith(fetch(event.request));
+    return; // let browser handle it natively - NO respondWith
   }
 
   const isVideo = event.request.destination === 'video' ||
                   url.pathname.includes('/media/') ||
                   url.pathname.match(/\.(mp4|mov|webm|m4v)$/i);
 
-  // 2. VIDEO - fixed instant replay
+  // VIDEO - NO range handling, NO arrayBuffer, LRU 3
   if (isVideo) {
-    // Range requests = bypass cache (fixes crash)
+    // If it's a range request, NEVER use cache - return network directly
     if (event.request.headers.has('range')) {
-      return event.respondWith(fetch(event.request));
+      event.respondWith(fetch(event.request));
+      return;
     }
 
     event.respondWith(
       caches.open(VIDEO_CACHE).then(async cache => {
-        // NO ignoreSearch - fixes repeat bug
-        const cached = await cache.match(event.request);
-        if (cached) return cached;
-
         try {
+          const cached = await cache.match(event.request);
+          if (cached) return cached;
+
           const res = await fetch(event.request);
+          // only cache 200 full videos, not 206 partials
           if (res.ok && res.status === 200) {
-            // LRU: keep only 3 videos - fixes quota logout
             const keys = await cache.keys();
-            if (keys.length >= MAX_VIDEOS) {
+            if (keys.length >= 3) {
               await cache.delete(keys[0]);
             }
-            cache.put(event.request, res.clone());
+            // clone before put
+            cache.put(event.request, res.clone()).catch(()=>{});
           }
           return res;
-        } catch {
-          return cached || Response.error();
+        } catch (err) {
+          // fallback to cache if network fails
+          const fallback = await cache.match(event.request);
+          return fallback || fetch(event.request);
         }
       })
     );
     return;
   }
 
-  // 3. IMAGE - normal cache
+  // IMAGE
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -94,27 +92,24 @@ self.addEventListener('fetch', event => {
         return fetch(event.request).then(res => {
           if (res.ok) {
             const clone = res.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
           }
           return res;
-        });
+        }).catch(()=>cached);
       })
     );
     return;
   }
 
-  // 4. HTML/JS/CSS - stale while revalidate
+  // HTML / JS / CSS
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      const fetchPromise = fetch(event.request).then(networkResponse => {
-        if (networkResponse && networkResponse.ok) {
-          const clone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return networkResponse;
-      }).catch(() => cached);
-      return cached || fetchPromise;
-    })
+    fetch(event.request).then(res => {
+      if (res.ok) {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+      }
+      return res;
+    }).catch(() => caches.match(event.request).then(cached => cached || caches.match('/index.html')))
   );
 });
 
