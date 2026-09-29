@@ -1,17 +1,19 @@
-const CACHE_NAME = 'golviral-v13';
-const VIDEO_CACHE = 'golviral-videos-v1';
-const APP_BASE_URL = 'https://golviral.com';
+const CACHE_NAME = 'golviral-v11'; // bumped for custom domain
+const APP_BASE_URL = 'https://golviral.com'; // NEW DOMAIN
+const APP_FOLDER = ''; // NO FOLDER ANYMORE - root!
 
 const PRECACHE_URLS = [
-  `/index.html`,
-  `/auth.html`,
-  `/post.html`,
-  `/profile.html`,
-  `/messages.html`,
-  `/kyc.html`,
-  `/manifest.json`,
-  `/icon-192.png`,
-  `/icon-512.png`
+  `${APP_BASE_URL}/`,
+  `${APP_BASE_URL}/index.html`,
+  `${APP_BASE_URL}/404.html`,
+  `${APP_BASE_URL}/auth.html`,
+  `${APP_BASE_URL}/post.html`,
+  `${APP_BASE_URL}/profile.html`,
+  `${APP_BASE_URL}/messages.html`,
+  `${APP_BASE_URL}/kyc.html`,
+  `${APP_BASE_URL}/manifest.json`,
+  `${APP_BASE_URL}/icon-192.png`,
+  `${APP_BASE_URL}/icon-512.png`
 ];
 
 self.addEventListener('install', e => {
@@ -26,99 +28,139 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME && k !== VIDEO_CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k!== CACHE_NAME).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
+// Throttled cleanup
+let isCleaning = false;
+async function cleanupOldVideos() {
+  if (isCleaning) return;
+  isCleaning = true;
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    const requests = await cache.keys();
+    const now = Date.now();
+    const MAX_AGE = 72 * 60 * 60 * 1000;
+    for (const req of requests) {
+      const res = await cache.match(req);
+      if (!res) continue;
+      const dateHeader = res.headers.get('date');
+      const cachedTime = dateHeader? new Date(dateHeader).getTime() : now;
+      if (now - cachedTime > MAX_AGE) {
+        await cache.delete(req);
+      }
+    }
+  } catch (err) {
+    console.error("Cleanup failed", err);
+  } finally {
+    isCleaning = false;
+  }
+}
+
+async function returnRangeResponse(request, cachedResponse) {
+  const rangeHeader = request.headers.get('range');
+  if (!rangeHeader) return cachedResponse;
+  const arrayBuffer = await cachedResponse.arrayBuffer();
+  const match = rangeHeader.match(/bytes=(\d+)-(\d+)?/);
+  if (!match) return cachedResponse;
+  const start = parseInt(match[1], 10);
+  const end = match[2]? parseInt(match[2], 10) : arrayBuffer.byteLength - 1;
+  const slicedBuffer = arrayBuffer.slice(start, end + 1);
+  const headers = new Headers(cachedResponse.headers);
+  headers.set('Content-Range', `bytes ${start}-${end}/${arrayBuffer.byteLength}`);
+  headers.set('Content-Length', slicedBuffer.byteLength);
+  headers.set('Accept-Ranges', 'bytes');
+  return new Response(slicedBuffer, {
+    status: 206,
+    statusText: 'Partial Content',
+    headers
+  });
+}
+
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+  const method = event.request.method;
 
-  // BYPASS - do not cache at all, single respondWith
   if (
-    event.request.method !== 'GET' ||
+    method!== 'GET' ||
     url.hostname.includes('onrender.com') ||
-    url.hostname.includes('workers.dev') ||
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('admin.html')
   ) {
-    return; // let browser handle it natively - NO respondWith
+    return event.respondWith(fetch(event.request));
   }
 
-  const isVideo = event.request.destination === 'video' ||
-                  url.pathname.includes('/media/') ||
-                  url.pathname.match(/\.(mp4|mov|webm|m4v)$/i);
-
-  // VIDEO - NO range handling, NO arrayBuffer, LRU 3
-  if (isVideo) {
-    // If it's a range request, NEVER use cache - return network directly
-    if (event.request.headers.has('range')) {
-      event.respondWith(fetch(event.request));
-      return;
-    }
-
+  if (event.request.destination === 'video' || url.pathname.includes('/media/') || url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)) {
     event.respondWith(
-      caches.open(VIDEO_CACHE).then(async cache => {
+      caches.open(CACHE_NAME).then(async cache => {
+        const cached = await cache.match(event.request, { ignoreSearch: true });
+        if (cached) return returnRangeResponse(event.request, cached);
         try {
-          const cached = await cache.match(event.request);
-          if (cached) return cached;
-
-          const res = await fetch(event.request);
-          // only cache 200 full videos, not 206 partials
-          if (res.ok && res.status === 200) {
-            const keys = await cache.keys();
-            if (keys.length >= 3) {
-              await cache.delete(keys[0]);
-            }
-            // clone before put
-            cache.put(event.request, res.clone()).catch(()=>{});
+          const fetchRequest = event.request.headers.has('range')
+           ? new Request(event.request.url, { headers: { 'Accept': '*/*' } })
+            : event.request;
+          const networkRes = await fetch(fetchRequest);
+          if (networkRes.status === 200) {
+            cache.put(event.request, networkRes.clone());
+            event.waitUntil(cleanupOldVideos());
           }
-          return res;
-        } catch (err) {
-          // fallback to cache if network fails
-          const fallback = await cache.match(event.request);
-          return fallback || fetch(event.request);
+          return returnRangeResponse(event.request, networkRes);
+        } catch {
+          return cached;
         }
       })
     );
     return;
   }
 
-  // IMAGE
   if (event.request.destination === 'image') {
     event.respondWith(
-      caches.match(event.request).then(cached => {
-        if (cached) return cached;
-        return fetch(event.request).then(res => {
-          if (res.ok) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+      caches.match(event.request).then(cached =>
+        cached || fetch(event.request).then(res => {
+          if (res.status === 200) {
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, res.clone()));
           }
           return res;
-        }).catch(()=>cached);
-      })
+        })
+      )
     );
     return;
   }
 
-  // HTML / JS / CSS
   event.respondWith(
-    fetch(event.request).then(res => {
-      if (res.ok) {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-      }
-      return res;
-    }).catch(() => caches.match(event.request).then(cached => cached || caches.match('/index.html')))
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
+        }
+        return networkResponse;
+      }).catch(() => cached);
+      return cached || fetchPromise;
+    })
   );
 });
 
 self.addEventListener('message', event => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data && event.data.type === 'PREFETCH_VIDEO') {
+    const url = event.data.url;
+    caches.open(CACHE_NAME).then(cache => {
+      cache.match(url, { ignoreSearch: true }).then(cached => {
+        if (!cached) {
+          fetch(url).then(res => {
+            if (res.status === 200) {
+              cache.put(url, res);
+            }
+          }).catch(()=>{});
+        }
+      });
+    });
+  }
 });
 
 self.addEventListener('push', event => {
-  const data = event.data ? event.data.json() : {};
+  const data = event.data? event.data.json() : {};
   const title = data.title || 'GolViral';
   const options = {
     body: data.body || 'You have a new notification',
@@ -135,6 +177,7 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
   const relativeUrl = event.notification.data?.url || `/index.html#feed`;
   const urlToOpen = new URL(relativeUrl, APP_BASE_URL).href;
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
