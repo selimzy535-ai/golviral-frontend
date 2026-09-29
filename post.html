@@ -53,7 +53,7 @@ h2{margin-bottom:16px}
 <b>Tap to select file</b><p class="tip" id="tip-text">MP4 or MOV - Max 180s - Max 17MB</p>
 </div>
 <img id="img-preview" style="display:none">
-<video id="video-preview" style="display:none" controls playsinline autoplay muted loop></video>
+<video id="video-preview" style="display:none" playsinline muted preload="metadata"></video>
 <input type="file" id="file-input" style="display:none">
 </div>
 <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress"></div></div>
@@ -74,11 +74,13 @@ h2{margin-bottom:16px}
 const API='https://golviral-api.onrender.com';
 const CDN_API='https://golviral-cdn.onrender.com';
 const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
-const TOKEN=localStorage.token;
+const TOKEN=localStorage.getItem('token');
 if(!TOKEN) location.href='auth.html';
 function parseJwt(t){try{return JSON.parse(atob(t.split('.')[1]))}catch{location.href='auth.html'}}
 const TYPE_MAP={reel:'reel',photo:'store',shortstory:'novel'};
 let uiType='reel';let selectedFile=null;let isUploading=false;let isAIToggled=false;
+let currentBlobUrl=null;
+
 function toast(m,e=false){const t=document.getElementById('toast');t.innerText=m;t.className='toast '+(e?'error':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
 
 function toggleAI(){
@@ -92,44 +94,80 @@ function toggleAI(){
  }
 }
 
+function cleanupPreview(){
+  const img=document.getElementById('img-preview');
+  const vp=document.getElementById('video-preview');
+  if(vp){ try{vp.pause();}catch{} vp.removeAttribute('src'); vp.load(); vp.style.display='none'; }
+  if(img){ img.removeAttribute('src'); img.style.display='none'; }
+  if(currentBlobUrl){ URL.revokeObjectURL(currentBlobUrl); currentBlobUrl=null; }
+  document.getElementById('placeholder').style.display='flex';
+}
+
 function setType(type){
  uiType=type;
+ cleanupPreview();
+ selectedFile=null;
+ document.getElementById('file-input').value='';
  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
  document.querySelector(`[data-ui="${type}"]`).classList.add('active');
  const drop=document.getElementById('drop');
  const tip=document.getElementById('tip-text');
  const fileInput=document.getElementById('file-input');
- if(type==='shortstory'){drop.style.display='none';selectedFile=null;}
+ if(type==='shortstory'){drop.style.display='none';}
  else{
   drop.style.display='flex';
-  document.getElementById('placeholder').style.display='flex';
-  document.getElementById('img-preview').style.display='none';
-  const vp=document.getElementById('video-preview'); vp.pause(); vp.style.display='none'; vp.src='';
   if(type==='reel'){fileInput.accept='video/mp4,video/quicktime,video/mov';tip.innerText='MP4 or MOV - Max 180s - Max 17MB';}
   if(type==='photo'){fileInput.accept='image/jpeg,image/png,image/webp,image/gif';tip.innerText='JPG, PNG, WEBP - Max 17MB';}
  }
 }
-document.getElementById('drop').onclick=(e)=>{ if(e.target.tagName==='VIDEO') return; document.getElementById('file-input').click(); };
+
+document.getElementById('drop').onclick=()=>{ document.getElementById('file-input').click(); };
+
 document.getElementById('file-input').onchange=e=>{
  selectedFile=e.target.files[0];
  if(!selectedFile) return;
- if(selectedFile.size>17*1024*1024){toast('File too big! Max 17MB',true);selectedFile=null;return;}
+ if(selectedFile.size>17*1024*1024){toast('File too big! Max 17MB',true);selectedFile=null;e.target.value='';return;}
+
+ // free previous blob to avoid OOM
+ if(currentBlobUrl){ URL.revokeObjectURL(currentBlobUrl); currentBlobUrl=null; }
+
  document.getElementById('placeholder').style.display='none';
+ currentBlobUrl = URL.createObjectURL(selectedFile);
+
  if(uiType==='photo'){
-  const img=document.getElementById('img-preview'); img.src=URL.createObjectURL(selectedFile); img.style.display='block'; document.getElementById('video-preview').style.display='none';
+  const img=document.getElementById('img-preview');
+  img.onload=()=>{ /* loaded */ };
+  img.src=currentBlobUrl;
+  img.style.display='block';
+  document.getElementById('video-preview').style.display='none';
  }
+
  if(uiType==='reel'){
-  const url=URL.createObjectURL(selectedFile);
   const vp=document.getElementById('video-preview');
-  const temp=document.createElement('video'); temp.preload='metadata';
-  temp.onloadedmetadata=()=>{ if(temp.duration>180){toast('Video too long! Max 3 min',true);selectedFile=null;document.getElementById('placeholder').style.display='flex';vp.style.display='none';return;} vp.src=url; vp.style.display='block'; vp.muted=false; vp.play().catch(()=>{}); };
-  temp.onerror=()=>{ vp.src=url; vp.style.display='block'; vp.play().catch(()=>{}); };
-  temp.src=url;
+  vp.style.display='block';
+  vp.onloadedmetadata=()=>{
+    if(vp.duration>180){
+      toast('Video too long! Max 3 min',true);
+      selectedFile=null;
+      cleanupPreview();
+      document.getElementById('file-input').value='';
+      return;
+    }
+  };
+  vp.onerror=()=>{
+    toast('Invalid video file',true);
+    selectedFile=null;
+    cleanupPreview();
+  };
+  vp.src=currentBlobUrl;
  }
 };
+
 function uploadFileWithProgress(url,formData){
  return new Promise((res,rej)=>{
-  const xhr=new XMLHttpRequest(); xhr.open('POST',url); xhr.setRequestHeader('x-api-key',CDN_KEY);
+  const xhr=new XMLHttpRequest();
+  xhr.open('POST',url);
+  xhr.setRequestHeader('x-api-key',CDN_KEY);
   xhr.upload.onprogress=e=>{
    if(e.lengthComputable){
     let p=(e.loaded/e.total*100).toFixed(0);
@@ -140,29 +178,67 @@ function uploadFileWithProgress(url,formData){
     document.getElementById('upload-warn').style.display='block';
    }
   };
-  xhr.onload=()=>{ if(xhr.status>=200&&xhr.status<300) res(JSON.parse(xhr.responseText)); else rej(new Error('Post failed')); };
-  xhr.onerror=()=>rej(new Error('Network error')); xhr.send(formData);
+  xhr.onload=()=>{
+    if(xhr.status>=200&&xhr.status<300){
+      try{ res(JSON.parse(xhr.responseText)); }catch{ res({}); }
+    } else rej(new Error('Post failed '+xhr.status));
+  };
+  xhr.onerror=()=>rej(new Error('Network error'));
+  xhr.send(formData);
  });
 }
+
 async function submitPost(){
  if(uiType!=='shortstory'&&!selectedFile) return toast('Select a file',true);
  if(isUploading) return;
- const btn=document.getElementById('publish-btn'); isUploading=true; btn.disabled=true; btn.innerText='Posting...';
+
+ // FREE VIDEO DECODER BEFORE UPLOAD - critical for PWA
+ const vp = document.getElementById('video-preview');
+ if(vp){ try{vp.pause();}catch{} }
+
+ const btn=document.getElementById('publish-btn');
+ isUploading=true; btn.disabled=true; btn.innerText='Posting...';
  const title=document.getElementById('title').value;
  let caption=document.getElementById('caption').value;
  if(isAIToggled &&!caption.includes('#AI')) caption=(caption+' #AI').trim();
  const backendType=TYPE_MAP[uiType];
  const d=parseJwt(TOKEN); const userId=d.userId||d.id;
+
  try{
-  const intentRes=await fetch(API+'/api/post/create-intent',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({postType:backendType,contentType:selectedFile?selectedFile.type:null,fileExtension:selectedFile?selectedFile.name.split('.').pop():null,caption,title,isAI:isAIToggled})});
+  const intentRes=await fetch(API+'/api/post/create-intent',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+    body:JSON.stringify({postType:backendType,contentType:selectedFile?selectedFile.type:null,fileExtension:selectedFile?selectedFile.name.split('.').pop():null,caption,title,isAI:isAIToggled})
+  });
   const intent=await intentRes.json(); if(intent.error) throw new Error(intent.error);
+
   if(uiType!=='shortstory'){
-   const form=new FormData(); form.append('video',selectedFile); form.append('userId',userId); form.append('postId',intent.postId); form.append('title',title); form.append('caption',caption);
+   const form=new FormData();
+   form.append('video',selectedFile);
+   form.append('userId',userId);
+   form.append('postId',intent.postId);
+   form.append('title',title);
+   form.append('caption',caption);
    await uploadFileWithProgress(CDN_API+'/api/cdn/upload-direct',form);
   }
-  toast('Posted'); location.href='index.html';
- }catch(err){ toast(err.message,true); btn.disabled=false; btn.innerText='Post'; isUploading=false; document.getElementById('progress-wrap').style.display='none'; document.getElementById('upload-warn').style.display='none'; }
+
+  // cleanup after success
+  if(currentBlobUrl){ URL.revokeObjectURL(currentBlobUrl); currentBlobUrl=null; }
+  selectedFile=null;
+  toast('Posted');
+  location.href='index.html';
+
+ }catch(err){
+  toast(err.message,true);
+  btn.disabled=false; btn.innerText='Post';
+  isUploading=false;
+  document.getElementById('progress-wrap').style.display='none';
+  document.getElementById('upload-warn').style.display='none';
+ }
 }
+
+// safety: clean blobs when leaving page
+window.addEventListener('pagehide',()=>{ if(currentBlobUrl) URL.revokeObjectURL(currentBlobUrl); });
 </script>
 </body>
 </html>
