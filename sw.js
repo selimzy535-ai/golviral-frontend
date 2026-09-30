@@ -1,6 +1,6 @@
-const CACHE_NAME = 'golviral-v11'; // bumped for custom domain
-const APP_BASE_URL = 'https://golviral.com'; // NEW DOMAIN
-const APP_FOLDER = ''; // NO FOLDER ANYMORE - root!
+const CACHE_NAME = 'golviral-v11'; // keep same name = no blank screen
+const APP_BASE_URL = 'https://golviral.com';
+const APP_FOLDER = '';
 
 const PRECACHE_URLS = [
   `${APP_BASE_URL}/`,
@@ -59,54 +59,41 @@ async function cleanupOldVideos() {
   }
 }
 
-async function returnRangeResponse(request, cachedResponse) {
-  const rangeHeader = request.headers.get('range');
-  if (!rangeHeader) return cachedResponse;
-  const arrayBuffer = await cachedResponse.arrayBuffer();
-  const match = rangeHeader.match(/bytes=(\d+)-(\d+)?/);
-  if (!match) return cachedResponse;
-  const start = parseInt(match[1], 10);
-  const end = match[2]? parseInt(match[2], 10) : arrayBuffer.byteLength - 1;
-  const slicedBuffer = arrayBuffer.slice(start, end + 1);
-  const headers = new Headers(cachedResponse.headers);
-  headers.set('Content-Range', `bytes ${start}-${end}/${arrayBuffer.byteLength}`);
-  headers.set('Content-Length', slicedBuffer.byteLength);
-  headers.set('Accept-Ranges', 'bytes');
-  return new Response(slicedBuffer, {
-    status: 206,
-    statusText: 'Partial Content',
-    headers
-  });
-}
-
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const method = event.request.method;
 
   if (
     method!== 'GET' ||
+    url.pathname.includes('sw.js') ||
+    url.pathname.includes('manifest.json') ||
     url.hostname.includes('onrender.com') ||
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('admin.html')
   ) {
-    return event.respondWith(fetch(event.request));
+    return; // FIX: was respondWith(fetch) - caused double respond
   }
 
   if (event.request.destination === 'video' || url.pathname.includes('/media/') || url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async cache => {
-        const cached = await cache.match(event.request, { ignoreSearch: true });
-        if (cached) return returnRangeResponse(event.request, cached);
+        // FIX: REMOVED { ignoreSearch: true } - this was causing repeat
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
+
         try {
-          const fetchRequest = event.request.headers.has('range')
-           ? new Request(event.request.url, { headers: { 'Accept': '*/*' } })
-            : event.request;
-          const networkRes = await fetch(fetchRequest);
+          // FIX: REMOVED returnRangeResponse + arrayBuffer - was causing crash
+          // If browser asks for range, just fetch range from network
+          if (event.request.headers.has('range')) {
+            return fetch(event.request);
+          }
+
+          const networkRes = await fetch(event.request);
           if (networkRes.status === 200) {
             cache.put(event.request, networkRes.clone());
             event.waitUntil(cleanupOldVideos());
           }
-          return returnRangeResponse(event.request, networkRes);
+          return networkRes;
         } catch {
           return cached;
         }
@@ -146,7 +133,8 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'PREFETCH_VIDEO') {
     const url = event.data.url;
     caches.open(CACHE_NAME).then(cache => {
-      cache.match(url, { ignoreSearch: true }).then(cached => {
+      // FIX: also here
+      cache.match(url).then(cached => {
         if (!cached) {
           fetch(url).then(res => {
             if (res.status === 200) {
