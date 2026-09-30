@@ -501,6 +501,9 @@ function setupReelObserver(feedTypeName){
       const isMostVisible = e.target === mostVisibleEntry?.target;
 
       if(isMostVisible && e.intersectionRatio>0.7){
+        container.querySelectorAll('.reel').forEach(r=>r.classList.remove('active'));
+        e.target.classList.add('active');
+
         if(!e.target.dataset.counted){
           e.target.dataset.counted='1';
           window._totalViewed = parseInt(localStorage.getItem('gv_total_viewed')||'0') + 1;
@@ -513,6 +516,7 @@ function setupReelObserver(feedTypeName){
             localStorage.setItem('gv_viewed_reels', window._viewedReels.toString());
           }
         }
+
         activePostId = postId;
         startAdTimers(e.target, feedTypeName);
 
