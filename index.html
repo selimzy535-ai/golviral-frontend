@@ -130,7 +130,7 @@ svg.icon{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;str
 <div class="tab active" onclick="loadFeed('ForYou',this)">For You</div>
 <div class="tab" onclick="loadFeed('Reels',this)">Reels</div>
 <div class="tab" onclick="loadFeed('Novels',this)">Short Story</div>
-<div class="tab" onclick="loadFeed('Stories',this)">Memes</div>
+<div class="tab" onclick="loadFeed('Stories',this)">Photos</div>
 </div>
 </header>
 <main id="feed-foryou" style="height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none"></main>
@@ -423,7 +423,7 @@ async function createImageReel(p){
   const initial=(u.username||p.userId||'U')[0].toUpperCase();
   div.innerHTML=`
     <div class="reel-skeleton"></div>
-    <img data-postid="${p.id}">
+    <img data-postid="${p.id}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center center;background:#000;">
     <div class="reel-content-overlay"><div class="creator-info"><div class="avatar-wrapper" onclick="openProfileCard('${p.userId}')"><div class="creator-avatar">${initial}</div></div><b onclick="openProfileCard('${p.userId}')" style="cursor:pointer">@${u.username||p.userId}</b>${followHtml}</div><p style="font-size:14px;line-height:1.4;word-break:break-word;"><span id="cap-${p.id}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.caption||''}</span>${(p.caption||'').length>90?`<span id="cap-btn-${p.id}" style="color:#fff;font-weight:800;cursor:pointer;background:rgba(0,0,0,0.6);padding:2px 6px;border-radius:8px;margin-left:4px;" onclick="toggleCaption('${p.id}')">...more</span>`:''}</p></div>
     <div class="actions">
       <div class="action-btn" onclick="likePost('${p.id}','${p.userId}',this)"><svg class="icon filled" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="like-${p.id}" class="action-badge">${p.likes||0}</span></div>
