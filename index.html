@@ -225,38 +225,34 @@ async function getSignedUrl(postId){
   }catch{}
   return null;
 }
-/* ========== AD LOGIC - FIXED 300x250 ========== */
+
+/* ========== AD LOGIC - FIXED ========== */
 let adTimers = {push:null, vignette:null, social:null, banner:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
 let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
-
-function isAnyAdOnScreen(){
-  return !!document.querySelector('.inline-ad-box, .adsterra-social-bar-container, [id*="monetag"]');
-}
+let activeBanner = null;
 
 function loadAdsterraBanner(container){
-  if(isAnyAdOnScreen()) return;
+  if(activeBanner) return; // only 1 at a time
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
   container.className='inline-ad-box banner';
-  container.style.cssText = 'display:block;position:absolute;bottom:90px;left:10px;right:60px;z-index:25;background:rgba(30,30,30,0.95);backdrop-filter:blur(12px);padding:8px 10px;border-radius:12px;pointer-events:auto;border:1px solid #333;height:278px;';
+  container.style.cssText = 'display:block;position:absolute;bottom:90px;left:10px;right:60px;z-index:9999;background:rgba(30,30,30,0.95);backdrop-filter:blur(12px);padding:8px 10px;border-radius:12px;pointer-events:auto;border:1px solid #333;height:278px;';
   container.innerHTML = `
-    <div style="color:#aaa;font-size:9px;display:flex;justify-content:space-between;margin-bottom:6px">SPONSORED <span onclick="this.closest('.inline-ad-box').remove()" style="cursor:pointer;background:#fff;color:#000;padding:2px 8px;border-radius:10px;font-size:11px">✕</span></div>
-    <div id="adsterra-${Date.now()}" style="width:300px;height:250px;max-width:100%;overflow:hidden;margin:0 auto;"></div>
+    <div style="color:#aaa;font-size:9px;display:flex;justify-content:space-between;margin-bottom:6px">SPONSORED <span onclick="this.closest('.inline-ad-box').remove();activeBanner=null;" style="cursor:pointer;background:#fff;color:#000;padding:2px 8px;border-radius:10px;font-size:11px">✕</span></div>
+    <div id="ad-container-${Date.now()}" style="width:300px;height:250px;max-width:100%;overflow:hidden;margin:0 auto;"></div>
   `;
-  const adDiv = container.querySelector('div[id^="adsterra"]');
-  const s1 = document.createElement('script');
-  s1.innerHTML = `atOptions={'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};`;
+  const adDiv = container.children[1];
+  window.atOptions={'key':'fda4c6bb9bb290edc1b673ce6c90ac7c','format':'iframe','height':250,'width':300,'params':{}};
   const s2 = document.createElement('script');
   s2.src = 'https://fixesconsessionconsession.com/fda4c6bb9bb290edc1b673ce6c90ac7c/invoke.js';
-  adDiv.appendChild(s1); adDiv.appendChild(s2);
-  
+  adDiv.appendChild(s2);
+  activeBanner = container;
   clearTimeout(adTimers.banner);
-  adTimers.banner = setTimeout(()=> container.remove(), 20000);
+  adTimers.banner = setTimeout(()=>{ if(container){container.remove(); activeBanner=null;} }, 20000);
 }
 
 function loadAdsterraSocialBar(){
-  if(isAnyAdOnScreen()) return;
   if(Date.now() - lastSocialBar < 60000) return;
   if(document.querySelector('script[src*="05fc07eba706d7e8ed162db503deb645.js"]')) return;
   lastSocialBar = Date.now();
@@ -264,58 +260,40 @@ function loadAdsterraSocialBar(){
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
   document.body.appendChild(s);
-  setTimeout(()=> document.querySelectorAll('.adsterra-social-bar-container').forEach(d=>d.remove()), 18000);
 }
 
 function loadMonetagPush(isVignette=false){
-  if(isAnyAdOnScreen()) return;
   if(isVignette && Date.now() - lastVignette < 120000) return;
-  if(isVignette){
-    lastVignette = Date.now();
-    localStorage.setItem('gv_lastVignette', lastVignette.toString());
-  }
+  if(isVignette){ lastVignette = Date.now(); localStorage.setItem('gv_lastVignette', lastVignette.toString()); }
+  const zone = isVignette? '9898034' : '11803455'; // CHANGE vignette zone if different
   const s = document.createElement('script');
-  s.dataset.zone = isVignette ? '11803455' : '11803455';
+  s.dataset.zone = zone;
   s.src = 'https://nap5k.com/tag.min.js';
   document.body.appendChild(s);
 }
 
 function cancelAdTimers(){
-  Object.values(adTimers).forEach(clearTimeout);
-  document.querySelectorAll('.inline-ad-box').forEach(b=>{
-    if(!b.closest('.reel.active')) b.remove();
-  });
+  Object.values(adTimers).forEach(t=>{ if(t) clearTimeout(t); });
+  // DON'T DELETE BANNERS HERE - let them timeout naturally
 }
 
 function startAdTimers(reelElement, feedTypeName){
   cancelAdTimers();
   let feedType = feedTypeName || document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
-  
-  // Every 3rd + 5sec watch
+
   if(window._totalViewed % 3 === 0 && window._totalViewed > 0){
-    adTimers.push = setTimeout(()=> {
-      if(!isAnyAdOnScreen()) loadMonetagPush(false);
-    }, 5000);
+    adTimers.push = setTimeout(()=> loadMonetagPush(false), 5000);
   }
-  // Vignette only in Novels, every 2 min
   if(feedType==='Novels'){
-    adTimers.vignette = setTimeout(()=> {
-      if(!isAnyAdOnScreen()) loadMonetagPush(true);
-    }, 30000);
+    adTimers.vignette = setTimeout(()=> loadMonetagPush(true), 30000);
   }
-  // Social bar every 60s
-  adTimers.social = setTimeout(()=> {
-    if(!isAnyAdOnScreen()) loadAdsterraSocialBar();
-  }, 60000);
-  
-  // Banner every 5th
-  const viewed = feedType==='ForYou' ? window._viewedForYou : window._viewedReels;
-  if((feedType==='ForYou' || feedType==='Reels') && viewed % 5 === 0 && viewed > 0){
-    if(!isAnyAdOnScreen()){
-      let adBox=document.createElement('div');
-      reelElement.appendChild(adBox);
-      loadAdsterraBanner(adBox);
-    }
+  adTimers.social = setTimeout(()=> loadAdsterraSocialBar(), 60000);
+
+  const viewed = feedType==='ForYou'? window._viewedForYou : window._viewedReels;
+  if((feedType==='ForYou' || feedType==='Reels') && viewed % 5 === 0 && viewed > 0 &&!activeBanner){
+    let adBox=document.createElement('div');
+    reelElement.appendChild(adBox);
+    loadAdsterraBanner(adBox);
   }
 }
 /* ========== AD LOGIC END ========== */
