@@ -328,12 +328,17 @@ function startAdTimers(reelEl, feedType){
       let box=document.createElement('div'); reelEl.appendChild(box);
       loadAdsterraBanner(box);
     }
-    if((feedType==='Photos' || feedType==='Images') && viewedPhotos%7===0 && viewedPhotos>0){
+  if((feedType==='Photos' || feedType==='Images') && viewedPhotos%7===0 && viewedPhotos>0){
       let box=document.createElement('div'); reelEl.appendChild(box);
       loadAdsterraBanner(box);
     }
   }
+} // <- THIS WAS MISSING
 /* ========== AD LOGIC END ========== */
+
+function cancelAdTimers(){
+  Object.values(adTimers).forEach(t => clearTimeout(t));
+}
 
 let feedsCache = { ForYou: [], Reels: [], Novels: [], Stories: [] };
 let observers = {};
