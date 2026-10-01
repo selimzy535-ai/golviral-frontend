@@ -506,6 +506,46 @@ function skipPush(){
   setTimeout(()=>window.location.href='index.html',1000);
 }
 
+// --- REFERRAL AUTO-DETECT FIX ---
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref') || params.get('referral') || params.get('referralCode');
+  if(ref){
+    localStorage.setItem('gv_ref', ref); // save it even if they switch to login tab first
+    // wait for DOM
+    setTimeout(()=>{
+      const input = document.getElementById('signup-ref');
+      if(input){
+        input.value = ref;
+        // auto switch to signup tab if they came with ref link
+        if(currentTab!== 'signup'){
+          document.querySelectorAll('.tab')[1].click();
+        }
+        toast('Referral applied: ' + ref.slice(0,6) + '...');
+      }
+    }, 300);
+  } else {
+    // restore if they already clicked ref before
+    const saved = localStorage.getItem('gv_ref');
+    if(saved){
+      const input = document.getElementById('signup-ref');
+      if(input) input.value = saved;
+    }
+  }
+})();
+
+// also patch doSignup to use saved ref if input empty
+const _oldDoSignup = doSignup;
+doSignup = async function(d, passToken){
+  if(!d.referralCode){
+    d.referralCode = localStorage.getItem('gv_ref') || '';
+  }
+  // send as both names to be safe with backend
+  d.referredBy = d.referralCode;
+  d.ref = d.referralCode;
+  return _oldDoSignup(d, passToken);
+}
+
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
 </script>
 </body>
