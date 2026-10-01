@@ -231,9 +231,10 @@ let adTimers = {push:null, vignette:null, social:null, banner:null};
 let lastSocialBar = parseInt(localStorage.getItem('gv_lastSocial') || '0');
 let lastVignette = parseInt(localStorage.getItem('gv_lastVignette') || '0');
 let activeBanner = null;
+let activeSocial = null;
 
 function loadAdsterraBanner(container){
-  if(activeBanner) return; // only 1 at a time
+  if(activeBanner) return;
   if(!container || container.dataset.loaded) return;
   container.dataset.loaded='1';
   container.className='inline-ad-box banner';
@@ -249,48 +250,71 @@ function loadAdsterraBanner(container){
   adDiv.appendChild(s2);
   activeBanner = container;
   clearTimeout(adTimers.banner);
-  adTimers.banner = setTimeout(()=>{ if(container){container.remove(); activeBanner=null;} }, 20000);
+  adTimers.banner = setTimeout(()=>{ if(container){container.remove(); activeBanner=null;} }, 20000); // banner leave after 20s
 }
 
 function loadAdsterraSocialBar(){
-  if(Date.now() - lastSocialBar < 60000) return;
+  if(Date.now() - lastSocialBar < 60000) return; // 60s interval
   if(document.querySelector('script[src*="05fc07eba706d7e8ed162db503deb645.js"]')) return;
   lastSocialBar = Date.now();
   localStorage.setItem('gv_lastSocial', lastSocialBar.toString());
   const s = document.createElement('script');
   s.src = 'https://fixesconsessionconsession.com/05/fc/07/05fc07eba706d7e8ed162db503deb645.js';
   document.body.appendChild(s);
+  activeSocial = s;
+  // leave 18s - counted impression
+  clearTimeout(adTimers.social);
+  adTimers.social = setTimeout(()=>{
+    const sb = document.querySelector('[id*="adsterra"],.adsterra-social, div[style*="fixed"][style*="bottom"]');
+    if(sb && sb.innerHTML.includes('fixesconsession')) sb.remove();
+  }, 18000);
 }
 
 function loadMonetagPush(isVignette=false){
   if(isVignette && Date.now() - lastVignette < 120000) return;
   if(isVignette){ lastVignette = Date.now(); localStorage.setItem('gv_lastVignette', lastVignette.toString()); }
-  const zone = isVignette? '9898034' : '11803455'; // CHANGE vignette zone if different
+  const zone = isVignette? '9898034' : '11803455';
   const s = document.createElement('script');
   s.dataset.zone = zone;
   s.src = 'https://nap5k.com/tag.min.js';
   document.body.appendChild(s);
+  // push auto leaves by Monetag, but clear after 15s
+  if(!isVignette){
+    setTimeout(()=>{ s.remove(); }, 15000);
+  }
 }
 
 function cancelAdTimers(){
   Object.values(adTimers).forEach(t=>{ if(t) clearTimeout(t); });
-  // DON'T DELETE BANNERS HERE - let them timeout naturally
 }
 
 function startAdTimers(reelElement, feedTypeName){
   cancelAdTimers();
   let feedType = feedTypeName || document.querySelector('.tab.active')?.innerText.trim() || 'ForYou';
 
+  // PUSH every 3rd video after 3s
   if(window._totalViewed % 3 === 0 && window._totalViewed > 0){
-    adTimers.push = setTimeout(()=> loadMonetagPush(false), 5000);
+    adTimers.push = setTimeout(()=> loadMonetagPush(false), 3000);
   }
   if(feedType==='Novels'){
     adTimers.vignette = setTimeout(()=> loadMonetagPush(true), 30000);
   }
-  adTimers.social = setTimeout(()=> loadAdsterraSocialBar(), 60000);
+  // SOCIAL BAR every 60s
+  adTimers.social = setTimeout(()=> loadAdsterraSocialBar(), 1000);
 
-  const viewed = feedType==='ForYou'? window._viewedForYou : window._viewedReels;
-  if((feedType==='ForYou' || feedType==='Reels') && viewed % 5 === 0 && viewed > 0 &&!activeBanner){
+  const viewedForYou = window._viewedForYou || 0;
+  const viewedReels = window._viewedReels || 0;
+  const viewedPhotos = window._viewedPhotos || parseInt(localStorage.getItem('gv_viewed_photos')||'0') || 0;
+
+  // BANNER every 5th in ForYou/Reels
+  if((feedType==='ForYou' || feedType==='Reels') && (feedType==='ForYou'? viewedForYou : viewedReels) % 5 === 0 && (feedType==='ForYou'? viewedForYou : viewedReels) > 0 &&!activeBanner){
+    let adBox=document.createElement('div');
+    reelElement.appendChild(adBox);
+    loadAdsterraBanner(adBox);
+  }
+
+  // BANNER every 7th in Photos / Images tab
+  if((feedType==='Photos' || feedType==='Photo' || feedType==='Images') && viewedPhotos % 7 === 0 && viewedPhotos > 0 &&!activeBanner){
     let adBox=document.createElement('div');
     reelElement.appendChild(adBox);
     loadAdsterraBanner(adBox);
@@ -441,7 +465,7 @@ function pauseAllVideos(){
   });
 }
 function setupReelObserver(feedTypeName){
-  const idMap = {ForYou:'feed-foryou', Reels:'feed-reels', Novels:'feed-novels', Stories:'feed-stories'};
+  const idMap = {ForYou:'feed-foryou', Reels:'feed-reels', Novels:'feed-novels', Stories:'feed-stories', Photos:'feed-photos', Photo:'feed-photos', Images:'feed-photos'};
   const containerId = idMap[feedTypeName] || 'feed-foryou';
   const container = document.getElementById(containerId);
   if(!container) return;
@@ -450,7 +474,6 @@ function setupReelObserver(feedTypeName){
   let activePostId = null;
 
   const obs=new IntersectionObserver(entries=>{
-    // Find the most visible reel
     let mostVisibleEntry = null;
     let maxRatio = 0;
     for(const e of entries){
@@ -460,7 +483,6 @@ function setupReelObserver(feedTypeName){
       }
     }
 
-    // HARD PAUSE ALL videos in this feed first - fixes background audio leak
     container.querySelectorAll('video.main-vid').forEach(v=>{
       const parentReel = v.closest('.reel');
       if(!mostVisibleEntry || parentReel!== mostVisibleEntry.target){
@@ -492,6 +514,9 @@ function setupReelObserver(feedTypeName){
           } else if(feedTypeName==='Reels'){
             window._viewedReels = parseInt(localStorage.getItem('gv_viewed_reels')||'0') + 1;
             localStorage.setItem('gv_viewed_reels', window._viewedReels.toString());
+          } else if(feedTypeName==='Photos' || feedTypeName==='Photo' || feedTypeName==='Images'){
+            window._viewedPhotos = parseInt(localStorage.getItem('gv_viewed_photos')||'0') + 1;
+            localStorage.setItem('gv_viewed_photos', window._viewedPhotos.toString());
           }
         }
 
