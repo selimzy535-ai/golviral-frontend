@@ -1,4 +1,4 @@
-
+g
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -69,6 +69,7 @@ if(!TOKEN) location.href='auth.html';
 
 let uiType='reel', selectedFile=null, isUploading=false, isAIToggled=false;
 let currentObjectUrl=null;
+let generatedThumbBlob=null;
 
 function parseJwt(token) {
   try {
@@ -140,7 +141,7 @@ function createVideoThumb(file){
     video.src=url;
     let done=false;
     const finish=(obj)=>{ if(done) return; done=true; try{URL.revokeObjectURL(url)}catch{} try{video.remove()}catch{} resolve(obj); };
-    video.onloadedmetadata=()=>{ if(video.duration>180){ finish({error:'Video too long! Max 3 min'}); return; } try{video.currentTime=0.5}catch{finish({duration:0})} };
+    video.onloadedmetadata=()=>{ if(video.duration>180){ finish({error:'Video too long! Max 3 min'}); return; } try{video.currentTime=0.5}catch{finish({duration:0, blob:null})} };
     video.onseeked=()=>{
       try{
         const canvas=document.getElementById('thumb-canvas');
@@ -148,11 +149,11 @@ function createVideoThumb(file){
         canvas.width=w; canvas.height=h;
         canvas.getContext('2d').drawImage(video,0,0,w,h);
         canvas.style.display='block';
-      }catch{}
-      finish({duration:video.duration||0});
+        canvas.toBlob((blob)=>{ generatedThumbBlob=blob; finish({duration:video.duration||0, blob}); },'image/jpeg',0.85);
+      }catch{ finish({duration:video.duration||0, blob:null}); }
     };
-    video.onerror=()=> finish({duration:0});
-    setTimeout(()=> finish({duration:video.duration||0}), 4000);
+    video.onerror=()=> finish({duration:0, blob:null});
+    setTimeout(()=> finish({duration:video.duration||0, blob:null}), 4000);
   });
 }
 
@@ -160,6 +161,7 @@ document.getElementById('file-input').onchange=async e=>{
   selectedFile=e.target.files[0];
   if(!selectedFile) return;
   if(selectedFile.size>17*1024*1024){toast('File too big! Max 17MB',true);selectedFile=null;e.target.value='';return;}
+  generatedThumbBlob=null;
   document.getElementById('placeholder').style.display='none';
   const info=document.getElementById('file-info');
   if(uiType==='photo'){
