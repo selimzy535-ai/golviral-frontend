@@ -70,6 +70,24 @@ if(!TOKEN) location.href='auth.html';
 let uiType='reel', selectedFile=null, isUploading=false, isAIToggled=false;
 let currentObjectUrl=null;
 
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const parsed = JSON.parse(jsonPayload);
+    return parsed.userId || parsed.id || parsed._id || parsed.sub || '';
+  } catch (e) {
+    return '';
+  }
+}
+
 function toast(m,e=false){const t=document.getElementById('toast');t.innerText=m;t.className='toast '+(e?'error':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500)}
 
 function toggleAI(){
@@ -79,14 +97,12 @@ function toggleAI(){
   let text=capInput.value;
 
   if(isAIToggled){
-    // ON - add #AI if not exists
     if(!/#AI\b/i.test(text)){
       text = text.trim()? text.trim() + ' #AI' : '#AI';
       capInput.value = text;
     }
     toast('AI tag added #AI');
   } else {
-    // OFF - remove #AI
     capInput.value = text.replace(/\s*#AI\b/gi,'').replace(/\s{2,}/g,' ').trim();
     toast('AI tag removed');
   }
@@ -210,6 +226,10 @@ async function submitPost(){
   if(uiType!=='shortstory'&&!selectedFile) return toast('Select a file',true);
   if(isUploading) return;
   if(!navigator.onLine) return toast('You are offline',true);
+
+  const userId = parseJwt(TOKEN);
+  if(!userId) return toast('Session error - please re-login', true);
+
   isUploading=true;
   const btn=document.getElementById('publish-btn');
   btn.disabled=true; btn.innerText='Posting...';
@@ -218,13 +238,11 @@ async function submitPost(){
   try{
     const title=document.getElementById('title').value.trim();
     let caption=document.getElementById('caption').value.trim();
-    // Final safety: sync caption with toggle
     if(isAIToggled){
       if(!/#AI\b/i.test(caption)) caption = caption? caption + ' #AI' : '#AI';
     } else {
       caption = caption.replace(/\s*#AI\b/gi,'').trim();
     }
-    let userId=''; try{ userId=JSON.parse(atob(TOKEN.split('.')[1])).userId }catch{}
     btn.innerText='Creating post...';
     const intentRes=await fetch(API+'/api/post/create-intent',{
       method:'POST',
@@ -257,7 +275,6 @@ async function submitPost(){
 window.addEventListener('offline',()=>{ if(isUploading) toast('You went offline',true); });
 window.addEventListener('online',()=>{ if(isUploading) toast('Back online - retrying...'); });
 
-// Also remove #AI if user manually deletes it -> turn off toggle
 document.getElementById('caption').addEventListener('input', (e)=>{
   const hasTag = /#AI\b/i.test(e.target.value);
   if(!hasTag && isAIToggled){
