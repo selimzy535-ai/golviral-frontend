@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -294,7 +294,6 @@ async function loadProfile(){
 
 function copyLink(id){navigator.clipboard.writeText(document.getElementById(id).innerText);toast('Copied to clipboard')}
 let playingVideoId=null;
-Here fix it and drop clean code 
 // --- PUT THIS AT TOP OF YOUR FILE, ONCE ---
 const signedCache = JSON.parse(localStorage.getItem('gv_signed_cache') || '{}');
 
@@ -354,8 +353,6 @@ async function loadPosts(){
 
   tab.innerHTML=`<div class="grid">${items.join('')}</div>`;
 }
-let playingVideoId = null;
- 
 async function playInGrid(postId){
   const video=document.getElementById(`video-${postId}`);const btn=document.getElementById(`btn-${postId}`);if(!video)return;
   if(playingVideoId&&playingVideoId!==postId){const prevVideo=document.getElementById(`video-${playingVideoId}`);const prevBtn=document.getElementById(`btn-${playingVideoId}`);if(prevVideo){prevVideo.pause();prevBtn.style.display='flex'}}
