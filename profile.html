@@ -353,14 +353,58 @@ async function loadPosts(){
 
   tab.innerHTML=`<div class="grid">${items.join('')}</div>`;
 }
+let playingVideoId = null;
+
 async function playInGrid(postId){
-  const video=document.getElementById(`video-${postId}`);const btn=document.getElementById(`btn-${postId}`);if(!video)return;
-  if(playingVideoId&&playingVideoId!==postId){const prevVideo=document.getElementById(`video-${playingVideoId}`);const prevBtn=document.getElementById(`btn-${playingVideoId}`);if(prevVideo){prevVideo.pause();prevBtn.style.display='flex'}}
-  if(video.paused){
-    if(!video.src||video.src===window.location.href){const res=await api(`/api/media/sign?postId=${postId}`);if(res.url)video.src=res.url;else return toast('Video not ready')}
-    video.play();btn.style.display='none';playingVideoId=postId
-  }else{video.pause();btn.style.display='flex';playingVideoId=null}
-  video.onended=()=>{btn.style.display='flex';playingVideoId=null}
+  try {
+    const video = document.getElementById(`video-${postId}`);
+    const btn = document.getElementById(`btn-${postId}`);
+    if(!video || !btn) return;
+
+    // Pause previous video
+    if(playingVideoId && playingVideoId !== postId){
+      const prevVideo = document.getElementById(`video-${playingVideoId}`);
+      const prevBtn = document.getElementById(`btn-${playingVideoId}`);
+      if(prevVideo){ prevVideo.pause(); }
+      if(prevBtn){ prevBtn.style.display='flex'; }
+    }
+
+    if(video.paused){
+      // Use cache function, not api() again
+      if(!video.querySelector('source')?.src || video.querySelector('source')?.src === ""){
+        const signed = await getSignedUrl(postId);
+        if(!signed){
+          toast('Video not ready, try again');
+          return;
+        }
+        // set source properly
+        let source = video.querySelector('source');
+        if(!source){
+          source = document.createElement('source');
+          source.type = 'video/mp4';
+          video.appendChild(source);
+        }
+        source.src = signed;
+        video.load();
+      }
+
+      await video.play().catch(()=>{/* autoplay blocked */});
+      btn.style.display='none';
+      playingVideoId = postId;
+
+      video.onended = () => {
+        btn.style.display='flex';
+        playingVideoId = null;
+      };
+    } else {
+      video.pause();
+      btn.style.display='flex';
+      playingVideoId = null;
+    }
+  } catch(e){
+    console.log('play error', e);
+    toast('Video failed to play');
+  }
 }
 function showList(type){
   const list=type==='followers'?profileData.followersList:profileData.followingList;
