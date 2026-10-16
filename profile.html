@@ -294,6 +294,39 @@ async function loadProfile(){
 
 function copyLink(id){navigator.clipboard.writeText(document.getElementById(id).innerText);toast('Copied to clipboard')}
 let playingVideoId=null;
+// --- PUT THIS AT TOP OF YOUR FILE, ONCE ---
+const signedCache = JSON.parse(localStorage.getItem('gv_signed_cache') || '{}');
+
+function getCachedUrl(postId) {
+  const c = signedCache[postId];
+  if (!c) return null;
+  // expire after 50 mins (signed urls usually expire in 60 mins)
+  if (Date.now() - c.time > 50 * 60 * 1000) {
+    delete signedCache[postId];
+    return null;
+  }
+  return c.url;
+}
+
+function setCachedUrl(postId, url) {
+  signedCache[postId] = { url, time: Date.now() };
+  localStorage.setItem('gv_signed_cache', JSON.stringify(signedCache));
+}
+
+async function getSignedUrl(postId) {
+  const cached = getCachedUrl(postId);
+  if (cached) return cached;
+
+  const urlData = await fetch(`${API}/api/media/sign?postId=${postId}`, {
+    headers: { Authorization: `Bearer ${TOKEN}` }
+  }).then(r => r.json());
+
+  const finalUrl = urlData.url;
+  if (finalUrl) setCachedUrl(postId, finalUrl);
+  return finalUrl;
+}
+
+// --- YOUR NEW loadPosts WITH CACHE ---
 async function loadPosts(){
   const d = await api(`/api/user/${profileId}/posts`);
   const tab = document.getElementById('tab-posts');
@@ -302,25 +335,18 @@ async function loadPosts(){
     return;
   }
 
-  // First show loading skeleton
   tab.innerHTML=`<div class="grid">${d.map(p=>`<div class="grid-item" id="post-${p.id}"><div style="height:100%;background:#111;display:flex;align-items:center;justify-content:center">Loading...</div></div>`).join('')}</div>`;
 
-  // Now fetch signed URLs one by one
   const items = await Promise.all(d.map(async (p) => {
     try {
-      const urlData = await fetch(`${API}/api/media/sign?postId=${p.id}`, {
-        headers:{ Authorization:`Bearer ${TOKEN}` }
-      }).then(r=>r.json());
-      
-      const finalUrl = urlData.url || p.cdn_url;
+      const finalUrl = await getSignedUrl(p.id) || p.cdn_url;
 
       if(p.type === 'store'){
-        return `<div class="grid-item" id="post-${p.id}"><img src="${finalUrl}" style="width:100%;height:100%;object-fit:cover"></div>`;
+        return `<div class="grid-item" id="post-${p.id}"><img src="${finalUrl}" style="width:100%;height:100%;object-fit:cover" loading="lazy"></div>`;
       } else {
         return `<div class="grid-item" id="post-${p.id}" onclick="playInGrid('${p.id}')"><video id="video-${p.id}" poster="${finalUrl}" playsinline preload="metadata"><source src="${finalUrl}" type="video/mp4"></video><div class="grid-play-btn" id="btn-${p.id}"><svg style="width:20px;height:20px;color:#fff" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><div class="grid-overlay"><svg style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${formatNumber(p.views||0)}</div></div>`;
       }
     } catch(e){
-      // fallback to cdn_url if sign fails
       return `<div class="grid-item" id="post-${p.id}"><div style="padding:10px;font-size:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100%;text-align:center">${escapeHtml(p.title||p.caption||'Text')}</div></div>`;
     }
   }));
