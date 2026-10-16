@@ -294,15 +294,16 @@ async function loadProfile(){
 
 function copyLink(id){navigator.clipboard.writeText(document.getElementById(id).innerText);toast('Copied to clipboard')}
 let playingVideoId=null;
-// --- PUT THIS AT TOP OF YOUR FILE, ONCE ---
-const signedCache = JSON.parse(localStorage.getItem('gv_signed_cache') || '{}');
+// --- CACHE SYSTEM (put at top once) ---
+const CACHE_KEY = 'gv_signed_cache';
+const signedCache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
 
 function getCachedUrl(postId) {
   const c = signedCache[postId];
   if (!c) return null;
-  // expire after 50 mins (signed urls usually expire in 60 mins)
   if (Date.now() - c.time > 50 * 60 * 1000) {
     delete signedCache[postId];
+    localStorage.setItem(CACHE_KEY, JSON.stringify(signedCache));
     return null;
   }
   return c.url;
@@ -310,100 +311,87 @@ function getCachedUrl(postId) {
 
 function setCachedUrl(postId, url) {
   signedCache[postId] = { url, time: Date.now() };
-  localStorage.setItem('gv_signed_cache', JSON.stringify(signedCache));
+  localStorage.setItem(CACHE_KEY, JSON.stringify(signedCache));
 }
 
 async function getSignedUrl(postId) {
   const cached = getCachedUrl(postId);
   if (cached) return cached;
-
-  const urlData = await fetch(`${API}/api/media/sign?postId=${postId}`, {
-    headers: { Authorization: `Bearer ${TOKEN}` }
-  }).then(r => r.json());
-
-  const finalUrl = urlData.url;
-  if (finalUrl) setCachedUrl(postId, finalUrl);
-  return finalUrl;
+  try {
+    const res = await fetch(`${API}/api/media/sign?postId=${postId}`, {
+      headers: { Authorization: `Bearer ${TOKEN}` }
+    });
+    const data = await res.json();
+    if (data?.url) {
+      setCachedUrl(postId, data.url);
+      return data.url;
+    }
+  } catch (e) {}
+  return null;
 }
 
-// --- YOUR NEW loadPosts WITH CACHE ---
-async function loadPosts(){
+// --- POSTS GRID ---
+async function loadPosts() {
   const d = await api(`/api/user/${profileId}/posts`);
   const tab = document.getElementById('tab-posts');
-  if(!d || d.length===0){
-    tab.innerHTML=`<p style="text-align:center;color:var(--muted);padding:40px">No posts yet</p>`;
+
+  if (!d || d.length === 0) {
+    tab.innerHTML = `<p style="text-align:center;color:var(--muted);padding:40px">No posts yet</p>`;
     return;
   }
 
-  tab.innerHTML=`<div class="grid">${d.map(p=>`<div class="grid-item" id="post-${p.id}"><div style="height:100%;background:#111;display:flex;align-items:center;justify-content:center">Loading...</div></div>`).join('')}</div>`;
-
-  const items = await Promise.all(d.map(async (p) => {
-    try {
-      const finalUrl = await getSignedUrl(p.id) || p.cdn_url;
-
-      if(p.type === 'store'){
-        return `<div class="grid-item" id="post-${p.id}"><img src="${finalUrl}" style="width:100%;height:100%;object-fit:cover" loading="lazy"></div>`;
-      } else {
-        return `<div class="grid-item" id="post-${p.id}" onclick="playInGrid('${p.id}')"><video id="video-${p.id}" poster="${finalUrl}" playsinline preload="metadata"><source src="${finalUrl}" type="video/mp4"></video><div class="grid-play-btn" id="btn-${p.id}"><svg style="width:20px;height:20px;color:#fff" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><div class="grid-overlay"><svg style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${formatNumber(p.views||0)}</div></div>`;
+  // Use cdn_url for grid poster only - saves data, no signing yet
+  tab.innerHTML = `<div class="grid">${d.map(p => `
+    <div class="grid-item" id="post-${p.id}" onclick="playInGrid('${p.id}')">
+      ${p.type === 'store'
+       ? `<img src="${p.cdn_url}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`
+        : `<video id="video-${p.id}" poster="${p.cdn_url}" playsinline preload="metadata"></video>
+           <div class="grid-play-btn" id="btn-${p.id}"><svg style="width:20px;height:20px;color:#fff" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+           <div class="grid-overlay"><svg style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${formatNumber(p.views||0)}</div>`
       }
-    } catch(e){
-      return `<div class="grid-item" id="post-${p.id}"><div style="padding:10px;font-size:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100%;text-align:center">${escapeHtml(p.title||p.caption||'Text')}</div></div>`;
-    }
-  }));
-
-  tab.innerHTML=`<div class="grid">${items.join('')}</div>`;
+    </div>`).join('')}</div>`;
 }
+
+// --- PLAY IN GRID - CLICK TO PLAY, NO AUTOPLAY ---
 let playingVideoId = null;
 
-async function playInGrid(postId){
+async function playInGrid(postId) {
   try {
     const video = document.getElementById(`video-${postId}`);
     const btn = document.getElementById(`btn-${postId}`);
-    if(!video || !btn) return;
+    if (!video) return;
 
-    // Pause previous video
-    if(playingVideoId && playingVideoId !== postId){
-      const prevVideo = document.getElementById(`video-${playingVideoId}`);
+    // Pause previous
+    if (playingVideoId && playingVideoId!== postId) {
+      const prev = document.getElementById(`video-${playingVideoId}`);
       const prevBtn = document.getElementById(`btn-${playingVideoId}`);
-      if(prevVideo){ prevVideo.pause(); }
-      if(prevBtn){ prevBtn.style.display='flex'; }
+      if (prev) prev.pause();
+      if (prevBtn) prevBtn.style.display = 'flex';
     }
 
-    if(video.paused){
-      // Use cache function, not api() again
-      if(!video.querySelector('source')?.src || video.querySelector('source')?.src === ""){
-        const signed = await getSignedUrl(postId);
-        if(!signed){
+    if (video.paused) {
+      if (!video.src) {
+        const signedUrl = await getSignedUrl(postId);
+        if (!signedUrl) {
           toast('Video not ready, try again');
           return;
         }
-        // set source properly
-        let source = video.querySelector('source');
-        if(!source){
-          source = document.createElement('source');
-          source.type = 'video/mp4';
-          video.appendChild(source);
-        }
-        source.src = signed;
-        video.load();
+        video.src = signedUrl;
       }
-
-      await video.play().catch(()=>{/* autoplay blocked */});
-      btn.style.display='none';
+      await video.play();
+      if (btn) btn.style.display = 'none';
       playingVideoId = postId;
-
       video.onended = () => {
-        btn.style.display='flex';
+        if (btn) btn.style.display = 'flex';
         playingVideoId = null;
       };
     } else {
       video.pause();
-      btn.style.display='flex';
+      if (btn) btn.style.display = 'flex';
       playingVideoId = null;
     }
-  } catch(e){
-    console.log('play error', e);
-    toast('Video failed to play');
+  } catch (err) {
+    console.log('play error', err);
   }
 }
 function showList(type){
