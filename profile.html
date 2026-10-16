@@ -155,11 +155,44 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('posts',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>Posts</div>
-  <div class="tab" onclick="showTab('analytics',this)"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Analytics</div>
-  <div class="tab" onclick="showTab('wallet',this)"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M20 12h-4"/></svg>Wallet</div>
-  <div class="tab" onclick="showTab('gifts',this)"><svg viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>Gifts</div>
-  <div class="tab" onclick="showTab('support',this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Support</div>
+  <div class="tab active" onclick="showTab('posts',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <line x1="3" y1="9" x2="21" y2="9"/>
+      <line x1="9" y1="21" x2="9" y2="9"/>
+    </svg>Posts
+  </div>
+  
+  <div class="tab" onclick="showTab('analytics',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+      <polyline points="17 6 23 6 23 12"/>
+    </svg>Analytics
+  </div>
+  
+  <div class="tab" onclick="showTab('wallet',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2"/>
+      <path d="M16 14a2 2 0 0 0 0-4h-4a2 2 0 0 0 0 4h4z"/>
+    </svg>Wallet
+  </div>
+  
+  <div class="tab" onclick="showTab('gifts',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 12v10H4V12"/>
+      <path d="M2 7h20v5H2z"/>
+      <path d="M12 22V7"/>
+      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+    </svg>Gifts
+  </div>
+  
+  <div class="tab" onclick="showTab('support',this)">
+    <!-- FIXED PATH HERE -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>Support
+  </div>
 </div>
 
 <div class="content">
@@ -354,13 +387,42 @@ async function loadPosts(){
   tab.innerHTML=`<div class="grid">${items.join('')}</div>`;
 }
 async function playInGrid(postId){
-  const video=document.getElementById(`video-${postId}`);const btn=document.getElementById(`btn-${postId}`);if(!video)return;
-  if(playingVideoId&&playingVideoId!==postId){const prevVideo=document.getElementById(`video-${playingVideoId}`);const prevBtn=document.getElementById(`btn-${playingVideoId}`);if(prevVideo){prevVideo.pause();prevBtn.style.display='flex'}}
-  if(video.paused){
-    if(!video.src||video.src===window.location.href){const res=await api(`/api/media/sign?postId=${postId}`);if(res.url)video.src=res.url;else return toast('Video not ready')}
-    video.play();btn.style.display='none';playingVideoId=postId
-  }else{video.pause();btn.style.display='flex';playingVideoId=null}
-  video.onended=()=>{btn.style.display='flex';playingVideoId=null}
+  try{
+    const video = document.getElementById(`video-${postId}`);
+    const btn = document.getElementById(`btn-${postId}`);
+    if(!video) return;
+
+    // pause previous - fixed null crash
+    if(playingVideoId && playingVideoId !== postId){
+      const prevVideo = document.getElementById(`video-${playingVideoId}`);
+      const prevBtn = document.getElementById(`btn-${playingVideoId}`);
+      if(prevVideo) prevVideo.pause();
+      if(prevBtn) prevBtn.style.display = 'flex';
+    }
+
+    if(video.paused){
+      // use cache
+      if(!video.src || video.src === window.location.href){
+        const signedUrl = await getSignedUrl(postId);
+        if(!signedUrl) return toast('Video not ready');
+        video.src = signedUrl;
+      }
+      await video.play().catch(()=>{});
+      if(btn) btn.style.display = 'none';
+      playingVideoId = postId;
+    }else{
+      video.pause();
+      if(btn) btn.style.display = 'flex';
+      playingVideoId = null;
+    }
+
+    video.onended = ()=>{
+      if(btn) btn.style.display = 'flex';
+      playingVideoId = null;
+    };
+  }catch(e){
+    console.log('play error', e);
+  }
 }
 function showList(type){
   const list=type==='followers'?profileData.followersList:profileData.followingList;
