@@ -75,31 +75,7 @@ self.addEventListener('fetch', event => {
   }
 
   if (event.request.destination === 'video' || url.pathname.includes('/media/') || url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(async cache => {
-        // FIX: REMOVED { ignoreSearch: true } - this was causing repeat
-        const cached = await cache.match(event.request);
-        if (cached) return cached;
-
-        try {
-          // FIX: REMOVED returnRangeResponse + arrayBuffer - was causing crash
-          // If browser asks for range, just fetch range from network
-          if (event.request.headers.has('range')) {
-            return fetch(event.request);
-          }
-
-          const networkRes = await fetch(event.request);
-          if (networkRes.status === 200) {
-            cache.put(event.request, networkRes.clone());
-            event.waitUntil(cleanupOldVideos());
-          }
-          return networkRes;
-        } catch {
-          return cached;
-        }
-      })
-    );
-    return;
+    return; // FIX: Video bypass - no caching, instant streaming
   }
 
   if (event.request.destination === 'image') {
