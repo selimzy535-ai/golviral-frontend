@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -210,6 +210,47 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 const API='https://golviral-api.onrender.com';
 const CDN_URL='https://golviral-cdn.onrender.com';
 const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
+// === GolViral Profile Notification - uses YOUR sw.js ===
+async function gvNotify(title, body){
+  try{
+    if(Notification.permission !== 'granted'){
+      await Notification.requestPermission()
+    }
+    if(Notification.permission !== 'granted') return
+    if(navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SHOW_NOTIFICATION',
+        title: title,
+        body: body,
+        url: location.href
+      })
+    } else {
+      const reg = await navigator.serviceWorker.ready
+      reg.showNotification(title, { body: body, icon: "/icon-192.png", badge: "/icon-192.png" })
+    }
+  }catch{}
+}
+
+function notifyProfileStatus(){
+  // once per day only
+  const last = localStorage.getItem('gv_profile_notify');
+  if(last && Date.now() - parseInt(last) < 24*60*60*1000) return;
+
+  const u = profileData;
+  const hasBio = u.bio && u.bio.trim().length > 10;
+  const hasAvatar = !!u.avatarUrl;
+  const profileLink = `https://golviral.com/u/${u.userId || profileId}`;
+
+  if(!hasBio || !hasAvatar){
+    gvNotify("GolViral 👤 Complete Your Profile", "Add bio & photo to get 10x more followers & unlock earnings!");
+    setTimeout(()=>{
+      gvNotify("GolViral 🚀 Get Followers Fast", `Share your link on WhatsApp, IG, TikTok: ${profileLink}`);
+    }, 6000);
+  } else {
+    gvNotify("GolViral 🚀 Grow Faster", `Your profile is ready! Share ${profileLink} on all socials to get more followers`);
+  }
+  localStorage.setItem('gv_profile_notify', Date.now().toString());
+}
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 let profileId = new URLSearchParams(location.search).get('id');
@@ -317,6 +358,8 @@ async function loadProfile(){
     document.getElementById('bio-editor').style.display='block';
     document.getElementById('bio-input').value=u.bio||'';
     await loadKYCStatus();
+    // === ADDED - Profile complete & share notification ===
+    setTimeout(()=>notifyProfileStatus(), 2500);
   }else{
     document.getElementById('follow-btn').innerText=u.isFollowing?'Unfollow':'Follow';
     const msgBtn=document.getElementById('message-btn');msgBtn.style.display='inline-flex';
