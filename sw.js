@@ -133,7 +133,6 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'PREFETCH_VIDEO') {
     const url = event.data.url;
     caches.open(CACHE_NAME).then(cache => {
-      // FIX: also here
       cache.match(url).then(cached => {
         if (!cached) {
           fetch(url).then(res => {
@@ -144,6 +143,20 @@ self.addEventListener('message', event => {
         }
       });
     });
+  }
+  
+  // NEW - ADD THIS PART
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const title = event.data.title || 'GolViral';
+    const options = {
+      body: event.data.body || 'New activity',
+      icon: `${APP_BASE_URL}/icon-192.png`,
+      badge: `${APP_BASE_URL}/icon-192.png`,
+      vibrate: [200, 100, 200],
+      tag: event.data.tag || Date.now().toString(),
+      data: { url: event.data.url || '/profile.html' }
+    };
+    self.registration.showNotification(title, options);
   }
 });
 
