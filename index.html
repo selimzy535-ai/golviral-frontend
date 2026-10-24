@@ -175,6 +175,26 @@ let feedData=[],currentPost=null,searchTimer=null,currentBoostPostId=null,curren
 const userCache={},followLocks={};
 let GLOBAL_MUTED = localStorage.getItem('golviral_muted')==='0'? false : true;
 let CUR={symbol:'₦',code:'NGN',locale:'en-NG'};
+// === GolViral Notification Helper - uses YOUR existing sw.js ===
+async function gvNotify(title, body){
+  try{
+    if(Notification.permission !== 'granted'){
+      await Notification.requestPermission()
+    }
+    if(Notification.permission !== 'granted') return
+    if(navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SHOW_NOTIFICATION',
+        title: title,
+        body: body,
+        url: location.href
+      })
+    } else {
+      const reg = await navigator.serviceWorker.ready
+      reg.showNotification(title, { body: body, icon: "/icon-192.png", badge: "/icon-192.png" })
+    }
+  }catch{}
+}
 async function fetchGeoCurrency(){
   try{
     const res=await fetch('https://ipapi.co/json/');
@@ -431,12 +451,56 @@ function setupReelObserver(feedTypeName){
 }
 async function likePost(postId,creatorId,btn){
   if(btn.dataset.locked) return; btn.dataset.locked=1;
-  const isLiked = btn.classList.contains('liked'); const span=document.getElementById(`like-${postId}`); const icon=btn.querySelector('svg');
-  if(isLiked){ btn.classList.remove('liked'); if(icon) icon.classList.remove('filled'); if(span) span.innerText=Math.max(0,parseInt(span.innerText||0)-1); }
-  else{ btn.classList.add('liked'); if(icon) icon.classList.add('filled'); if(span) span.innerText=parseInt(span.innerText||0)+1; const cont=btn.closest('.reel'); if(cont) triggerHeartAnimation(cont,btn.getBoundingClientRect().left+15,btn.getBoundingClientRect().top+15); }
-  await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})}); setTimeout(()=>delete btn.dataset.locked,800);
+  const isLiked = btn.classList.contains('liked'); 
+  const span=document.getElementById(`like-${postId}`); 
+  const icon=btn.querySelector('svg');
+  if(isLiked){ 
+    btn.classList.remove('liked'); 
+    if(icon) icon.classList.remove('filled'); 
+    if(span) span.innerText=Math.max(0,parseInt(span.innerText||0)-1); 
+  }
+  else{ 
+    btn.classList.add('liked'); 
+    if(icon) icon.classList.add('filled'); 
+    if(span) span.innerText=parseInt(span.innerText||0)+1; 
+    const cont=btn.closest('.reel'); 
+    if(cont) triggerHeartAnimation(cont,btn.getBoundingClientRect().left+15,btn.getBoundingClientRect().top+15);
+    gvNotify("GolViral ❤️", "You liked a post");
+  }
+  await api('/api/like',{method:'POST',body:JSON.stringify({postId,creatorId})}); 
+  setTimeout(()=>delete btn.dataset.locked,800);
 }
-async function toggleFollow(userId,btn){if(followLocks[userId]) return;followLocks[userId]=true;const isFollowing=btn.dataset.following==='1';const oldText=btn.innerText;btn.disabled=true;btn.innerText=isFollowing?'Follow':'Following';btn.dataset.following=isFollowing?'0':'1';try{const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});if(res.error){btn.innerText=oldText;btn.dataset.following=isFollowing?'1':'0';toast(res.error);}else{document.querySelectorAll(`[data-userid="${userId}"]`).forEach(b=>{b.innerText=isFollowing?'Follow':'Following';b.dataset.following=isFollowing?'0':'1';});toast(isFollowing?'Unfollowed':'Following ✓');if(userCache[userId]) userCache[userId].isFollowing=!isFollowing;}}catch{btn.innerText=oldText;btn.dataset.following=isFollowing?'1':'0';}finally{btn.disabled=false;setTimeout(()=>{delete followLocks[userId];},1500);}}
+async function toggleFollow(userId,btn){
+  if(followLocks[userId]) return;
+  followLocks[userId]=true;
+  const isFollowing=btn.dataset.following==='1';
+  const oldText=btn.innerText;
+  btn.disabled=true;
+  btn.innerText=isFollowing?'Follow':'Following';
+  btn.dataset.following=isFollowing?'0':'1';
+  try{
+    const res=await api(isFollowing?'/api/unfollow':'/api/follow',{method:'POST',body:JSON.stringify({followingId:userId})});
+    if(res.error){
+      btn.innerText=oldText;
+      btn.dataset.following=isFollowing?'1':'0';
+      toast(res.error);
+    }else{
+      document.querySelectorAll(`[data-userid="${userId}"]`).forEach(b=>{
+        b.innerText=isFollowing?'Follow':'Following';
+        b.dataset.following=isFollowing?'0':'1';
+      });
+      toast(isFollowing?'Unfollowed':'Following ✓');
+      gvNotify("GolViral", isFollowing ? "You unfollowed" : "You followed - you'll be notified when they post");
+      if(userCache[userId]) userCache[userId].isFollowing=!isFollowing;
+    }
+  }catch{
+    btn.innerText=oldText;
+    btn.dataset.following=isFollowing?'1':'0';
+  }finally{
+    btn.disabled=false;
+    setTimeout(()=>{delete followLocks[userId];},1500);
+  }
+}
 function toggleSound(){ GLOBAL_MUTED =!GLOBAL_MUTED; localStorage.setItem('golviral_muted', GLOBAL_MUTED? '1' : '0'); document.querySelectorAll('video.main-vid').forEach(v => { v.muted = GLOBAL_MUTED; if(v.src) v.play().catch(()=>{}); }); toast(GLOBAL_MUTED? 'Muted' : 'Sound On'); }
 function sharePost(){navigator.clipboard.writeText(location.href);toast('Link copied');}
 function spawnGiftParticles(){const emojis=['💎','👑','💠','🎁','✨','🔥'];for(let i=0;i<12;i++){setTimeout(()=>{const p=document.createElement('div');p.className='gift-particle';p.innerText=emojis[Math.floor(Math.random()*emojis.length)];p.style.left=`${Math.random()*80+10}%`;p.style.bottom='100px';document.body.appendChild(p);setTimeout(()=>p.remove(),1800);},i*80);}}
