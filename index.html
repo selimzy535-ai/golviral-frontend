@@ -345,26 +345,32 @@ async function loadFeed(type, el){
   pauseAllVideos();
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   if(el) el.classList.add('active');
+  
   document.querySelectorAll('main[id^="feed-"]').forEach(m=>m.style.display='none');
   let targetMain = document.getElementById(`feed-${type.toLowerCase()}`);
   if(targetMain) targetMain.style.display='block';
-  if(feedsCache[type] && feedsCache[type].length){ renderFeed(feedsCache[type], type); return; }
-  const res=await api('/api/feed'); let all=Array.isArray(res)?res:[]; feedData = all;
-  let filtered = [];
-  if(type==='ForYou'){
-    filtered = all.filter(p=>p.type==='reel');
-    filtered.sort((a,b)=>{
-      const aBoost = a.boostedUntil && new Date(a.boostedUntil) > new Date()? 1:0;
-      const bBoost = b.boostedUntil && new Date(b.boostedUntil) > new Date()? 1:0;
-      if(aBoost!==bBoost) return bBoost - aBoost;
-      return (b.views||0) - (a.views||0);
-    });
-    for(let i=filtered.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [filtered[i],filtered[j]]=[filtered[j],filtered[i]]; }
+  
+  // If already cached, show it
+  if(feedsCache[type] && feedsCache[type].length){ 
+    renderFeed(feedsCache[type], type); 
+    return; 
   }
-  else if(type==='Reels'){ filtered = all.filter(p=>p.type==='reel').sort((a,b)=> new Date(b.createdAt||0) - new Date(a.createdAt||0)); }
-  else if(type==='Novels'){ filtered = all.filter(p=>p.type==='novel'); }
-  else if(type==='Stories'){ filtered = all.filter(p=>p.type==='store'); }
-  feedsCache[type]=filtered; renderFeed(filtered, type);
+
+  // Map tab name to backend DB type - THIS IS THE FIX
+  const typeMap = {ForYou:'reel', Reels:'reel', Novels:'novel', Stories:'store', Photos:'store'};
+  const backendType = typeMap[type] || 'reel';
+
+  try {
+    const res = await api(`/api/feed?type=${backendType}&limit=70`);
+    let filtered = Array.isArray(res) ? res : []; // already pure 70, no client filter needed
+
+    feedData = filtered;
+    feedsCache[type] = filtered; 
+    renderFeed(filtered, type);
+
+  } catch(e){
+    console.error('Feed load fail', e);
+  }
 }
 async function renderFeed(posts, type){
   const idMap = {ForYou:'feed-foryou', Reels:'feed-reels', Novels:'feed-novels', Stories:'feed-stories'};
