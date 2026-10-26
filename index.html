@@ -350,19 +350,39 @@ async function loadFeed(type, el){
   let targetMain = document.getElementById(`feed-${type.toLowerCase()}`);
   if(targetMain) targetMain.style.display='block';
   
-  // If already cached, show it
   if(feedsCache[type] && feedsCache[type].length){ 
     renderFeed(feedsCache[type], type); 
     return; 
   }
 
-  // Map tab name to backend DB type - THIS IS THE FIX
   const typeMap = {ForYou:'reel', Reels:'reel', Novels:'novel', Stories:'store', Photos:'store'};
   const backendType = typeMap[type] || 'reel';
 
   try {
     const res = await api(`/api/feed?type=${backendType}&limit=70`);
-    let filtered = Array.isArray(res) ? res : []; // already pure 70, no client filter needed
+    let filtered = Array.isArray(res) ? res : [];
+
+    // RESTORE OLD SORT LOGIC BUT ON 70 PURE
+    if(type==='ForYou'){
+      filtered.sort((a,b)=>{
+        const aBoost = a.isBoosted ? 1 : 0;
+        const bBoost = b.isBoosted ? 1 : 0;
+        if(aBoost!==bBoost) return bBoost - aBoost;
+        return (b.views||0) - (a.views||0);
+      });
+      // shuffle after boost sort
+      for(let i=filtered.length-1;i>0;i--){ 
+        const j=Math.floor(Math.random()*(i+1)); 
+        [filtered[i],filtered[j]]=[filtered[j],filtered[i]]; 
+      }
+      // keep boosted at very top even after shuffle - move them back to top
+      const boosted = filtered.filter(p=>p.isBoosted);
+      const normal = filtered.filter(p=>!p.isBoosted);
+      filtered = [...boosted, ...normal];
+    }
+    else if(type==='Reels'){ 
+      filtered.sort((a,b)=> new Date(b.createdAt||0) - new Date(a.createdAt||0)); 
+    }
 
     feedData = filtered;
     feedsCache[type] = filtered; 
