@@ -2,7 +2,7 @@
   "name": "GolViral - Earn Money Creating Short Videos & Stories",
   "short_name": "GolViral",
   "id": "/",
-  "start_url": "/index.html",
+  "start_url": "/?pwa=1",
   "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
