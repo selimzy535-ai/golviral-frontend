@@ -133,21 +133,6 @@ self.addEventListener('fetch', event => {
 });
 
 self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'PREFETCH_VIDEO') {
-    const url = event.data.url;
-    caches.open(CACHE_NAME).then(cache => {
-      cache.match(url).then(cached => {
-        if (!cached) {
-          fetch(url).then(async res => {
-            if (res && res.status === 200) {
-              const clean = await cleanResponseForSafari(res);
-              cache.put(url, clean);
-            }
-          }).catch(() => {});
-        }
-      });
-    });
-  }
   if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
     const title = event.data.title || 'GolViral';
     const options = {
