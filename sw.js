@@ -16,33 +16,38 @@ const PRECACHE_URLS = [
   `${APP_BASE_URL}/icon-512.png`
 ];
 
-// Helper to clean responses for Safari/Cloudflare Pages
+// Safe Safari response cleaner using blob() to prevent WebKit internal errors & redirects
 async function cleanResponseForSafari(res) {
   if (!res) return res;
   if (res.redirected || res.type === 'opaqueredirect') {
-    const blob = await res.clone().blob();
-    return new Response(blob, {
-      status: res.status,
-      statusText: res.statusText,
-      headers: res.headers
-    });
+    try {
+      const blob = await res.blob();
+      return new Response(blob, {
+        status: res.status,
+        statusText: res.statusText,
+        headers: res.headers
+      });
+    } catch (e) {
+      return res;
+    }
   }
   return res;
 }
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(async c => {
-      for (const u of PRECACHE_URLS) {
-        try {
-          const res = await fetch(u, { redirect: 'follow' });
-          if (res && res.ok) {
-            const clean = await cleanResponseForSafari(res);
-            await c.put(u, clean.clone());
-          }
-        } catch {}
-      }
-    })
+    caches.open(CACHE_NAME).then(c =>
+      Promise.allSettled(
+        PRECACHE_URLS.map(u =>
+          fetch(u).then(async res => {
+            if (res.ok) {
+              const cleaned = await cleanResponseForSafari(res);
+              return c.put(u, cleaned);
+            }
+          }).catch(() => {})
+        )
+      )
+    )
   );
   self.skipWaiting();
 });
@@ -55,6 +60,7 @@ self.addEventListener('activate', e => {
   );
 });
 
+// Throttled cleanup
 let isCleaning = false;
 async function cleanupOldVideos() {
   if (isCleaning) return;
@@ -69,7 +75,9 @@ async function cleanupOldVideos() {
       if (!res) continue;
       const dateHeader = res.headers.get('date');
       const cachedTime = dateHeader ? new Date(dateHeader).getTime() : now;
-      if (now - cachedTime > MAX_AGE) await cache.delete(req);
+      if (now - cachedTime > MAX_AGE) {
+        await cache.delete(req);
+      }
     }
   } catch (err) {
     console.error("Cleanup failed", err);
@@ -89,44 +97,53 @@ self.addEventListener('fetch', event => {
     url.hostname.includes('onrender.com') ||
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('admin.html')
-  ) return;
+  ) {
+    return; // FIX: was respondWith(fetch) - caused double respond
+  }
 
-  if (event.request.destination === 'video' || url.pathname.includes('/media/') || url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)) return;
+  if (event.request.destination === 'video' || url.pathname.includes('/media/') || url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)) {
+    return; // FIX: Video bypass - no caching, instant streaming
+  }
 
   if (event.request.destination === 'image') {
     event.respondWith(
-      (async () => {
-        const cached = await caches.match(event.request);
-        if (cached) {
-          return await cleanResponseForSafari(cached);
+      caches.match(event.request).then(async cached => {
+        if (cached) return await cleanResponseForSafari(cached);
+
+        try {
+          const res = await fetch(event.request);
+          const cleanRes = await cleanResponseForSafari(res);
+          if (res && res.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(event.request, cleanRes.clone());
+          }
+          return cleanRes;
+        } catch (err) {
+          return cached ? await cleanResponseForSafari(cached) : Response.error();
         }
-        const res = await fetch(event.request, { redirect: 'follow' });
-        const clean = await cleanResponseForSafari(res);
-        if (res.ok) {
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(event.request, clean.clone());
-        }
-        return clean;
-      })()
+      })
     );
     return;
   }
 
   event.respondWith(
     (async () => {
-      const cached = await caches.match(event.request);
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(event.request);
+
       try {
-        const networkResponse = await fetch(event.request, { redirect: 'follow' });
+        const networkResponse = await fetch(event.request);
         const cleanRes = await cleanResponseForSafari(networkResponse);
-        if (networkResponse.ok) {
-          const cache = await caches.open(CACHE_NAME);
+        if (networkResponse && networkResponse.status === 200) {
           cache.put(event.request, cleanRes.clone());
         }
         return cleanRes;
-      } catch {
-        if (cached) return await cleanResponseForSafari(cached);
+      } catch (err) {
+        if (cached) {
+          return await cleanResponseForSafari(cached);
+        }
+        throw err;
       }
-      if (cached) return await cleanResponseForSafari(cached);
     })()
   );
 });
@@ -134,19 +151,21 @@ self.addEventListener('fetch', event => {
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'PREFETCH_VIDEO') {
     const url = event.data.url;
-    caches.open(CACHE_NAME).then(cache => {
-      cache.match(url).then(cached => {
-        if (!cached) {
-          fetch(url).then(async res => {
-            if (res && res.status === 200) {
-              const clean = await cleanResponseForSafari(res);
-              cache.put(url, clean);
-            }
-          }).catch(() => {});
-        }
-      });
+    caches.open(CACHE_NAME).then(async cache => {
+      const cached = await cache.match(url);
+      if (!cached) {
+        try {
+          const res = await fetch(url);
+          if (res && res.status === 200) {
+            const cleanRes = await cleanResponseForSafari(res);
+            cache.put(url, cleanRes);
+          }
+        } catch (e) {}
+      }
     });
   }
+  
+  // NEW - ADD THIS PART
   if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
     const title = event.data.title || 'GolViral';
     const options = {
@@ -179,6 +198,7 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
   const relativeUrl = event.notification.data?.url || `/index.html#feed`;
   const urlToOpen = new URL(relativeUrl, APP_BASE_URL).href;
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
