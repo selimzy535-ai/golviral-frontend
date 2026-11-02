@@ -4,13 +4,13 @@ const APP_FOLDER = '';
 
 const PRECACHE_URLS = [
   `${APP_BASE_URL}/`,
-  `${APP_BASE_URL}/index.html`,
-  `${APP_BASE_URL}/404.html`,
-  `${APP_BASE_URL}/auth.html`,
-  `${APP_BASE_URL}/post.html`,
-  `${APP_BASE_URL}/profile.html`,
-  `${APP_BASE_URL}/messages.html`,
-  `${APP_BASE_URL}/kyc.html`,
+  `${APP_BASE_URL}/index`,
+  `${APP_BASE_URL}/404`,
+  `${APP_BASE_URL}/auth`,
+  `${APP_BASE_URL}/post`,
+  `${APP_BASE_URL}/profile`,
+  `${APP_BASE_URL}/messages`,
+  `${APP_BASE_URL}/kyc`,
   `${APP_BASE_URL}/manifest.json`,
   `${APP_BASE_URL}/icon-192.png`,
   `${APP_BASE_URL}/icon-512.png`
