@@ -14,15 +14,16 @@ const PRECACHE_URLS = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(c => c.addAll(PRECACHE_URLS).catch(()=>{}))
-      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+      Promise.all(keys.map(k => {
+        if (k !== CACHE_NAME) return caches.delete(k);
+      }))
+    )
   );
 });
 
@@ -41,6 +42,7 @@ self.addEventListener('fetch', event => {
     url.pathname.match(/\.(mp4|mov|webm|m4v)$/i)
   ) return;
 
+  // Images - cache first
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -56,6 +58,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // Everything else - network first
   event.respondWith(
     fetch(event.request)
       .then(res => {
@@ -76,7 +79,6 @@ self.addEventListener('message', event => {
       body: event.data.body || 'New activity',
       icon: `${APP_BASE_URL}/icon-192.png`,
       badge: `${APP_BASE_URL}/icon-192.png`,
-      vibrate: [200, 100, 200],
       tag: event.data.tag || Date.now().toString(),
       data: { url: event.data.url || '/profile.html' }
     };
@@ -92,7 +94,6 @@ self.addEventListener('push', event => {
     icon: `${APP_BASE_URL}/icon-192.png`,
     badge: `${APP_BASE_URL}/icon-192.png`,
     data: data.data || { url: `/index.html#feed` },
-    vibrate: [200, 100, 200],
     tag: data.type || 'general'
   };
   event.waitUntil(self.registration.showNotification(title, options));
