@@ -1,5 +1,3 @@
-Check the code first 
-
 const CACHE_NAME = 'golviral-v11'; // keep same name = no blank screen
 const APP_BASE_URL = 'https://golviral.com';
 const APP_FOLDER = '';
