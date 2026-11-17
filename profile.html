@@ -206,10 +206,8 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 <div id="list-modal" class="modal"><div class="glass-modal" style="max-height:70dvh;overflow-y:auto"><div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3 id="list-title">Followers</h3><svg onclick="closeList()" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div id="list-content"></div></div></div>
 <div id="otp-modal" class="modal"><div class="glass-modal"><h3 style="margin-bottom:12px">Verify Withdrawal</h3><p style="color:var(--muted);font-size:12px;margin-bottom:12px">Enter OTP sent to your registered email</p><input class="input" id="otp-input" placeholder="123456"><button class="btn" onclick="confirmWithdraw()">Confirm Withdraw</button></div></div>
 
+<script src="config.js"></script>
 <script>
-const API='https://golviral-api.onrender.com';
-const CDN_URL='https://golviral-cdn.onrender.com';
-const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
 // === GolViral Profile Notification - uses YOUR sw.js ===
 async function gvNotify(title, body){
   try{
