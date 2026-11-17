@@ -233,8 +233,8 @@ svg.icon{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;str
   modal.onclick = (e) => { if(e.target===modal){ modal.style.display='none'; document.body.style.overflow=''; } };
 })();
 </script>
+<script src="config.js"></script>
 <script>
-const API='https://golviral-api.onrender.com';
 const TOKEN=localStorage.token;
 const USER_ID=localStorage.userId;
 if(!TOKEN) location.href='auth.html';
