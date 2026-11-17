@@ -452,7 +452,13 @@ async function loadFeed(type, el){
     }
 
     feedData = filtered;
-    feedsCache[type] = filtered; 
+    feedsCache[type] = filtered;
+
+    // === TINY UPDATE ONLY: pre-sign first 5 in parallel, don't wait ===
+    filtered.slice(0, 5).forEach(p => {
+      if(p && p.id) getSignedUrl(p.id);
+    });
+
     renderFeed(filtered, type);
 
   } catch(e){
