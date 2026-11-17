@@ -59,10 +59,8 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
 <div class="ai-row"><div><b style="font-size:13px">AI content</b><p style="font-size:11px;color:#888">Toggle adds #AI tag</p></div><div class="toggle" id="ai-toggle" onclick="toggleAI()"></div></div>
 <button class="btn" id="publish-btn" onclick="submitPost()">Post</button></div>
 </div>
+<script src="config.js"></script>
 <script>
-const API='https://golviral-api.onrender.com';
-const CDN_API='https://golviral-cdn.onrender.com';
-const CDN_KEY='sk_live_golviral_cdn_replace_this_with_32_random_chars';
 const TOKEN=localStorage.token;
 if(!TOKEN) location.href='auth.html';
 
