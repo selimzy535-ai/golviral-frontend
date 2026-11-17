@@ -35,8 +35,8 @@
   <div class="muted">Do not close this page until verified. Your gift/boost will be credited automatically.</div>
 </div>
 
+<script src="config.js"></script>
 <script>
-const API = 'https://golviral-api.onrender.com';
 const qs = new URLSearchParams(location.search);
 let tx_ref = qs.get('tx_ref') || qs.get('txRef') || qs.get('transaction_id') || '';
 let token = qs.get('custom_field_1') || qs.get('token') || '';
