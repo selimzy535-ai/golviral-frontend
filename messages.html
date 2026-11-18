@@ -113,7 +113,7 @@ let socket=null, currentChat=null, isGolViralAI=false, lastTyping=0, pendingImag
 function getGolViralHistory(){ try{ return JSON.parse(localStorage.getItem('golviral_history')||'[]'); }catch{ return []; } }
 function saveGolViralHistory(role,content){ let h=getGolViralHistory(); h.push({role,content}); h=h.slice(-6); localStorage.setItem('golviral_history',JSON.stringify(h)); }
 function getLast3(){ return getGolViralHistory().slice(-3); }
-function cleanAIReply(t){ if(!t) return ''; return t.replace(/\*\*(.*?)\*\*/g,'$1').replace(/__(.*?)__/g,'$1').trim(); }
+function cleanAIReply(t){ if(!t) return ''; return t.replace(/\*\*(.*?)\*\*/g,'$1').replace(/__(.*?)__/g,'$1').replace(/^\s*\|.*\|\s*$/gm,'').replace(/^\s*\|?[\s:\-|]+\|?\s*$/gm,'').replace(/\|/g,' ').replace(/^\s*#{1,6}\s*/gm,'').replace(/\[OCR[^\]]*\]/gi,'').replace(/Tesseract/gi,'').replace(/Optical Character Recognition/gi,'').replace(/\(OCR\)/gi,'').replace(/\n{3,}/g,'\n\n').trim(); }
 function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
 function linkify(text){
   const escaped = escapeHtml(text);
@@ -205,7 +205,7 @@ function openGolViralChat(){
   document.body.style.setProperty('--chat-bg', bg? `url(${bg})` : 'none');
   const box=document.getElementById('chat-box'); box.innerHTML='';
   const hist=getGolViralHistory();
-  if(hist.length===0){ addBubble({text:'Hey bestie, I am GolViral AI. How are you today? Want a viral caption, love advice, story, or send me a photo and I will scan it for you? I am here for you.',senderId:'golviral-ai',createdAt:new Date()}); }
+  if(hist.length===0){ addBubble({text:'Hey bestie, I am GolViral AI. How are you today? Want a viral caption, love advice, story, or send me a photo and I will help you with it? I am here for you.',senderId:'golviral-ai',createdAt:new Date()}); }
   else { hist.forEach(h=> addBubble({text:h.content, senderId: h.role==='user'? MY_USER_ID : 'golviral-ai', createdAt:new Date()})); }
   flushPending();
 }
@@ -247,7 +247,7 @@ function addBubble(msg){
   if(msg.status) div.dataset.bubbleId=Date.now()+Math.random();
   const time=new Date(msg.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); const safeText=linkify(msg.text||'');
   let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" alt="image">` : '';
-  let scanHtml = msg.scanned ? `<div class="scan-badge"><svg style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Scanned: ${escapeHtml(msg.scanned)}</div>` : '';
+  let scanHtml = '';
   let statusIcon = msg.status==='sending' ? `<svg style="width:12px;height:12px;stroke:#000" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>` : '';
   div.innerHTML = `${imgHtml}${scanHtml}<span>${safeText}</span><div class="bubble-time"><span class="status-text">${msg.status==='sending'?'Sending...':''}</span>${statusIcon} ${time}</div>`; box.appendChild(div); box.scrollTop=box.scrollHeight;
   return div.dataset.bubbleId;
@@ -273,9 +273,9 @@ async function sendImageWithCaption(){
     showTyping();
     let scannedText='';
     try{ const { data:{ text } } = await Tesseract.recognize(file,'eng'); scannedText=text.trim(); }catch{ scannedText=''; }
-    const msgToSend = caption ? caption + (scannedText ? ` [Text in image: "${scannedText}"]` : '') : (scannedText ? `I uploaded an image. Text in image: "${scannedText}". Make it viral for GolViral, give caption and hashtags.` : 'Analyze this image for GolViral, give caption and viral tips.');
+    const msgToSend = caption ? caption + (scannedText ? ` ${scannedText}` : '') : (scannedText ? scannedText : 'Analyze this image for GolViral, give caption and viral tips.');
     const data=await fetchAIHold({message:msgToSend,history:historyBefore,imageData:dataUrl,imageText:scannedText});
-    hideTyping(); markBubbleSent(bubbleId); const clean=cleanAIReply(data.reply); addBubble({text:clean,senderId:'golviral-ai',scanned:scannedText||null,createdAt:new Date()}); saveGolViralHistory('user',msgToSend); saveGolViralHistory('assistant',clean);
+    hideTyping(); markBubbleSent(bubbleId); const clean=cleanAIReply(data.reply); addBubble({text:clean,senderId:'golviral-ai',createdAt:new Date()}); saveGolViralHistory('user',caption || 'Sent an image'); saveGolViralHistory('assistant',clean);
   } else {
     if(socket) socket.emit('send_message',{receiverId:currentChat,text:caption||'[Image]',imageUrl:dataUrl});
     markBubbleSent(bubbleId);
