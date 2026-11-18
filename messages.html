@@ -11,15 +11,17 @@
 :root{ --bg:#000;--card:#0d0d0d;--glass:rgba(15,15,15,0.65);--text:#fff;--muted:#777;--border:#1e1e1e; --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7) }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overscroll-behavior:none}
-body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;height:100svh;display:flex;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden}
+body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;height:100svh;display:flex;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;padding-top:env(safe-area-inset-top)}
 body::before{content:'';position:absolute;inset:0;z-index:-1;background-image:var(--chat-bg,none);background-size:cover;background-position:center;filter:brightness(0.35) blur(2px);transition:background-image 0.3s}
-header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2;justify-content:space-between;flex-shrink:0}
+header{padding:calc(14px + env(safe-area-inset-top)) 16px 16px 16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2;justify-content:space-between;flex-shrink:0}
 svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:pointer}
+.back-btn{width:48px;height:48px;min-width:48px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.back-btn svg{width:28px;height:28px;stroke:#fff;stroke-width:2.6}
 .list{flex:1;overflow-y:auto;z-index:2}
 .chat-item{display:flex;gap:12px;padding:16px;border-bottom:1px solid var(--border);cursor:pointer}
 .avatar{width:48px;height:48px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;position:relative;overflow:hidden;flex-shrink:0}
 .avatar img{width:100%;height:100%;object-fit:cover}
-.chat-header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2;justify-content:space-between}
+.chat-header{padding:calc(14px + env(safe-area-inset-top)) 16px 14px 12px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2;justify-content:space-between}
 .last-seen{font-size:11px;color:var(--muted)}
 .online-dot{position:absolute;bottom:2px;right:2px;width:12px;height:12px;background:#00ff88;border:2px solid #000;border-radius:50%}
 .chat-box{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;z-index:2;overflow-x:hidden}
@@ -49,7 +51,7 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .net-banner{display:none;padding:8px;text-align:center;font-size:12px;background:#ffaa00;color:#000;font-weight:700;flex-shrink:0}
 .preview-modal{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;display:none;flex-direction:column}
 .preview-modal.show{display:flex}
-.preview-top{padding:14px;display:flex;justify-content:space-between;align-items:center}
+.preview-top{padding:calc(14px + env(safe-area-inset-top)) 14px 14px 14px;display:flex;justify-content:space-between;align-items:center}
 .preview-img{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 16px;min-height:0}
 .preview-img img{max-width:100%;max-height:100%;border-radius:16px;object-fit:contain}
 .preview-bottom{padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center}
@@ -58,13 +60,13 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 </head>
 <body>
 <div id="chat-list-screen">
-<header><svg onclick="location.href='index.html'" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg><h3>Messages</h3></header>
+<header><button class="back-btn" onclick="location.href='index.html'"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><h3>Messages</h3><div style="width:48px"></div></header>
 <div class="list" id="chat-list">Loading...</div>
 </div>
 <div id="chat-screen" style="display:none;flex-direction:column;height:100dvh;height:100svh">
 <header class="chat-header">
 <div style="display:flex;align-items:center;gap:12px">
-<svg onclick="backToList()" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+<button class="back-btn" onclick="backToList()"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
 <div class="avatar" id="chat-avatar"><span id="chat-initial"></span></div>
 <div><b id="chat-name"></b><div class="last-seen" id="last-seen"></div></div>
 </div>
@@ -86,8 +88,8 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 </div>
 <div id="image-preview" class="preview-modal">
 <div class="preview-top">
-<svg onclick="closeImagePreview()" viewBox="0 0 24 24" style="stroke:#fff"><path d="M18 6L6 18M6 6l12 12"/></svg>
-<b>Add Caption</b><div style="width:22px"></div>
+<button class="back-btn" onclick="closeImagePreview()"><svg viewBox="0 0 24 24" style="stroke:#fff"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+<b>Add Caption</b><div style="width:48px"></div>
 </div>
 <div class="preview-img"><img id="preview-img-el" src="" alt=""></div>
 <div class="preview-bottom">
@@ -108,11 +110,9 @@ if(!TOKEN ||!MY_USER_ID) location.href='auth.html';
 const params=new URLSearchParams(location.search);
 const toUserId=params.get('user') || params.get('to');
 let socket=null, currentChat=null, isGolViralAI=false, lastTyping=0, pendingImageDataUrl=null, pendingImageFile=null;
-
 function getGolViralHistory(){ try{ return JSON.parse(localStorage.getItem('golviral_history')||'[]'); }catch{ return []; } }
 function saveGolViralHistory(role,content){ let h=getGolViralHistory(); h.push({role,content}); h=h.slice(-6); localStorage.setItem('golviral_history',JSON.stringify(h)); }
 function getLast3(){ return getGolViralHistory().slice(-3); }
-// Clean AI reply: strip emojis + markdown ** __
 function cleanAIReply(t){ if(!t) return ''; return t.replace(/\*\*(.*?)\*\*/g,'$1').replace(/__(.*?)__/g,'$1').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2300}-\u{23FF}\u{FE0F}\u{200D}]/gu,'').replace(/\s{2,}/g,' ').trim(); }
 function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
 function linkify(text){
@@ -126,13 +126,19 @@ function linkify(text){
 }
 function showScreen(s){ document.getElementById('chat-list-screen').style.display=s==='list'?'block':'none'; document.getElementById('chat-screen').style.display=s==='chat'?'flex':'none'; }
 async function api(path,opt={}){ const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}}); if(res.status===401) location.href='auth.html'; return res.json(); }
-
-// ===== HOLD + RETRY - WhatsApp style, NO instant glitch =====
 function getPending(){ try{ return JSON.parse(localStorage.getItem('golviral_pending')||'[]'); }catch{ return []; } }
 function savePending(q){ localStorage.setItem('golviral_pending',JSON.stringify(q)); }
-async function fetchAIWithRetry(payload){
-  let lastErr=null;
-  for(let attempt=0; attempt<4; attempt++){
+function waitForOnline(){ return new Promise(res=>{ if(navigator.onLine) return res(); const h=()=>{ window.removeEventListener('online',h); res(); }; window.addEventListener('online',h); }); }
+// ===== AI HOLDS FOREVER - NO FALLBACK, NO GLITCH =====
+// AI calls ONLY AI_API (Vercel). It NEVER calls Render API.
+// Real people call ONLY API (Render). Two jobs, two servers, no mixing.
+async function fetchAIHold(payload){
+  while(true){
+    if(!navigator.onLine){
+      document.getElementById('net-banner').style.display='block';
+      showTyping();
+      await waitForOnline();
+    }
     try{
       const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),30000);
       const res=await fetch(AI_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal});
@@ -140,37 +146,30 @@ async function fetchAIWithRetry(payload){
       if(!res.ok) throw new Error('Server '+res.status);
       const data=await res.json();
       if(!data.reply) throw new Error('Empty reply');
+      document.getElementById('net-banner').style.display='none';
       return data;
     }catch(e){
-      lastErr=e;
-      if(attempt<3){
-        showTyping();
-        document.getElementById('net-banner').style.display='block';
-        await new Promise(r=>setTimeout(r, 2000*(attempt+1)));
-      }
+      document.getElementById('net-banner').style.display='block';
+      showTyping();
+      await new Promise(r=>setTimeout(r,3000));
+      if(!navigator.onLine) await waitForOnline();
     }
   }
-  throw lastErr;
 }
 async function flushPending(){
   const q=getPending(); if(!q.length) return;
   if(!navigator.onLine) return;
-  document.getElementById('net-banner').style.display='none';
   for(const item of q){
-    try{
-      showTyping();
-      const data=await fetchAIWithRetry(item.payload);
-      hideTyping();
-      const clean=cleanAIReply(data.reply);
-      addBubble({text:clean,senderId:'golviral-ai',imageUrl:data.imageUrl,createdAt:new Date()});
-      saveGolViralHistory('assistant',clean);
-    }catch{ return; }
+    const data=await fetchAIHold(item.payload);
+    hideTyping();
+    const clean=cleanAIReply(data.reply);
+    addBubble({text:clean,senderId:'golviral-ai',imageUrl:data.imageUrl,createdAt:new Date()});
+    saveGolViralHistory('assistant',clean);
   }
   savePending([]);
 }
-window.addEventListener('online',()=>{ document.getElementById('net-banner').style.display='none'; flushPending(); });
+window.addEventListener('online',()=>{ document.getElementById('net-banner').style.display='none'; if(isGolViralAI) flushPending(); });
 window.addEventListener('offline',()=>{ if(isGolViralAI) document.getElementById('net-banner').style.display='block'; });
-
 function initSocket(){
   if(socket) try{socket.disconnect();}catch{}
   socket=io(API,{auth:{token:TOKEN},reconnection:true,reconnectionAttempts:10,reconnectionDelay:1000});
@@ -229,21 +228,12 @@ async function sendMessage(){
     const historyBefore=getLast3();
     const bubbleId=addBubble({text,senderId:MY_USER_ID,createdAt:new Date(),status:'sending'});
     showTyping();
-    try{
-      const data=await fetchAIWithRetry({message:text,history:historyBefore});
-      hideTyping(); document.getElementById('net-banner').style.display='none';
-      markBubbleSent(bubbleId);
-      const clean=cleanAIReply(data.reply);
-      addBubble({text:clean,senderId:'golviral-ai',imageUrl:data.imageUrl,createdAt:new Date()});
-      saveGolViralHistory('user',text); saveGolViralHistory('assistant',clean);
-    }catch{
-      hideTyping();
-      // HOLD - do NOT show glitch, queue it
-      const q=getPending(); q.push({payload:{message:text,history:historyBefore},at:Date.now()}); savePending(q);
-      document.getElementById('net-banner').style.display='block';
-      markBubbleWaiting(bubbleId);
-      toast('Waiting for connection - will send automatically');
-    }
+    const data=await fetchAIHold({message:text,history:historyBefore});
+    hideTyping();
+    markBubbleSent(bubbleId);
+    const clean=cleanAIReply(data.reply);
+    addBubble({text:clean,senderId:'golviral-ai',imageUrl:data.imageUrl,createdAt:new Date()});
+    saveGolViralHistory('user',text); saveGolViralHistory('assistant',clean);
     return;
   }
   addBubble({text,senderId:MY_USER_ID,receiverId:currentChat,createdAt:new Date()});
@@ -284,8 +274,8 @@ async function sendImageWithCaption(){
     let scannedText='';
     try{ const { data:{ text } } = await Tesseract.recognize(file,'eng'); scannedText=text.trim(); }catch{ scannedText=''; }
     const msgToSend = caption ? caption + (scannedText ? ` [Text in image: "${scannedText}"]` : '') : (scannedText ? `I uploaded an image. Text in image: "${scannedText}". Make it viral for GolViral, give caption and hashtags.` : 'Analyze this image for GolViral, give caption and viral tips.');
-    try{ const data=await fetchAIWithRetry({message:msgToSend,history:historyBefore,imageData:dataUrl,imageText:scannedText}); hideTyping(); document.getElementById('net-banner').style.display='none'; markBubbleSent(bubbleId); const clean=cleanAIReply(data.reply); addBubble({text:clean,senderId:'golviral-ai',scanned:scannedText||null,createdAt:new Date()}); saveGolViralHistory('user',msgToSend); saveGolViralHistory('assistant',clean); }
-    catch{ hideTyping(); const q=getPending(); q.push({payload:{message:msgToSend,history:historyBefore,imageData:dataUrl,imageText:scannedText},at:Date.now()}); savePending(q); document.getElementById('net-banner').style.display='block'; markBubbleWaiting(bubbleId); toast('Waiting for connection - will send automatically'); }
+    const data=await fetchAIHold({message:msgToSend,history:historyBefore,imageData:dataUrl,imageText:scannedText});
+    hideTyping(); markBubbleSent(bubbleId); const clean=cleanAIReply(data.reply); addBubble({text:clean,senderId:'golviral-ai',scanned:scannedText||null,createdAt:new Date()}); saveGolViralHistory('user',msgToSend); saveGolViralHistory('assistant',clean);
   } else {
     if(socket) socket.emit('send_message',{receiverId:currentChat,text:caption||'[Image]',imageUrl:dataUrl});
     markBubbleSent(bubbleId);
