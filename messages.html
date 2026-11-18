@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>GolViral - Messages</title>
 <link rel="manifest" href="/manifest.json">
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -10,13 +10,14 @@
 <style>
 :root{ --bg:#000;--card:#0d0d0d;--glass:rgba(15,15,15,0.65);--text:#fff;--muted:#777;--border:#1e1e1e; --gradient:linear-gradient(135deg,#00ff88,#3b82f6,#a855f7) }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+html,body{height:100%;overscroll-behavior:none}
+body{background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;height:100dvh;height:100svh;display:flex;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden}
 body::before{content:'';position:absolute;inset:0;z-index:-1;background-image:var(--chat-bg,none);background-size:cover;background-position:center;filter:brightness(0.35) blur(2px);transition:background-image 0.3s}
-header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2;justify-content:space-between}
+header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2;justify-content:space-between;flex-shrink:0}
 svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:pointer}
 .list{flex:1;overflow-y:auto;z-index:2}
 .chat-item{display:flex;gap:12px;padding:16px;border-bottom:1px solid var(--border);cursor:pointer}
-.avatar{width:48px;height:48px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;position:relative;overflow:hidden}
+.avatar{width:48px;height:48px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;position:relative;overflow:hidden;flex-shrink:0}
 .avatar img{width:100%;height:100%;object-fit:cover}
 .avatar .gv-logo{font-size:22px;font-weight:900;letter-spacing:-1px}
 .chat-header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2;justify-content:space-between}
@@ -32,18 +33,28 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .bubble-time{font-size:10px;color:var(--muted);margin-top:4px;text-align:right}
 .sent .bubble-time{color:rgba(0,0,0,0.6)}
 .bubble img{width:100%;border-radius:12px;display:block;margin-bottom:6px}
-.input-area{padding:8px 12px;background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;z-index:2}
-.input{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:22px;outline:none}
-.send-btn{background:var(--gradient);border:none;border-radius:50%;width:44px;height:44px;display:flex;justify-content:center;align-items:center;cursor:pointer}
-.icon-btn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;display:flex;justify-content:center;align-items:center;cursor:pointer;color:#fff;flex-shrink:0}
-.typing{display:flex;gap:4px;padding:8px 16px}.dot{width:8px;height:8px;background:var(--muted);border-radius:50%;animation:blink 1.4s infinite}
+.input-area{padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;z-index:10;flex-shrink:0;position:sticky;bottom:0;left:0;right:0}
+.input{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);padding:14px 16px;border-radius:26px;outline:none;font-size:16px;min-height:52px}
+.send-btn{background:var(--gradient);border:none;border-radius:50%;width:56px;height:56px;min-width:56px;display:flex;justify-content:center;align-items:center;cursor:pointer;flex-shrink:0}
+.send-btn svg{width:26px;height:26px;stroke:#000}
+.icon-btn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:56px;height:56px;min-width:56px;display:flex;justify-content:center;align-items:center;cursor:pointer;color:#fff;flex-shrink:0}
+.icon-btn svg{width:28px;height:28px}
+.typing{display:flex;gap:4px;padding:8px 16px;flex-shrink:0}.dot{width:8px;height:8px;background:var(--muted);border-radius:50%;animation:blink 1.4s infinite}
 @keyframes blink{0%,60%,100%{opacity:0.3}30%{opacity:1}}
 .error-modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:none;justify-content:center;align-items:center;z-index:200}
 .error-box{background:var(--card);border:1px solid var(--border);padding:20px;border-radius:16px;text-align:center}
 .btn{background:var(--gradient);color:#000;border:none;padding:12px;border-radius:12px;font-weight:800;width:100%;cursor:pointer}
 .bg-btn-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
 .bg-label{font-size:10px;color:var(--muted)}
-.scan-badge{font-size:11px;background:var(--gradient);color:#000;padding:3px 8px;border-radius:10px;font-weight:700;display:inline-block;margin-bottom:6px}
+.scan-badge{font-size:11px;background:var(--gradient);color:#000;padding:3px 8px;border-radius:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;margin-bottom:6px}
+/* Image Preview + Caption */
+.preview-modal{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;display:none;flex-direction:column}
+.preview-modal.show{display:flex}
+.preview-top{padding:14px;display:flex;justify-content:space-between;align-items:center}
+.preview-img{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 16px;min-height:0}
+.preview-img img{max-width:100%;max-height:100%;border-radius:16px;object-fit:contain}
+.preview-bottom{padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center}
+.preview-input{flex:1;background:#111;border:1px solid var(--border);color:#fff;padding:14px 16px;border-radius:26px;outline:none;font-size:16px;min-height:52px}
 </style>
 </head>
 <body>
@@ -51,7 +62,7 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 <header><svg onclick="location.href='index.html'" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg><h3>Messages</h3></header>
 <div class="list" id="chat-list">Loading...</div>
 </div>
-<div id="chat-screen" style="display:none;flex-direction:column;height:100dvh">
+<div id="chat-screen" style="display:none;flex-direction:column;height:100dvh;height:100svh">
 <header class="chat-header">
 <div style="display:flex;align-items:center;gap:12px">
 <svg onclick="backToList()" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -66,16 +77,34 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 <div class="chat-box" id="chat-box"></div>
 <div id="typing-indicator" class="typing" style="display:none"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 <div class="input-area">
-<button class="icon-btn" onclick="document.getElementById('image-upload').click()" title="Send image / Scan">📷</button>
+<button class="icon-btn" onclick="document.getElementById('image-upload').click()" title="Add image">
+<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+</button>
 <input class="input" id="msg-input" placeholder="Message..." onkeydown="handleTyping(event)">
 <button class="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
 </div>
 </div>
+
+<!-- IMAGE PREVIEW + CAPTION -->
+<div id="image-preview" class="preview-modal">
+<div class="preview-top">
+<svg onclick="closeImagePreview()" viewBox="0 0 24 24" style="stroke:#fff"><path d="M18 6L6 18M6 6l12 12"/></svg>
+<b>Add Caption</b>
+<div style="width:22px"></div>
+</div>
+<div class="preview-img"><img id="preview-img-el" src="" alt=""></div>
+<div class="preview-bottom">
+<input class="preview-input" id="caption-input" placeholder="Add a caption..." onkeydown="if(event.key==='Enter') sendImageWithCaption()">
+<button class="send-btn" onclick="sendImageWithCaption()"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+</div>
+</div>
+
 <div id="dm-error" class="error-modal"><div class="error-box"><p id="dm-error-text">DM Locked</p><button class="btn" onclick="closeError()">OK</button></div></div>
 <input type="file" id="bg-upload" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
-<input type="file" id="image-upload" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+<input type="file" id="image-upload" accept="image/*" style="display:none" onchange="handleImagePick(event)">
 <script>
 const API='https://golviral-api.onrender.com';
+const AI_API='https://golviral.vercel.app/api/chat';
 const TOKEN=localStorage.token;
 const MY_USER_ID=localStorage.userId;
 if(!TOKEN ||!MY_USER_ID) location.href='auth.html';
@@ -85,100 +114,64 @@ let socket=null;
 let currentChat=null;
 let isGolViralAI=false;
 let lastTyping=0;
+let pendingImageDataUrl=null;
+let pendingImageFile=null;
 
-// ===== GOLVIRAL AI HISTORY - Last 3 kept =====
 function getGolViralHistory(){ try{ return JSON.parse(localStorage.getItem('golviral_history')||'[]'); }catch{ return []; } }
 function saveGolViralHistory(role,content){ let h=getGolViralHistory(); h.push({role,content}); h=h.slice(-6); localStorage.setItem('golviral_history',JSON.stringify(h)); }
 function getLast3(){ return getGolViralHistory().slice(-3); }
-
-function escapeHtml(s){
-  if(!s) return '';
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-}
+function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
 function linkify(text){
   const escaped = escapeHtml(text);
   const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
   return escaped.replace(urlRegex, (url)=>{
-    let href = url;
-    if(!href.startsWith('http')) href = 'https://' + href;
-    try{
-      const u = new URL(href);
-      if(!['http:','https:'].includes(u.protocol)) return url;
-    }catch{ return url; }
+    let href = url; if(!href.startsWith('http')) href = 'https://' + href;
+    try{ const u = new URL(href); if(!['http:','https:'].includes(u.protocol)) return url; }catch{ return url; }
     return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`;
   });
 }
-function showScreen(s){
-  document.getElementById('chat-list-screen').style.display=s==='list'?'block':'none';
-  document.getElementById('chat-screen').style.display=s==='chat'?'flex':'none';
-}
-async function api(path,opt={}){
-  const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}});
-  if(res.status===401) location.href='auth.html';
-  return res.json();
-}
+function showScreen(s){ document.getElementById('chat-list-screen').style.display=s==='list'?'block':'none'; document.getElementById('chat-screen').style.display=s==='chat'?'flex':'none'; }
+async function api(path,opt={}){ const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}}); if(res.status===401) location.href='auth.html'; return res.json(); }
 function initSocket(){
   if(socket) try{socket.disconnect();}catch{}
   socket=io(API,{auth:{token:TOKEN},reconnection:true,reconnectionAttempts:10,reconnectionDelay:1000});
   socket.on('connect',()=>console.log('[WS] Connected'));
   socket.on('disconnect',()=>console.log('[WS] Disconnected'));
-  socket.on('receive_message',data=>{
-    if(data.senderId===currentChat || data.receiverId===currentChat) addBubble(data);
-  });
+  socket.on('receive_message',data=>{ if(data.senderId===currentChat || data.receiverId===currentChat) addBubble(data); });
   socket.on('typing',data=>{if(data.from===currentChat) showTyping()});
-  socket.on('error_msg', data => {
-    document.getElementById('dm-error-text').innerText = data.error||'DM Locked';
-    showError();
-  });
+  socket.on('error_msg', data => { document.getElementById('dm-error-text').innerText = data.error||'DM Locked'; showError(); });
 }
 async function loadChatList(){
   const res=await api('/api/messages');
   const chats=res.chats||[];
   const listEl=document.getElementById('chat-list');
   const hist=getGolViralHistory();
-  const lastAI = hist.length ? hist[hist.length-1].content.slice(0,60) : 'Heyy bestie! 💕 Ask me anything...';
-  // GolViral AI pinned at top - looks like normal WhatsApp contact
+  const lastAI = hist.length ? hist[hist.length-1].content.slice(0,60) : 'Hey bestie, ask me anything...';
   let html = `<div class="chat-item" id="golviral-ai-item" style="background:rgba(0,255,136,0.06);border-bottom:1px solid var(--border)">
     <div class="avatar"><img src="/logo.png" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\\'gv-logo\\'>GV</span><div class=\\'online-dot\\'></div>'" alt="GolViral"><div class="online-dot"></div></div>
-    <div style="flex:1"><b>GolViral AI ✓</b> <span style="font-size:10px;background:var(--gradient);color:#000;padding:2px 6px;border-radius:8px;font-weight:800">AI</span><br><small style="color:var(--muted)">${escapeHtml(lastAI)}</small></div>
+    <div style="flex:1"><b>GolViral AI</b> <svg style="width:14px;height:14px;stroke:#00ff88;vertical-align:middle" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><br><small style="color:var(--muted)">${escapeHtml(lastAI)}</small></div>
     <div style="font-size:11px;color:#00ff88">Online</div>
   </div>`;
-  if(chats.length===0){
-    listEl.innerHTML=html+'<div style="padding:20px;text-align:center;color:var(--muted)">No other messages yet</div>';
-  } else {
-    listEl.innerHTML=html+chats.map(c=>{
-      const username=escapeHtml(c.username||'User');
-      const initial=username[0].toUpperCase();
-      return `<div class="chat-item" data-uid="${escapeHtml(c.userId)}" data-name="${username}"><div class="avatar">${initial}</div><div style="flex:1"><b>${username}</b><br><small style="color:var(--muted)">${escapeHtml(c.lastMessage||'No messages yet').slice(0,60)}</small></div></div>`;
-    }).join('');
-  }
+  if(chats.length===0){ listEl.innerHTML=html+'<div style="padding:20px;text-align:center;color:var(--muted)">No other messages yet</div>'; }
+  else { listEl.innerHTML=html+chats.map(c=>{ const username=escapeHtml(c.username||'User'); const initial=username[0].toUpperCase(); return `<div class="chat-item" data-uid="${escapeHtml(c.userId)}" data-name="${username}"><div class="avatar">${initial}</div><div style="flex:1"><b>${username}</b><br><small style="color:var(--muted)">${escapeHtml(c.lastMessage||'No messages yet').slice(0,60)}</small></div></div>`; }).join(''); }
   document.getElementById('golviral-ai-item').addEventListener('click',()=> openGolViralChat());
-  listEl.querySelectorAll('.chat-item[data-uid]').forEach(el=>{
-    el.addEventListener('click',()=> openChat(el.dataset.uid, el.dataset.name));
-  });
+  listEl.querySelectorAll('.chat-item[data-uid]').forEach(el=>{ el.addEventListener('click',()=> openChat(el.dataset.uid, el.dataset.name)); });
 }
-// ===== GOLVIRAL AI CHAT - Same screen, like normal person =====
 function openGolViralChat(){
-  isGolViralAI=true;
-  currentChat='golviral-ai';
-  document.getElementById('chat-name').innerText='GolViral AI ✓';
+  isGolViralAI=true; currentChat='golviral-ai';
+  document.getElementById('chat-name').innerText='GolViral AI';
   document.getElementById('chat-initial').innerHTML='<img src="/logo.png" onerror="this.style.display=\'none\'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"><span style="position:absolute">GV</span>';
   document.getElementById('last-seen').innerText='Online - replies instantly';
   showScreen('chat');
   const bg = localStorage.getItem(`bg_golviral-ai`);
   document.body.style.setProperty('--chat-bg', bg? `url(${bg})` : 'none');
-  const box=document.getElementById('chat-box');
-  box.innerHTML='';
+  const box=document.getElementById('chat-box'); box.innerHTML='';
   const hist=getGolViralHistory();
-  if(hist.length===0){
-    addBubble({text:'Heyy bestie! 💕 I am GolViral AI. How are you today? Want a viral caption, love advice, story, or send me a photo and I will scan it for you? I am here for you.',senderId:'golviral-ai',createdAt:new Date()});
-  } else {
-    hist.forEach(h=> addBubble({text:h.content, senderId: h.role==='user'? MY_USER_ID : 'golviral-ai', createdAt:new Date()}));
-  }
+  if(hist.length===0){ addBubble({text:'Hey bestie, I am GolViral AI. How are you today? Want a viral caption, love advice, story, or send me a photo and I will scan it for you? I am here for you.',senderId:'golviral-ai',createdAt:new Date()}); }
+  else { hist.forEach(h=> addBubble({text:h.content, senderId: h.role==='user'? MY_USER_ID : 'golviral-ai', createdAt:new Date()})); }
 }
 async function openChat(userId,username){
-  isGolViralAI=false;
-  currentChat=userId;
+  isGolViralAI=false; currentChat=userId;
   document.getElementById('chat-name').innerText=username||'User';
   document.getElementById('chat-initial').innerText=(username||'U')[0].toUpperCase();
   document.getElementById('last-seen').innerText='';
@@ -186,153 +179,74 @@ async function openChat(userId,username){
   const bg = localStorage.getItem(`bg_${userId}`);
   document.body.style.setProperty('--chat-bg', bg? `url(${bg})` : 'none');
   const d=await api(`/api/messages/${userId}`);
-  const box=document.getElementById('chat-box');
-  box.innerHTML='';
-  (d||[]).forEach(m=>addBubble(m));
+  const box=document.getElementById('chat-box'); box.innerHTML=''; (d||[]).forEach(m=>addBubble(m));
 }
-function backToList(){
-  showScreen('list');
-  currentChat=null;
-  isGolViralAI=false;
-  document.body.style.setProperty('--chat-bg','none');
-  loadChatList();
-}
+function backToList(){ showScreen('list'); currentChat=null; isGolViralAI=false; document.body.style.setProperty('--chat-bg','none'); loadChatList(); }
 async function sendMessage(){
-  const input=document.getElementById('msg-input');
-  const text=input.value.trim();
-  if(!text ||!currentChat) return;
-  if(text.length>1000){ toast('Message too long'); return; }
-  input.value='';
+  const input=document.getElementById('msg-input'); const text=input.value.trim();
+  if(!text ||!currentChat) return; if(text.length>1000){ toast('Message too long'); return; } input.value='';
   if(isGolViralAI){
-    addBubble({text,senderId:MY_USER_ID,createdAt:new Date()});
-    saveGolViralHistory('user',text);
-    showTyping();
-    try{
-      const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:getLast3()})});
-      const data=await res.json();
-      hideTyping();
-      addBubble({text:data.reply||'Sorry bestie, try again',senderId:'golviral-ai',imageUrl:data.imageUrl,createdAt:new Date()});
-      saveGolViralHistory('assistant',data.reply||'');
-    }catch{
-      hideTyping();
-      addBubble({text:'Sorry bestie, small glitch, but I am still here. Try again - I am GolViral AI.',senderId:'golviral-ai',createdAt:new Date()});
-    }
+    const historyBefore=getLast3();
+    addBubble({text,senderId:MY_USER_ID,createdAt:new Date()}); showTyping();
+    try{ const res=await fetch(AI_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:historyBefore})}); const data=await res.json(); hideTyping(); addBubble({text:data.reply||'Sorry bestie, try again',senderId:'golviral-ai',imageUrl:data.imageUrl,createdAt:new Date()}); saveGolViralHistory('user',text); saveGolViralHistory('assistant',data.reply||''); }
+    catch{ hideTyping(); addBubble({text:'Sorry bestie, small glitch, but I am still here. Try again - I am GolViral AI.',senderId:'golviral-ai',createdAt:new Date()}); }
     return;
   }
   addBubble({text,senderId:MY_USER_ID,receiverId:currentChat,createdAt:new Date()});
   if(socket) socket.emit('send_message',{receiverId:currentChat,text});
 }
-function handleTyping(e){
-  if(e && e.key==='Enter'){ sendMessage(); return; }
-  if(Date.now()-lastTyping < 1200) return;
-  lastTyping=Date.now();
-  if(socket && currentChat && !isGolViralAI) socket.emit('typing',{receiverId:currentChat});
-}
-function showTyping(){
-  const el=document.getElementById('typing-indicator');
-  el.style.display='flex';
-}
+function handleTyping(e){ if(e && e.key==='Enter'){ sendMessage(); return; } if(Date.now()-lastTyping < 1200) return; lastTyping=Date.now(); if(socket && currentChat && !isGolViralAI) socket.emit('typing',{receiverId:currentChat}); }
+function showTyping(){ document.getElementById('typing-indicator').style.display='flex'; }
 function hideTyping(){ document.getElementById('typing-indicator').style.display='none'; }
 function addBubble(msg){
-  const box=document.getElementById('chat-box');
-  const div=document.createElement('div');
-  div.className='bubble '+(msg.senderId===MY_USER_ID?'sent':'recv');
-  const time=new Date(msg.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  const safeText=linkify(msg.text||'');
+  const box=document.getElementById('chat-box'); const div=document.createElement('div'); div.className='bubble '+(msg.senderId===MY_USER_ID?'sent':'recv');
+  const time=new Date(msg.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); const safeText=linkify(msg.text||'');
   let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" alt="image">` : '';
-  let scanHtml = msg.scanned ? `<div class="scan-badge">📷 Scanned Text: ${escapeHtml(msg.scanned)}</div>` : '';
-  div.innerHTML = `${imgHtml}${scanHtml}<span>${safeText}</span><div class="bubble-time">${time}</div>`;
-  box.appendChild(div);
-  box.scrollTop=box.scrollHeight;
+  let scanHtml = msg.scanned ? `<div class="scan-badge"><svg style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Scanned: ${escapeHtml(msg.scanned)}</div>` : '';
+  div.innerHTML = `${imgHtml}${scanHtml}<span>${safeText}</span><div class="bubble-time">${time}</div>`; box.appendChild(div); box.scrollTop=box.scrollHeight;
 }
-// ===== IMAGE UPLOAD + SCAN (Tesseract.js) =====
-async function handleImageUpload(e){
-  const file=e.target.files[0];
-  e.target.value='';
-  if(!file || !currentChat) return;
-  if(file.size>5*1024*1024){ toast('Max 5MB'); return; }
+// ===== IMAGE PICK -> PREVIEW + CAPTION -> SEND =====
+function handleImagePick(e){
+  const file=e.target.files[0]; e.target.value=''; if(!file || !currentChat) return; if(file.size>5*1024*1024){ toast('Max 5MB'); return; }
+  pendingImageFile=file;
   const reader=new FileReader();
-  reader.onload=async (ev)=>{
-    const dataUrl=ev.target.result;
-    // Show image in bubble like WhatsApp
-    addBubble({text:'',imageUrl:dataUrl,senderId:MY_USER_ID,createdAt:new Date()});
-    if(isGolViralAI){
-      // Scan with Tesseract.js
-      toast('Scanning image... 📷');
-      showTyping();
-      let scannedText='';
-      try{
-        const { data:{ text } } = await Tesseract.recognize(file,'eng');
-        scannedText=text.trim();
-      }catch{ scannedText=''; }
-      const msgToSend = scannedText ? `I uploaded an image. Text in image: "${scannedText}". Make it viral for GolViral, give caption + hashtags.` : 'Analyze this image for GolViral, give caption and viral tips.';
-      saveGolViralHistory('user',msgToSend);
-      try{
-        const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msgToSend,history:getLast3(),imageData:dataUrl,imageText:scannedText})});
-        const data=await res.json();
-        hideTyping();
-        addBubble({text:data.reply||'Nice image bestie!',senderId:'golviral-ai',scanned:scannedText||null,createdAt:new Date()});
-        saveGolViralHistory('assistant',data.reply||'');
-      }catch{
-        hideTyping();
-        addBubble({text:'I see your image! Nice one. Want a caption for it? I am GolViral AI.',senderId:'golviral-ai',createdAt:new Date()});
-      }
-    } else {
-      // Normal user - send via socket
-      if(socket) socket.emit('send_message',{receiverId:currentChat,text:'[Image]',imageUrl:dataUrl});
-    }
-  };
+  reader.onload=(ev)=>{ pendingImageDataUrl=ev.target.result; document.getElementById('preview-img-el').src=pendingImageDataUrl; document.getElementById('caption-input').value=''; document.getElementById('image-preview').classList.add('show'); setTimeout(()=>document.getElementById('caption-input').focus(),300); };
   reader.readAsDataURL(file);
+}
+function closeImagePreview(){ document.getElementById('image-preview').classList.remove('show'); pendingImageDataUrl=null; pendingImageFile=null; }
+async function sendImageWithCaption(){
+  if(!pendingImageDataUrl || !currentChat) return;
+  const caption=document.getElementById('caption-input').value.trim();
+  const dataUrl=pendingImageDataUrl; const file=pendingImageFile;
+  closeImagePreview();
+  addBubble({text:caption,imageUrl:dataUrl,senderId:MY_USER_ID,createdAt:new Date()});
+  if(isGolViralAI){
+    const historyBefore=getLast3();
+    showTyping();
+    let scannedText='';
+    try{ const { data:{ text } } = await Tesseract.recognize(file,'eng'); scannedText=text.trim(); }catch{ scannedText=''; }
+    const msgToSend = caption ? caption + (scannedText ? ` [Text in image: "${scannedText}"]` : '') : (scannedText ? `I uploaded an image. Text in image: "${scannedText}". Make it viral for GolViral, give caption and hashtags.` : 'Analyze this image for GolViral, give caption and viral tips.');
+    try{ const res=await fetch(AI_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msgToSend,history:historyBefore,imageData:dataUrl,imageText:scannedText})}); const data=await res.json(); hideTyping(); addBubble({text:data.reply||'Nice image bestie.',senderId:'golviral-ai',scanned:scannedText||null,createdAt:new Date()}); saveGolViralHistory('user',msgToSend); saveGolViralHistory('assistant',data.reply||''); }
+    catch{ hideTyping(); addBubble({text:'I see your image. Nice one. Want a caption for it? I am GolViral AI.',senderId:'golviral-ai',createdAt:new Date()}); }
+  } else {
+    if(socket) socket.emit('send_message',{receiverId:currentChat,text:caption||'[Image]',imageUrl:dataUrl});
+  }
 }
 function changeBackground(){ document.getElementById('bg-upload').click(); }
 function handleBgUpload(e){
-  const file=e.target.files[0];
-  if(!file) return;
-  if(file.size>5*1024*1024){ toast('Max 5MB'); return; }
-  const img=new Image();
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    img.src=ev.target.result;
-    img.onload=()=>{
-      const canvas=document.createElement('canvas');
-      const max=800;
-      let w=img.width, h=img.height;
-      if(w>max || h>max){
-        const r=Math.min(max/w, max/h);
-        w*=r; h*=r;
-      }
-      canvas.width=w; canvas.height=h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      const compressed=canvas.toDataURL('image/jpeg',0.6);
-      try{
-        localStorage.setItem(`bg_${currentChat}`, compressed);
-        document.body.style.setProperty('--chat-bg',`url(${compressed})`);
-        toast('Background updated');
-      }catch{
-        toast('Storage full - use smaller image');
-      }
-    };
-  };
-  reader.readAsDataURL(file);
-  e.target.value='';
+  const file=e.target.files[0]; if(!file) return; if(file.size>5*1024*1024){ toast('Max 5MB'); return; }
+  const img=new Image(); const reader=new FileReader();
+  reader.onload=ev=>{ img.src=ev.target.result; img.onload=()=>{ const canvas=document.createElement('canvas'); const max=800; let w=img.width, h=img.height; if(w>max || h>max){ const r=Math.min(max/w, max/h); w*=r; h*=r; } canvas.width=w; canvas.height=h; canvas.getContext('2d').drawImage(img,0,0,w,h); const compressed=canvas.toDataURL('image/jpeg',0.6); try{ localStorage.setItem(`bg_${currentChat}`, compressed); document.body.style.setProperty('--chat-bg',`url(${compressed})`); toast('Background updated'); }catch{ toast('Storage full - use smaller image'); } }; };
+  reader.readAsDataURL(file); e.target.value='';
 }
-function toast(msg){
-  const t=document.createElement('div');
-  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--glass);backdrop-filter:blur(10px);padding:10px 16px;border-radius:12px;border:1px solid var(--border);z-index:300';
-  t.innerText=msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),2000);
-}
+function toast(msg){ const t=document.createElement('div'); t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--glass);backdrop-filter:blur(10px);padding:10px 16px;border-radius:12px;border:1px solid var(--border);z-index:400'; t.innerText=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2000); }
 function showError(){document.getElementById('dm-error').style.display='flex'}
 function closeError(){document.getElementById('dm-error').style.display='none'}
+// Keep input stuck when keyboard opens - iOS / Android
+if(window.visualViewport){ window.visualViewport.addEventListener('resize',()=>{ const chat=document.getElementById('chat-screen'); if(chat && chat.style.display==='flex'){ document.body.style.height=window.visualViewport.height+'px'; const box=document.getElementById('chat-box'); box.scrollTop=box.scrollHeight; } }); }
+document.getElementById('msg-input').addEventListener('focus',()=>{ setTimeout(()=>{ const box=document.getElementById('chat-box'); box.scrollTop=box.scrollHeight; },300); });
 initSocket();
-if(toUserId){
-  if(toUserId==='golviral-ai'){ openGolViralChat(); }
-  else { openChat(toUserId, localStorage.getItem(`name_${toUserId}`) || 'User'); }
-} else {
-  loadChatList();
-  showScreen('list');
-}
+if(toUserId){ if(toUserId==='golviral-ai'){ openGolViralChat(); } else { openChat(toUserId, localStorage.getItem(`name_${toUserId}`) || 'User'); } } else { loadChatList(); showScreen('list'); }
 </script>
 </body>
 </html>
