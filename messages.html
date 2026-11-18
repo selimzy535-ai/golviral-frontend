@@ -19,7 +19,6 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .chat-item{display:flex;gap:12px;padding:16px;border-bottom:1px solid var(--border);cursor:pointer}
 .avatar{width:48px;height:48px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;position:relative;overflow:hidden;flex-shrink:0}
 .avatar img{width:100%;height:100%;object-fit:cover}
-.avatar .gv-logo{font-size:22px;font-weight:900;letter-spacing:-1px}
 .chat-header{padding:16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;z-index:2;justify-content:space-between}
 .last-seen{font-size:11px;color:var(--muted)}
 .online-dot{position:absolute;bottom:2px;right:2px;width:12px;height:12px;background:#00ff88;border:2px solid #000;border-radius:50%}
@@ -30,7 +29,7 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .bubble a{color:#3b82f6;text-decoration:underline;word-break:break-all}
 .sent a{color:#000;font-weight:700;text-decoration:underline}
 .recv a{color:#60a5fa}
-.bubble-time{font-size:10px;color:var(--muted);margin-top:4px;text-align:right}
+.bubble-time{font-size:10px;color:var(--muted);margin-top:4px;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:4px}
 .sent .bubble-time{color:rgba(0,0,0,0.6)}
 .bubble img{width:100%;border-radius:12px;display:block;margin-bottom:6px}
 .input-area{padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;z-index:10;flex-shrink:0;position:sticky;bottom:0;left:0;right:0}
@@ -47,7 +46,7 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .bg-btn-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
 .bg-label{font-size:10px;color:var(--muted)}
 .scan-badge{font-size:11px;background:var(--gradient);color:#000;padding:3px 8px;border-radius:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;margin-bottom:6px}
-/* Image Preview + Caption */
+.net-banner{display:none;padding:8px;text-align:center;font-size:12px;background:#ffaa00;color:#000;font-weight:700;flex-shrink:0}
 .preview-modal{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;display:none;flex-direction:column}
 .preview-modal.show{display:flex}
 .preview-top{padding:14px;display:flex;justify-content:space-between;align-items:center}
@@ -74,6 +73,7 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 <div class="bg-label">Edit BG</div>
 </div>
 </header>
+<div id="net-banner" class="net-banner">Waiting for connection... Your message will send when network returns</div>
 <div class="chat-box" id="chat-box"></div>
 <div id="typing-indicator" class="typing" style="display:none"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 <div class="input-area">
@@ -84,13 +84,10 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 <button class="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
 </div>
 </div>
-
-<!-- IMAGE PREVIEW + CAPTION -->
 <div id="image-preview" class="preview-modal">
 <div class="preview-top">
 <svg onclick="closeImagePreview()" viewBox="0 0 24 24" style="stroke:#fff"><path d="M18 6L6 18M6 6l12 12"/></svg>
-<b>Add Caption</b>
-<div style="width:22px"></div>
+<b>Add Caption</b><div style="width:22px"></div>
 </div>
 <div class="preview-img"><img id="preview-img-el" src="" alt=""></div>
 <div class="preview-bottom">
@@ -98,28 +95,25 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 <button class="send-btn" onclick="sendImageWithCaption()"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
 </div>
 </div>
-
 <div id="dm-error" class="error-modal"><div class="error-box"><p id="dm-error-text">DM Locked</p><button class="btn" onclick="closeError()">OK</button></div></div>
 <input type="file" id="bg-upload" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
 <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="handleImagePick(event)">
 <script>
 const API='https://golviral-api.onrender.com';
 const AI_API='https://golviral.vercel.app/api/chat';
+const LOGO_URL='https://golviral.com/icon-192.png';
 const TOKEN=localStorage.token;
 const MY_USER_ID=localStorage.userId;
 if(!TOKEN ||!MY_USER_ID) location.href='auth.html';
 const params=new URLSearchParams(location.search);
 const toUserId=params.get('user') || params.get('to');
-let socket=null;
-let currentChat=null;
-let isGolViralAI=false;
-let lastTyping=0;
-let pendingImageDataUrl=null;
-let pendingImageFile=null;
+let socket=null, currentChat=null, isGolViralAI=false, lastTyping=0, pendingImageDataUrl=null, pendingImageFile=null;
 
 function getGolViralHistory(){ try{ return JSON.parse(localStorage.getItem('golviral_history')||'[]'); }catch{ return []; } }
 function saveGolViralHistory(role,content){ let h=getGolViralHistory(); h.push({role,content}); h=h.slice(-6); localStorage.setItem('golviral_history',JSON.stringify(h)); }
 function getLast3(){ return getGolViralHistory().slice(-3); }
+// Clean AI reply: strip emojis + markdown ** __
+function cleanAIReply(t){ if(!t) return ''; return t.replace(/\*\*(.*?)\*\*/g,'$1').replace(/__(.*?)__/g,'$1').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2300}-\u{23FF}\u{FE0F}\u{200D}]/gu,'').replace(/\s{2,}/g,' ').trim(); }
 function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
 function linkify(text){
   const escaped = escapeHtml(text);
@@ -132,6 +126,51 @@ function linkify(text){
 }
 function showScreen(s){ document.getElementById('chat-list-screen').style.display=s==='list'?'block':'none'; document.getElementById('chat-screen').style.display=s==='chat'?'flex':'none'; }
 async function api(path,opt={}){ const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}}); if(res.status===401) location.href='auth.html'; return res.json(); }
+
+// ===== HOLD + RETRY - WhatsApp style, NO instant glitch =====
+function getPending(){ try{ return JSON.parse(localStorage.getItem('golviral_pending')||'[]'); }catch{ return []; } }
+function savePending(q){ localStorage.setItem('golviral_pending',JSON.stringify(q)); }
+async function fetchAIWithRetry(payload){
+  let lastErr=null;
+  for(let attempt=0; attempt<4; attempt++){
+    try{
+      const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),30000);
+      const res=await fetch(AI_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal});
+      clearTimeout(timer);
+      if(!res.ok) throw new Error('Server '+res.status);
+      const data=await res.json();
+      if(!data.reply) throw new Error('Empty reply');
+      return data;
+    }catch(e){
+      lastErr=e;
+      if(attempt<3){
+        showTyping();
+        document.getElementById('net-banner').style.display='block';
+        await new Promise(r=>setTimeout(r, 2000*(attempt+1)));
+      }
+    }
+  }
+  throw lastErr;
+}
+async function flushPending(){
+  const q=getPending(); if(!q.length) return;
+  if(!navigator.onLine) return;
+  document.getElementById('net-banner').style.display='none';
+  for(const item of q){
+    try{
+      showTyping();
+      const data=await fetchAIWithRetry(item.payload);
+      hideTyping();
+      const clean=cleanAIReply(data.reply);
+      addBubble({text:clean,senderId:'golviral-ai',imageUrl:data.imageUrl,createdAt:new Date()});
+      saveGolViralHistory('assistant',clean);
+    }catch{ return; }
+  }
+  savePending([]);
+}
+window.addEventListener('online',()=>{ document.getElementById('net-banner').style.display='none'; flushPending(); });
+window.addEventListener('offline',()=>{ if(isGolViralAI) document.getElementById('net-banner').style.display='block'; });
+
 function initSocket(){
   if(socket) try{socket.disconnect();}catch{}
   socket=io(API,{auth:{token:TOKEN},reconnection:true,reconnectionAttempts:10,reconnectionDelay:1000});
@@ -148,7 +187,7 @@ async function loadChatList(){
   const hist=getGolViralHistory();
   const lastAI = hist.length ? hist[hist.length-1].content.slice(0,60) : 'Hey bestie, ask me anything...';
   let html = `<div class="chat-item" id="golviral-ai-item" style="background:rgba(0,255,136,0.06);border-bottom:1px solid var(--border)">
-    <div class="avatar"><img src="/logo.png" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\\'gv-logo\\'>GV</span><div class=\\'online-dot\\'></div>'" alt="GolViral"><div class="online-dot"></div></div>
+    <div class="avatar"><img src="${LOGO_URL}" alt="GolViral"><div class="online-dot"></div></div>
     <div style="flex:1"><b>GolViral AI</b> <svg style="width:14px;height:14px;stroke:#00ff88;vertical-align:middle" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><br><small style="color:var(--muted)">${escapeHtml(lastAI)}</small></div>
     <div style="font-size:11px;color:#00ff88">Online</div>
   </div>`;
@@ -160,7 +199,7 @@ async function loadChatList(){
 function openGolViralChat(){
   isGolViralAI=true; currentChat='golviral-ai';
   document.getElementById('chat-name').innerText='GolViral AI';
-  document.getElementById('chat-initial').innerHTML='<img src="/logo.png" onerror="this.style.display=\'none\'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"><span style="position:absolute">GV</span>';
+  document.getElementById('chat-initial').innerHTML=`<img src="${LOGO_URL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
   document.getElementById('last-seen').innerText='Online - replies instantly';
   showScreen('chat');
   const bg = localStorage.getItem(`bg_golviral-ai`);
@@ -169,6 +208,7 @@ function openGolViralChat(){
   const hist=getGolViralHistory();
   if(hist.length===0){ addBubble({text:'Hey bestie, I am GolViral AI. How are you today? Want a viral caption, love advice, story, or send me a photo and I will scan it for you? I am here for you.',senderId:'golviral-ai',createdAt:new Date()}); }
   else { hist.forEach(h=> addBubble({text:h.content, senderId: h.role==='user'? MY_USER_ID : 'golviral-ai', createdAt:new Date()})); }
+  flushPending();
 }
 async function openChat(userId,username){
   isGolViralAI=false; currentChat=userId;
@@ -187,9 +227,23 @@ async function sendMessage(){
   if(!text ||!currentChat) return; if(text.length>1000){ toast('Message too long'); return; } input.value='';
   if(isGolViralAI){
     const historyBefore=getLast3();
-    addBubble({text,senderId:MY_USER_ID,createdAt:new Date()}); showTyping();
-    try{ const res=await fetch(AI_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:historyBefore})}); const data=await res.json(); hideTyping(); addBubble({text:data.reply||'Sorry bestie, try again',senderId:'golviral-ai',imageUrl:data.imageUrl,createdAt:new Date()}); saveGolViralHistory('user',text); saveGolViralHistory('assistant',data.reply||''); }
-    catch{ hideTyping(); addBubble({text:'Sorry bestie, small glitch, but I am still here. Try again - I am GolViral AI.',senderId:'golviral-ai',createdAt:new Date()}); }
+    const bubbleId=addBubble({text,senderId:MY_USER_ID,createdAt:new Date(),status:'sending'});
+    showTyping();
+    try{
+      const data=await fetchAIWithRetry({message:text,history:historyBefore});
+      hideTyping(); document.getElementById('net-banner').style.display='none';
+      markBubbleSent(bubbleId);
+      const clean=cleanAIReply(data.reply);
+      addBubble({text:clean,senderId:'golviral-ai',imageUrl:data.imageUrl,createdAt:new Date()});
+      saveGolViralHistory('user',text); saveGolViralHistory('assistant',clean);
+    }catch{
+      hideTyping();
+      // HOLD - do NOT show glitch, queue it
+      const q=getPending(); q.push({payload:{message:text,history:historyBefore},at:Date.now()}); savePending(q);
+      document.getElementById('net-banner').style.display='block';
+      markBubbleWaiting(bubbleId);
+      toast('Waiting for connection - will send automatically');
+    }
     return;
   }
   addBubble({text,senderId:MY_USER_ID,receiverId:currentChat,createdAt:new Date()});
@@ -200,12 +254,16 @@ function showTyping(){ document.getElementById('typing-indicator').style.display
 function hideTyping(){ document.getElementById('typing-indicator').style.display='none'; }
 function addBubble(msg){
   const box=document.getElementById('chat-box'); const div=document.createElement('div'); div.className='bubble '+(msg.senderId===MY_USER_ID?'sent':'recv');
+  if(msg.status) div.dataset.bubbleId=Date.now()+Math.random();
   const time=new Date(msg.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); const safeText=linkify(msg.text||'');
   let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" alt="image">` : '';
   let scanHtml = msg.scanned ? `<div class="scan-badge"><svg style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Scanned: ${escapeHtml(msg.scanned)}</div>` : '';
-  div.innerHTML = `${imgHtml}${scanHtml}<span>${safeText}</span><div class="bubble-time">${time}</div>`; box.appendChild(div); box.scrollTop=box.scrollHeight;
+  let statusIcon = msg.status==='sending' ? `<svg style="width:12px;height:12px;stroke:#000" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>` : '';
+  div.innerHTML = `${imgHtml}${scanHtml}<span>${safeText}</span><div class="bubble-time"><span class="status-text">${msg.status==='sending'?'Sending...':''}</span>${statusIcon} ${time}</div>`; box.appendChild(div); box.scrollTop=box.scrollHeight;
+  return div.dataset.bubbleId;
 }
-// ===== IMAGE PICK -> PREVIEW + CAPTION -> SEND =====
+function markBubbleSent(id){ if(!id) return; const el=document.querySelector(`[data-bubble-id="${id}"]`); if(el){ const s=el.querySelector('.status-text'); if(s) s.innerText=''; const svg=el.querySelector('.bubble-time svg'); if(svg) svg.remove(); } }
+function markBubbleWaiting(id){ if(!id) return; const el=document.querySelector(`[data-bubble-id="${id}"]`); if(el){ const s=el.querySelector('.status-text'); if(s) s.innerText='Waiting for network... '; } }
 function handleImagePick(e){
   const file=e.target.files[0]; e.target.value=''; if(!file || !currentChat) return; if(file.size>5*1024*1024){ toast('Max 5MB'); return; }
   pendingImageFile=file;
@@ -219,17 +277,18 @@ async function sendImageWithCaption(){
   const caption=document.getElementById('caption-input').value.trim();
   const dataUrl=pendingImageDataUrl; const file=pendingImageFile;
   closeImagePreview();
-  addBubble({text:caption,imageUrl:dataUrl,senderId:MY_USER_ID,createdAt:new Date()});
+  const bubbleId=addBubble({text:caption,imageUrl:dataUrl,senderId:MY_USER_ID,createdAt:new Date(),status:'sending'});
   if(isGolViralAI){
     const historyBefore=getLast3();
     showTyping();
     let scannedText='';
     try{ const { data:{ text } } = await Tesseract.recognize(file,'eng'); scannedText=text.trim(); }catch{ scannedText=''; }
     const msgToSend = caption ? caption + (scannedText ? ` [Text in image: "${scannedText}"]` : '') : (scannedText ? `I uploaded an image. Text in image: "${scannedText}". Make it viral for GolViral, give caption and hashtags.` : 'Analyze this image for GolViral, give caption and viral tips.');
-    try{ const res=await fetch(AI_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msgToSend,history:historyBefore,imageData:dataUrl,imageText:scannedText})}); const data=await res.json(); hideTyping(); addBubble({text:data.reply||'Nice image bestie.',senderId:'golviral-ai',scanned:scannedText||null,createdAt:new Date()}); saveGolViralHistory('user',msgToSend); saveGolViralHistory('assistant',data.reply||''); }
-    catch{ hideTyping(); addBubble({text:'I see your image. Nice one. Want a caption for it? I am GolViral AI.',senderId:'golviral-ai',createdAt:new Date()}); }
+    try{ const data=await fetchAIWithRetry({message:msgToSend,history:historyBefore,imageData:dataUrl,imageText:scannedText}); hideTyping(); document.getElementById('net-banner').style.display='none'; markBubbleSent(bubbleId); const clean=cleanAIReply(data.reply); addBubble({text:clean,senderId:'golviral-ai',scanned:scannedText||null,createdAt:new Date()}); saveGolViralHistory('user',msgToSend); saveGolViralHistory('assistant',clean); }
+    catch{ hideTyping(); const q=getPending(); q.push({payload:{message:msgToSend,history:historyBefore,imageData:dataUrl,imageText:scannedText},at:Date.now()}); savePending(q); document.getElementById('net-banner').style.display='block'; markBubbleWaiting(bubbleId); toast('Waiting for connection - will send automatically'); }
   } else {
     if(socket) socket.emit('send_message',{receiverId:currentChat,text:caption||'[Image]',imageUrl:dataUrl});
+    markBubbleSent(bubbleId);
   }
 }
 function changeBackground(){ document.getElementById('bg-upload').click(); }
@@ -239,10 +298,9 @@ function handleBgUpload(e){
   reader.onload=ev=>{ img.src=ev.target.result; img.onload=()=>{ const canvas=document.createElement('canvas'); const max=800; let w=img.width, h=img.height; if(w>max || h>max){ const r=Math.min(max/w, max/h); w*=r; h*=r; } canvas.width=w; canvas.height=h; canvas.getContext('2d').drawImage(img,0,0,w,h); const compressed=canvas.toDataURL('image/jpeg',0.6); try{ localStorage.setItem(`bg_${currentChat}`, compressed); document.body.style.setProperty('--chat-bg',`url(${compressed})`); toast('Background updated'); }catch{ toast('Storage full - use smaller image'); } }; };
   reader.readAsDataURL(file); e.target.value='';
 }
-function toast(msg){ const t=document.createElement('div'); t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--glass);backdrop-filter:blur(10px);padding:10px 16px;border-radius:12px;border:1px solid var(--border);z-index:400'; t.innerText=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2000); }
+function toast(msg){ const t=document.createElement('div'); t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--glass);backdrop-filter:blur(10px);padding:10px 16px;border-radius:12px;border:1px solid var(--border);z-index:400'; t.innerText=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
 function showError(){document.getElementById('dm-error').style.display='flex'}
 function closeError(){document.getElementById('dm-error').style.display='none'}
-// Keep input stuck when keyboard opens - iOS / Android
 if(window.visualViewport){ window.visualViewport.addEventListener('resize',()=>{ const chat=document.getElementById('chat-screen'); if(chat && chat.style.display==='flex'){ document.body.style.height=window.visualViewport.height+'px'; const box=document.getElementById('chat-box'); box.scrollTop=box.scrollHeight; } }); }
 document.getElementById('msg-input').addEventListener('focus',()=>{ setTimeout(()=>{ const box=document.getElementById('chat-box'); box.scrollTop=box.scrollHeight; },300); });
 initSocket();
