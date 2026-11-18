@@ -113,7 +113,7 @@ let socket=null, currentChat=null, isGolViralAI=false, lastTyping=0, pendingImag
 function getGolViralHistory(){ try{ return JSON.parse(localStorage.getItem('golviral_history')||'[]'); }catch{ return []; } }
 function saveGolViralHistory(role,content){ let h=getGolViralHistory(); h.push({role,content}); h=h.slice(-6); localStorage.setItem('golviral_history',JSON.stringify(h)); }
 function getLast3(){ return getGolViralHistory().slice(-3); }
-function cleanAIReply(t){ if(!t) return ''; return t.replace(/\*\*(.*?)\*\*/g,'$1').replace(/__(.*?)__/g,'$1').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2300}-\u{23FF}\u{FE0F}\u{200D}]/gu,'').replace(/\s{2,}/g,' ').trim(); }
+function cleanAIReply(t){ if(!t) return ''; return t.replace(/\*\*(.*?)\*\*/g,'$1').replace(/__(.*?)__/g,'$1').trim(); }
 function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
 function linkify(text){
   const escaped = escapeHtml(text);
