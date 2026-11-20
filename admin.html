@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,17 +6,19 @@
   <title>GolViral - Admin Dashboard</title>
   <style>
     :root { 
-      --bg: #000000; 
-      --card: #181818; 
+      --bg: #070907; 
+      --card: rgba(255,255,255,0.04); 
       --accent: #00ff88; 
+      --accent2: #3b82f6; 
+      --gradient: linear-gradient(135deg,#00ff88,#3b82f6);
       --text: #ffffff; 
-      --text-muted: #888888; 
-      --border: #262626; 
+      --text-muted: #a1a1aa; 
+      --border: rgba(255,255,255,0.08); 
       --danger: #ff4444; 
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { 
-      background-color: var(--bg); 
+      background: radial-gradient(600px 300px at 50% -50px, rgba(0,255,136,0.15), transparent), var(--bg);
       color: var(--text); 
       font-family: system-ui, -apple-system, sans-serif; 
       max-width: 700px; 
@@ -33,35 +34,36 @@
       width: 100%; 
       max-width: 400px; 
       margin: auto; 
-      background: var(--card); 
+      background: #101210; 
       border: 1px solid var(--border); 
-      border-radius: 16px; 
+      border-radius: 20px; 
       padding: 30px; 
       display: flex; 
       flex-direction: column; 
       gap: 15px; 
       text-align: center; 
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     }
-    #loginBox h1 { font-size: 1.5rem; color: var(--accent); }
+    #loginBox h1 { font-size: 1.5rem; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     #loginBox input { 
       width: 100%; 
       background: #000; 
       border: 1px solid var(--border); 
       color: var(--text); 
       padding: 14px; 
-      border-radius: 8px; 
+      border-radius: 12px; 
       outline: none; 
       font-size: 1rem; 
     }
     #loginBox input:focus { border-color: var(--accent); }
     #loginBox button { 
       padding: 14px; 
-      border-radius: 8px; 
+      border-radius: 12px; 
       border: none; 
-      font-weight: bold; 
+      font-weight: 800; 
       cursor: pointer; 
       font-size: 1rem; 
-      background: var(--accent); 
+      background: var(--gradient); 
       color: #000; 
     }
     .error { color: var(--danger); font-size: 0.9rem; min-height: 20px; }
@@ -71,7 +73,8 @@
     .top-bar { 
       position: sticky; 
       top: 0; 
-      background: var(--bg); 
+      background: rgba(7,9,7,0.85); 
+      backdrop-filter: blur(16px);
       z-index: 10; 
       padding: 10px 0; 
       display: flex; 
@@ -80,58 +83,60 @@
       border-bottom: 1px solid var(--border); 
       margin-bottom: 15px; 
     }
-    .top-bar h1 { font-size: 1.1rem; font-weight: bold; color: var(--text); }
+    .top-bar h1 { font-size: 1.1rem; font-weight: 800; color: var(--text); }
     .back-btn { background: none; border: none; color: var(--text); font-size: 1.2rem; cursor: pointer; }
-    .logout-btn { background: var(--danger); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+    .logout-btn { background: var(--danger); border: none; color: #fff; padding: 6px 12px; border-radius: 999px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
     
     .tabs-nav { 
       display: flex; 
-      gap: 10px;
+      gap: 8px;
       border-bottom: 1px solid var(--border); 
-      background: var(--bg); 
+      background: transparent; 
       position: sticky; 
       top: 52px; 
       z-index: 9; 
       overflow-x: auto; 
       margin-bottom: 15px; 
       scrollbar-width: none;
+      padding-bottom: 4px;
     }
     .tabs-nav::-webkit-scrollbar { display: none; }
     .tab-btn { 
-      padding: 12px 16px; 
+      padding: 10px 14px; 
       text-align: center; 
-      background: none; 
-      border: none; 
+      background: #131513; 
+      border: 1px solid var(--border); 
       color: var(--text-muted); 
-      font-weight: 600; 
-      font-size: 0.85rem; 
+      font-weight: 700; 
+      font-size: 0.82rem; 
       cursor: pointer; 
-      border-bottom: 2px solid transparent; 
+      border-radius: 999px;
       transition: all 0.2s; 
       white-space: nowrap; 
     }
-    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn.active { color: #000; background: var(--gradient); border-color: transparent; }
     .tab-content { display: none; }
     .tab-content.active { display: flex; flex-direction: column; gap: 15px; }
     
     .card { 
       background: var(--card); 
       border: 1px solid var(--border); 
-      border-radius: 12px; 
+      border-radius: 18px; 
       padding: 15px; 
       display: flex; 
       flex-direction: column; 
       gap: 12px; 
+      backdrop-filter: blur(10px);
     }
     .card-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.95rem; }
-    .media-preview { width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; background: #000; border: 1px solid var(--border); }
+    .media-preview { width: 100%; max-height: 300px; object-fit: contain; border-radius: 12px; background: #000; border: 1px solid var(--border); }
     .btn-group { display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap; }
-    .btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; min-width: 80px; }
-    .btn-accent { background: var(--accent); color: #000; } 
+    .btn { flex: 1; padding: 11px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; font-size: 0.85rem; text-align: center; min-width: 80px; }
+    .btn-accent { background: var(--gradient); color: #000; } 
     .btn-danger { background: var(--danger); color: #fff; } 
     .btn-secondary { background: #262626; color: var(--text); }
     
-    textarea, input { width: 100%; background: #000; border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; outline: none; font-family: inherit; }
+    textarea, input { width: 100%; background: #000; border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 12px; outline: none; font-family: inherit; }
     textarea:focus, input:focus { border-color: var(--accent); }
     
     .toast { 
@@ -142,7 +147,7 @@
       background: var(--accent); 
       color: #000; 
       padding: 10px 20px; 
-      border-radius: 20px; 
+      border-radius: 999px; 
       font-weight: bold; 
       z-index: 999; 
       opacity: 0; 
@@ -151,7 +156,7 @@
       box-shadow: 0 4px 12px rgba(0,255,136,0.3);
     }
     .empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 0.9rem; }
-    .badge { padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
+    .badge { padding: 4px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: bold; }
     .badge-success { background: rgba(0, 255, 136, 0.15); color: var(--accent); border: 1px solid var(--accent); }
     .badge-danger { background: rgba(255, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
     .badge-shard { background: #333; color: #ccc; }
@@ -162,13 +167,17 @@
     .summary-box {
       background: #111; 
       padding: 12px 16px; 
-      border-radius: 8px; 
+      border-radius: 14px; 
       border: 1px solid var(--border); 
       display: flex; 
       justify-content: space-between; 
       align-items: center;
       font-size: 0.85rem;
     }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card { background: #111; border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+    .stat-card b { font-size: 1.4rem; display: block; }
+    .stat-card span { font-size: 0.78rem; color: var(--text-muted); }
   </style>
 </head>
 <body>
@@ -193,6 +202,7 @@
       <button class="tab-btn active" onclick="switchTab('users', event)">Users</button>
       <button class="tab-btn" onclick="switchTab('kyc', event)">KYC Requests</button>
       <button class="tab-btn" onclick="switchTab('posts', event)">Pending Posts</button>
+      <button class="tab-btn" onclick="switchTab('scan', event)">Post Scan</button>
       <button class="tab-btn" onclick="switchTab('payouts', event)">Payouts</button>
       <button class="tab-btn" onclick="switchTab('deposits', event)">Deposits</button>
       <button class="tab-btn" onclick="switchTab('support', event)">Support</button>
@@ -212,6 +222,19 @@
 
     <div id="tab-posts" class="tab-content">
       <div id="posts-container">Loading pending posts...</div>
+    </div>
+
+    <div id="tab-scan" class="tab-content">
+      <div class="card">
+        <div class="card-header"><span>Post Scan — PRE_UPLOAD older than 5 days</span><span class="badge badge-danger">CLEANUP</span></div>
+        <p style="font-size:0.85rem;color:var(--text-muted)">Check totals, list stuck posts, then delete them. Delete also refunds 10 for novel/store, 25 for reel.</p>
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="loadPostScan('stats')">Totals</button>
+          <button class="btn btn-accent" onclick="loadPostScan('list')">List Stuck</button>
+          <button class="btn btn-danger" onclick="deleteStuckPosts()">Delete Stuck (5d+)</button>
+        </div>
+      </div>
+      <div id="scan-container">Tap Totals to see all posts in DB.</div>
     </div>
 
     <div id="tab-payouts" class="tab-content">
@@ -338,6 +361,7 @@
       if (tabId === 'users') loadUsers();
       if (tabId === 'kyc') loadKYC();
       if (tabId === 'posts') loadPendingPosts(); // NOW USES CDN
+      if (tabId === 'scan') loadPostScan('stats');
       if (tabId === 'payouts') loadPayouts();
       if (tabId === 'deposits') loadDeposits();
       if (tabId === 'support') loadSupport();
@@ -528,6 +552,41 @@
         showToast('Rejected & refunded'); 
         document.getElementById(`post-card-${postId}`)?.remove(); 
       } 
+    }
+
+    // ========== 3B. POST SCAN - NEW ONLY ==========
+    async function loadPostScan(action){
+      const container = document.getElementById('scan-container');
+      container.innerHTML = 'Loading scan...';
+      const data = await fetchAPI('/api/admin/posts/scan', { method: 'POST', body: JSON.stringify({ action }) });
+      if(!data) return;
+      const t = data.totals || {};
+      const byType = (t.byType||[]).map(x=>`<div>${x.type}: <b>${x.count}</b></div>`).join('') || 'No posts yet';
+      const byStatus = (t.byStatus||[]).map(x=>`<div>${x.status}: <b>${x.count}</b></div>`).join('') || 'No posts yet';
+      let html = `
+        <div class="stat-grid">
+          <div class="stat-card"><b>${t.total||0}</b><span>Total Posts in DB</span></div>
+          <div class="stat-card"><b style="color:var(--danger)">${t.preUploadOlderThan5Days||0}</b><span>PRE_UPLOAD older than 5 days</span></div>
+        </div>
+        <div class="card"><div class="card-header"><span>By Type</span></div><div style="font-size:0.85rem;color:var(--text-muted)">${byType}</div></div>
+        <div class="card"><div class="card-header"><span>By Status</span></div><div style="font-size:0.85rem;color:var(--text-muted)">${byStatus}</div></div>
+      `;
+      if(action==='list'){
+        const posts = data.posts || [];
+        if(posts.length===0) html += '<div class="empty-state">No stuck PRE_UPLOAD posts older than 5 days. Clean!</div>';
+        else html += posts.map(p=>`
+          <div class="card">
+            <div class="card-header"><span>${p.type} • ${p.title||'Untitled'}</span><span class="badge badge-danger">PRE_UPLOAD</span></div>
+            <div class="info-grid"><div>User: ${p.userId?.slice(0,10)}...</div><div>ID: ${p.id?.slice(0,8)}...</div><div>Created: ${new Date(p.createdAt).toLocaleString()}</div><div>Caption: ${(p.caption||'').slice(0,40)}</div></div>
+          </div>`).join('');
+      }
+      if(action==='stats') html += '<div class="empty-state">Tap List Stuck to see the stuck posts.</div>';
+      container.innerHTML = html;
+    }
+    async function deleteStuckPosts(){
+      if(!confirm('Delete ALL PRE_UPLOAD posts older than 5 days? This will refund credits. This cannot be undone.')) return;
+      const data = await fetchAPI('/api/admin/posts/scan', { method: 'POST', body: JSON.stringify({ action: 'delete' }) });
+      if(data){ showToast(`Deleted ${data.deleted} posts, refunded ${data.refundedTotal} credits`); loadPostScan('stats'); }
     }
 
     // ========== 4. PAYOUTS ==========
