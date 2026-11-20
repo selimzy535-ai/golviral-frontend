@@ -35,6 +35,13 @@ svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;cursor:p
 .bubble-time{font-size:10px;color:var(--muted);margin-top:4px;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:4px;user-select:none;-webkit-user-select:none}
 .sent .bubble-time{color:rgba(0,0,0,0.6)}
 .bubble img{width:100%;border-radius:12px;display:block;margin-bottom:6px;user-select:none;-webkit-user-select:none}
+.bubble-actions{display:flex;justify-content:flex-end;margin-top:6px}
+.copy-btn{background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.15);border-radius:999px;width:28px;height:28px;min-width:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.copy-btn svg{width:14px;height:14px;stroke:#fff}
+.sent .copy-btn{background:rgba(0,0,0,0.18);border-color:rgba(0,0,0,0.15)}
+.sent .copy-btn svg{stroke:#000}
+.recv .copy-btn{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15)}
+.recv .copy-btn svg{stroke:#fff}
 .input-area{padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;z-index:10;flex-shrink:0;position:sticky;bottom:0;left:0;right:0}
 .input{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);padding:14px 16px;border-radius:26px;outline:none;font-size:16px;min-height:52px}
 .send-btn{background:var(--gradient);border:none;border-radius:50%;width:56px;height:56px;min-width:56px;display:flex;justify-content:center;align-items:center;cursor:pointer;flex-shrink:0}
@@ -128,11 +135,22 @@ function linkify(text){
 async function copyBubbleText(el, rawText){
   const text = rawText || el.querySelector('.bubble-text')?.innerText || el.innerText || '';
   const clean = text.replace(/\n(Sending\.\.\.|Waiting for network\.\.\.)\s*$/,'').trim();
-  if(!clean) return;
-  try{ await navigator.clipboard.writeText(clean); }catch{
-    const ta=document.createElement('textarea'); ta.value=clean; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  if(!clean){ toast('Nothing to copy'); return; }
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(clean);
+      toast('Copied');
+      return;
+    }
+    throw new Error('no-clipboard');
+  }catch{
+    try{
+      const ta=document.createElement('textarea'); ta.value=clean; ta.style.position='fixed'; ta.style.left='0'; ta.style.top='0'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, clean.length);
+      const ok=document.execCommand('copy'); ta.remove();
+      if(ok){ toast('Copied'); return; }
+    }catch{}
+    toast('Copy failed - long-press to copy');
   }
-  toast('Copied');
 }
 function showScreen(s){ document.getElementById('chat-list-screen').style.display=s==='list'?'block':'none'; document.getElementById('chat-screen').style.display=s==='chat'?'flex':'none'; }
 async function api(path,opt={}){ const res=await fetch(API+path,{...opt,headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json',...opt.headers}}); if(res.status===401) location.href='auth.html'; return res.json(); }
@@ -259,13 +277,12 @@ function addBubble(msg){
   let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" alt="image">` : '';
   let scanHtml = '';
   let statusIcon = msg.status==='sending' ? `<svg style="width:12px;height:12px;stroke:#000" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>` : '';
-  div.innerHTML = `${imgHtml}${scanHtml}<span class="bubble-text">${safeText}</span><div class="bubble-time"><span class="status-text">${msg.status==='sending'?'Sending...':''}</span>${statusIcon} ${time}</div>`; box.appendChild(div); box.scrollTop=box.scrollHeight;
+  const hasText = !!(msg.text && msg.text.trim());
+  const copyBtnHtml = hasText ? `<div class="bubble-actions"><button class="copy-btn" type="button" title="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>` : '';
+  div.innerHTML = `${imgHtml}${scanHtml}<span class="bubble-text">${safeText}</span><div class="bubble-time"><span class="status-text">${msg.status==='sending'?'Sending...':''}</span>${statusIcon} ${time}</div>${copyBtnHtml}`; box.appendChild(div); box.scrollTop=box.scrollHeight;
   div.dataset.rawText = msg.text || '';
-  let pressTimer=null;
-  div.addEventListener('touchstart',()=>{ pressTimer=setTimeout(()=>copyBubbleText(div, div.dataset.rawText), 500); }, {passive:true});
-  div.addEventListener('touchend',()=>{ if(pressTimer) clearTimeout(pressTimer); }, {passive:true});
-  div.addEventListener('touchmove',()=>{ if(pressTimer) clearTimeout(pressTimer); }, {passive:true});
-  div.addEventListener('contextmenu',(e)=>{ e.preventDefault(); copyBubbleText(div, div.dataset.rawText); });
+  const copyBtn = div.querySelector('.copy-btn');
+  if(copyBtn){ copyBtn.addEventListener('click',(e)=>{ e.stopPropagation(); copyBubbleText(div, div.dataset.rawText); }); }
   return div.dataset.bubbleId;
 }
 function markBubbleSent(id){ if(!id) return; const el=document.querySelector(`[data-bubble-id="${id}"]`); if(el){ const s=el.querySelector('.status-text'); if(s) s.innerText=''; const svg=el.querySelector('.bubble-time svg'); if(svg) svg.remove(); } }
