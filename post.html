@@ -250,6 +250,17 @@ async function submitPost(){
     });
     const intent=await intentRes.json();
     if(intent.error) throw new Error(intent.error);
+    // --- NOVEL FIX ONLY: publish novel so backend sets it to ACTIVE ---
+    if(uiType==='shortstory'){
+      btn.innerText='Publishing...';
+      const createRes=await fetch(API+'/api/post/create',{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+        body:JSON.stringify({postId:intent.postId, objectKey:intent.objectKey||'', title:title, content:caption})
+      });
+      const created=await createRes.json();
+      if(created.error) throw new Error(created.error);
+    }
     if(uiType!=='shortstory'){
       btn.innerText='Uploading...';
       const form=new FormData();
