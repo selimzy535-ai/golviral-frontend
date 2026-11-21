@@ -187,6 +187,21 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
 
 <script src="config.js"></script>
 <script>
+(function(){
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const btn = document.getElementById('iosInstallBtn');
+  const modal = document.getElementById('iosInstallModal');
+  if (!isIOS || isStandalone) return;
+  btn.style.display = 'block';
+  btn.onclick = () => { modal.style.display = 'flex'; document.body.style.overflow='hidden'; };
+  document.getElementById('iosCloseBtn').onclick = document.getElementById('iosDismissBtn').onclick = () => {
+    modal.style.display='none'; document.body.style.overflow='';
+  };
+  modal.onclick = (e) => { if(e.target===modal){ modal.style.display='none'; document.body.style.overflow=''; } };
+})();
+</script>
+<script>
 let currentTab='login';
 let pendingData=null;
 let botToken=null;
