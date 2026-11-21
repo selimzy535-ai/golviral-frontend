@@ -1,3 +1,4 @@
+Okay leave captcha as it and everything else just set the iOS instructions prompt properly and drop full code don’t touch anything else everything same 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -148,8 +149,6 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   </form>
 </main>
 
-<button id="iosInstallBtn" type="button" style="display:none;margin:0 20px 10px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;font-weight:700;width:calc(100% - 40px);cursor:pointer;font-size:14px;text-align:center">📱 Install GolViral App for iPhone</button>
-
 <div id="bot-modal" class="modal">
   <div class="glass-modal">
     <h3 style="margin-bottom:12px">Verify You Are Human</h3>
@@ -183,50 +182,12 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   </div>
 </div>
 
-<div id="iosInstallModal" class="modal">
-  <div class="glass-modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h3>Install GolViral on iPhone</h3>
-      <button id="iosCloseBtn" type="button" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">&times;</button>
-    </div>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">GolViral is not on the App Store yet. Install it in 3 taps, it works like a normal app.</p>
-    <div style="display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px">
-      <div style="width:26px;height:26px;min-width:26px;border-radius:50%;background:var(--gradient);color:#000;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center">1</div>
-      <p style="font-size:14px;line-height:1.4">Tap the Share button <strong>at the bottom of Safari</strong><br><span style="color:var(--muted);font-size:12px">It looks like a square with an arrow pointing up</span></p>
-    </div>
-    <div style="display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px">
-      <div style="width:26px;height:26px;min-width:26px;border-radius:50%;background:var(--gradient);color:#000;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center">2</div>
-      <p style="font-size:14px;line-height:1.4">Scroll down and tap <strong>Add to Home Screen</strong><br><span style="color:var(--muted);font-size:12px">If you do not see it, tap Edit Actions and add it</span></p>
-    </div>
-    <div style="display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:16px">
-      <div style="width:26px;height:26px;min-width:26px;border-radius:50%;background:var(--gradient);color:#000;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center">3</div>
-      <p style="font-size:14px;line-height:1.4">Tap <strong>Add</strong> at the top right<br><span style="color:var(--muted);font-size:12px">GolViral will appear on your Home Screen like a normal app</span></p>
-    </div>
-    <button class="btn" id="iosDismissBtn" type="button">Got It</button>
-    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:12px">You must use Safari. It does not work in Chrome or in-app browsers like WhatsApp / Facebook.</p>
-  </div>
-</div>
-
 <footer class="social-proof">
   Join millions of creators earning with GolViral and meet more friends by following, chatting and more.
 </footer>
 
 <script src="config.js"></script>
-<script>
-(function(){
-  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  const btn = document.getElementById('iosInstallBtn');
-  const modal = document.getElementById('iosInstallModal');
-  if (!isIOS || isStandalone) return;
-  btn.style.display = 'block';
-  btn.onclick = () => { modal.style.display = 'flex'; document.body.style.overflow='hidden'; };
-  document.getElementById('iosCloseBtn').onclick = document.getElementById('iosDismissBtn').onclick = () => {
-    modal.style.display='none'; document.body.style.overflow='';
-  };
-  modal.onclick = (e) => { if(e.target===modal){ modal.style.display='none'; document.body.style.overflow=''; } };
-})();
-</script>
+
 <script>
 let currentTab='login';
 let pendingData=null;
