@@ -92,11 +92,6 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
 .progress{height:4px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden}
 .progress-bar{height:100%;width:0%;background:var(--gradient);transition:0.3s}
 .social-proof{text-align:center;padding:20px;margin-top:auto;font-size:13px;color:var(--muted);line-height:1.5}
-.ios-install-btn{display:none;margin:0 20px 10px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;font-weight:700;width:calc(100% - 40px);cursor:pointer;font-size:14px;text-align:center}
-.ios-step{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
-.ios-step-num{width:26px;height:26px;min-width:26px;border-radius:50%;background:var(--gradient);color:#000;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center}
-.ios-step p{font-size:14px;line-height:1.4;color:var(--text)}
-.ios-step small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -153,7 +148,7 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   </form>
 </main>
 
-<button id="iosInstallBtn" class="ios-install-btn" type="button">📱 Install GolViral App for iPhone</button>
+<button id="iosInstallBtn" type="button" style="display:none;margin:0 20px 10px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;font-weight:700;width:calc(100% - 40px);cursor:pointer;font-size:14px;text-align:center">📱 Install GolViral App for iPhone</button>
 
 <div id="bot-modal" class="modal">
   <div class="glass-modal">
@@ -195,17 +190,17 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
       <button id="iosCloseBtn" type="button" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">&times;</button>
     </div>
     <p style="color:var(--muted);font-size:14px;margin-bottom:16px">GolViral is not on the App Store yet. Install it in 3 taps, it works like a normal app.</p>
-    <div class="ios-step">
-      <div class="ios-step-num">1</div>
-      <p>Tap the Share button <strong>at the bottom of Safari</strong><small>It looks like a square with an arrow pointing up ↑</small></p>
+    <div style="display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="width:26px;height:26px;min-width:26px;border-radius:50%;background:var(--gradient);color:#000;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center">1</div>
+      <p style="font-size:14px;line-height:1.4">Tap the Share button <strong>at the bottom of Safari</strong><br><span style="color:var(--muted);font-size:12px">It looks like a square with an arrow pointing up</span></p>
     </div>
-    <div class="ios-step">
-      <div class="ios-step-num">2</div>
-      <p>Scroll down and tap <strong>Add to Home Screen</strong><small>If you do not see it, tap Edit Actions and add it</small></p>
+    <div style="display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="width:26px;height:26px;min-width:26px;border-radius:50%;background:var(--gradient);color:#000;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center">2</div>
+      <p style="font-size:14px;line-height:1.4">Scroll down and tap <strong>Add to Home Screen</strong><br><span style="color:var(--muted);font-size:12px">If you do not see it, tap Edit Actions and add it</span></p>
     </div>
-    <div class="ios-step">
-      <div class="ios-step-num">3</div>
-      <p>Tap <strong>Add</strong> at the top right<small>GolViral will appear on your Home Screen like a normal app</small></p>
+    <div style="display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:16px">
+      <div style="width:26px;height:26px;min-width:26px;border-radius:50%;background:var(--gradient);color:#000;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center">3</div>
+      <p style="font-size:14px;line-height:1.4">Tap <strong>Add</strong> at the top right<br><span style="color:var(--muted);font-size:12px">GolViral will appear on your Home Screen like a normal app</span></p>
     </div>
     <button class="btn" id="iosDismissBtn" type="button">Got It</button>
     <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:12px">You must use Safari. It does not work in Chrome or in-app browsers like WhatsApp / Facebook.</p>
@@ -223,18 +218,13 @@ svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   const btn = document.getElementById('iosInstallBtn');
   const modal = document.getElementById('iosInstallModal');
-  const closeBtn = document.getElementById('iosCloseBtn');
-  const dismissBtn = document.getElementById('iosDismissBtn');
-  if (!isIOS || isStandalone || !btn || !modal) return;
+  if (!isIOS || isStandalone) return;
   btn.style.display = 'block';
-  function closeModal(){
-    modal.classList.remove('active');
-    document.body.style.overflow='';
-  }
-  btn.onclick = () => { modal.classList.add('active'); document.body.style.overflow='hidden'; };
-  if(closeBtn) closeBtn.onclick = closeModal;
-  if(dismissBtn) dismissBtn.onclick = closeModal;
-  modal.onclick = (e) => { if(e.target===modal){ closeModal(); } };
+  btn.onclick = () => { modal.style.display = 'flex'; document.body.style.overflow='hidden'; };
+  document.getElementById('iosCloseBtn').onclick = document.getElementById('iosDismissBtn').onclick = () => {
+    modal.style.display='none'; document.body.style.overflow='';
+  };
+  modal.onclick = (e) => { if(e.target===modal){ modal.style.display='none'; document.body.style.overflow=''; } };
 })();
 </script>
 <script>
